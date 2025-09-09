@@ -4,7 +4,7 @@ import '../../../../../core/network/dio_client.dart';
 import '../../../../../core/network/app_environment.dart';
 
 final dioClientProvider = Provider<DioClient>((ref) {
-  final config = AppConfig.forEnv(AppEnvironment.production); // TODO: inject env
+  final config = AppConfig.forEnv(AppEnvironment.staging); // TODO: inject env
   return DioClient.create(config);
 });
 
@@ -18,9 +18,16 @@ class PosRemoteDataSource {
 
   Endpoints get _e => _client.endpoints;
 
-  Future<dynamic> fetchHomeMenu() async => _client.getJson(_e.bootIndex);
+  Future<dynamic> fetchHomeMenu() async => _client.getJson(_e.bootIndexV1);
 
   Future<dynamic> fetchCategoriesV2() async => _client.getJson(_e.bootIndexCategoryV2);
+
+  // Activate (V3) - returns shop info with categories etc.
+  Future<dynamic> activateBoot({required String code, String? machineCode}) async {
+    // Assuming POST with code; adjust if GET contract differs
+    final payload = {'code': code, if (machineCode != null) 'machineCode': machineCode};
+    return _client.postJson(_e.activateV3, body: payload);
+  }
 
   Future<dynamic> fetchMenuByCategoryV2(String categoryId) async =>
       _client.getJson(_e.bootIndexMenuV2, query: {'categoryId': categoryId});

@@ -1,0 +1,167 @@
+{
+    "shopCode" : "UGE4RRQR",
+    "machineCode" : null,
+    "languages" : [ {
+      "val" : "JP",
+      "name" : "日本語"
+    }, {
+      "val" : "CH",
+      "name" : "中文"
+    }, {
+      "val" : "EN",
+      "name" : "English"
+    }, {
+      "val" : "KO",
+      "name" : "한국말"
+    } ],
+    "shopName" : "1甘蘭居酒屋2025",
+    "ntaNo" : "T8120001223480",
+    "stationMachineCode" : "YYRAEB1NXZWKCORUYJ",
+    "language" : "JP",
+    "shopAddress" : "大阪市北区天満2-1-12天満橋SEビル 6F%%甘蘭株式会社",
+    "shopTelephone" : "090-8888-9999",
+    "businessTime" : "年中午休 11:00 ~ 24:00",
+    "seatNumber" : null,
+    "categoryVoList" : [ {
+      "categoryCode" : "437700996357095424",
+      "categoryName" : "おすすめ",
+      "showType" : "mixed_two_column_v1",
+      "color" : "#6EB307",
+      "background" : null,
+      "image" : "https://image-sit.smartwe.co.jp/UGE4RRQR/454684996817059840.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "printReceipt" : 10,
+      "menuVoList" : [ ]
+    }, {
+      "categoryCode" : "435637013891186688",
+      "categoryName" : "ミルクティー",
+      "showType" : "mixed_two_column_v1",
+      "color" : "#DC10A2",
+      "background" : null,
+      "image" : "https://image-sit.smartwe.co.jp/UGE4RRQR/454685053218390016.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "printReceipt" : 10,
+      "menuVoList" : [ ]
+    }, {
+      "categoryCode" : "435620795897282560",
+      "categoryName" : "ドリンク",
+      "showType" : "three_column_v1",
+      "color" : "#6281EE",
+      "background" : null,
+      "image" : "https://image-sit.smartwe.co.jp/UGE4RRQR/453127295397199872.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "printReceipt" : 21,
+      "menuVoList" : [ ]
+    }, {
+      "categoryCode" : "435620787224772608",
+      "categoryName" : "お酒",
+      "showType" : "mixed_two_column",
+      "color" : "#DE7300",
+      "background" : null,
+      "image" : "https://image-sit.smartwe.co.jp/UGE4RRQR/453127067468759040.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "printReceipt" : 22,
+      "menuVoList" : [ ]
+    }, {
+      "categoryCode" : "435621310235607040",
+      "categoryName" : "焼き鳥",
+      "showType" : "mixed_column",
+      "color" : "#03B3A4",
+      "background" : null,
+      "image" : "https://image-sit.smartwe.co.jp/UGE4RRQR/453128073425649664.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "printReceipt" : 25,
+      "menuVoList" : [ ]
+    }, {
+      "categoryCode" : "435620759064477696",
+      "categoryName" : "逸品料理",
+      "showType" : "table_v1",
+      "color" : "#F05F32",
+      "background" : null,
+      "image" : "https://image-sit.smartwe.co.jp/UGE4RRQR/454685063035158528.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "printReceipt" : 22,
+      "menuVoList" : [ ]
+    }, {
+      "categoryCode" : "435636689643438080",
+      "categoryName" : "主食",
+      "showType" : "table",
+      "color" : "#069D84",
+      "background" : null,
+      "image" : "https://image-sit.smartwe.co.jp/UGE4RRQR/454685066395844608.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "printReceipt" : 22,
+      "menuVoList" : [ ]
+    }, {
+      "categoryCode" : "454708751513092096",
+      "categoryName" : "特製中華料理",
+      "showType" : "table",
+      "color" : "#ABC251",
+      "background" : null,
+      "image" : "https://image-sit.smartwe.co.jp/UGE4RRQR/454708751513092096/454714085314854912/454714085318262784.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "printReceipt" : 22,
+      "menuVoList" : [ ]
+    } ],
+    "onlineCall" : true,
+    "taxSystem" : true,
+    "dynamicCode" : true,
+    "multiplayer" : true,
+    "canToOrder" : null,
+    "uniqueOrderKey" : null,
+    "linePayChannelMap" : null,
+    "recommends" : [ 435620905145270272, 435620873852354560, 435620852267155456 ],
+    "recommendMenus" : [ {
+      "menuCode" : "435620852267155456",
+      "barCode" : "4946842529902",
+      "type" : 1,
+      "categoryCode" : "437700996357095424",
+      "mainTitle" : "牛すじドテ焼大根日8",
+      "subtitle" : [ "大根" ],
+      "printText" : "牛すじドテ焼大根日8",
+      "price" : 390,
+      "currentPrice" : 100,
+      "homeImage" : "https://image-sit.smartwe.co.jp/UGE4RRQR/437700996357095424/435620852267155456/438810863895511040.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "homeImageHttp" : null,
+      "images" : null,
+      "qtyBounds" : -1,
+      "extend1" : null,
+      "tax" : "2",
+      "boundsPrice" : null,
+      "timeBoundsStart" : [ 0, 1, 1 ],
+      "timeBoundsEnd" : [ 23, 59, 59 ],
+      "optionGroupVoList" : [ ]
+    }, {
+      "menuCode" : "435620905145270272",
+      "barCode" : "4946842530106",
+      "type" : 1,
+      "categoryCode" : "437700996357095424",
+      "mainTitle" : "ガリガリ木耳和え10",
+      "subtitle" : null,
+      "printText" : "ガリガリ木耳和え10",
+      "price" : 190,
+      "currentPrice" : 100,
+      "homeImage" : "https://image-sit.smartwe.co.jp/UGE4RRQR/437700996357095424/435620905145270272/435620905145270273.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "homeImageHttp" : null,
+      "images" : null,
+      "qtyBounds" : -1,
+      "extend1" : null,
+      "tax" : "1",
+      "boundsPrice" : null,
+      "timeBoundsStart" : [ 0, 1, 1 ],
+      "timeBoundsEnd" : [ 23, 59, 59 ],
+      "optionGroupVoList" : [ ]
+    }, {
+      "menuCode" : "435620873852354560",
+      "barCode" : "4946842530007",
+      "type" : 1,
+      "categoryCode" : "437700996357095424",
+      "mainTitle" : "中華風牛す(8%)",
+      "subtitle" : null,
+      "printText" : "中華風牛す(8%)",
+      "price" : 390,
+      "currentPrice" : 100,
+      "homeImage" : "https://image-sit.smartwe.co.jp/UGE4RRQR/437700996357095424/435620873852354560/435620873852354561.webp?Policy=eyJTdGF0ZW1lbnQiOiBbeyJSZXNvdXJjZSI6Imh0dHBzOi8vaW1hZ2Utc2l0LnNtYXJ0d2UuY28uanAvKiIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc1NzY4OTIwMH0sIklwQWRkcmVzcyI6eyJBV1M6U291cmNlSXAiOiIwLjAuMC4wLzAifSwiRGF0ZUdyZWF0ZXJUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3NTcyNTcyMDB9fX1dfQ__&Signature=pJEx0qVrPeod4kEq0tucpr6FNpH22~iwd9Bq9nxDEOhMqOADd4JLneaxn5i-~SjFArgduIDUhWIVZZ1DXoedDptv6zoR2QAHC4RyhB8v2D6LZYb0kofNZjVPtYyTebOHTjueRbh8cORUk0552OQBg-FuWrRWICk~5vVBHjo8WI1pK99x2nQFu6J3DJNOJg5UiCpT~eoZeOcrn0zDnySAn-I5rPzAkb7CGtlxnIkjeAJBq1B6m2T8isYuJTS3vLkd-jENsC~9qtiyFcWqQgU3rLp1OTCaIBcs43d4kDNssVLs3C5NwjdDS6u0sLvmJ7kbw8rwAUZQ98I7o7BAGoHLMA__&Key-Pair-Id=APKAQCBDBFIFSPBGSDVC",
+      "homeImageHttp" : null,
+      "images" : null,
+      "qtyBounds" : 498,
+      "extend1" : null,
+      "tax" : "2",
+      "boundsPrice" : null,
+      "timeBoundsStart" : [ 0, 1, 1 ],
+      "timeBoundsEnd" : [ 23, 59, 59 ],
+      "optionGroupVoList" : [ ]
+    } ]
+}

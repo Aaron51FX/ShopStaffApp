@@ -12,9 +12,9 @@ class PosViewModel extends StateNotifier<PosState> {
 
   // Temporary in-memory seed data (will be replaced by repository / use cases)
   final _allProducts = <Product>[
-    const Product(id: 1, name: '拿铁', categoryId: 'espresso', price: 32, imageUrl: ''),
-    const Product(id: 2, name: '美式咖啡', categoryId: 'espresso', price: 25, imageUrl: ''),
-    const Product(id: 3, name: '提拉米苏', categoryId: 'dessert', price: 38, imageUrl: ''),
+    const Product(id: 1, name: '拿铁', categoryId: 'espresso', price: 32, originalPrice: 35, tax: 10, imageUrl: ''),
+    const Product(id: 2, name: '美式咖啡', categoryId: 'espresso', price: 25, originalPrice: 28, tax: 10, imageUrl: ''),
+    const Product(id: 3, name: '提拉米苏', categoryId: 'dessert', price: 38, originalPrice: 40, tax: 8, imageUrl: ''),
   ];
 
   void bootstrap() {
@@ -82,8 +82,8 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   String _generateKey(Product p, List<SelectedOption> options) {
-    final sorted = [...options]..sort((a, b) => a.optionName.compareTo(b.optionName));
-    final optionKey = sorted.map((e) => '${e.groupName}:${e.optionName}').join('|');
+  final sorted = [...options]..sort((a, b) => a.optionCode.compareTo(b.optionCode));
+  final optionKey = sorted.map((e) => '${e.groupCode}:${e.optionCode}').join('|');
   return '${p.id}-$optionKey';
   }
 }
