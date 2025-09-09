@@ -7,8 +7,8 @@ class LoginPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.watch(activationViewModelProvider);
-    final controller = ref.read(activationViewModelProvider.notifier).codeController;
+  final vm = ref.watch(activationViewModelProvider);
+  final controller = ref.read(activationViewModelProvider.notifier).machineCodeController;
 
     return Scaffold(
       body: Center(
@@ -25,8 +25,8 @@ class LoginPage extends ConsumerWidget {
                 TextField(
                   controller: controller,
                   decoration: InputDecoration(
-                    labelText: '激活码',
-                    prefixIcon: const Icon(Icons.vpn_key),
+                    labelText: '机器码 (Machine Code)',
+                    prefixIcon: const Icon(Icons.confirmation_number),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.qr_code_scanner),
                       onPressed: () => ref.read(activationViewModelProvider.notifier).mockScan(),
@@ -36,7 +36,7 @@ class LoginPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
-                  onPressed: vm.isLoading || vm.code.trim().isEmpty ? null : () => ref.read(activationViewModelProvider.notifier).submit(context),
+                  onPressed: vm.isLoading || vm.machineCode.trim().isEmpty ? null : () => ref.read(activationViewModelProvider.notifier).submit(context),
                   child: vm.isLoading ? const SizedBox(height:20,width:20,child: CircularProgressIndicator(strokeWidth:2,color: Colors.white)) : const Text('激活并进入'),
                 ),
                 if (vm.error != null) ...[

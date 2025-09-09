@@ -6,12 +6,12 @@ import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/repositories/activation_repository.dart';
 
 class ActivationState {
-  final String code;
+  final String machineCode;
   final bool isLoading;
   final String? error;
-  const ActivationState({this.code = '', this.isLoading = false, this.error});
-  ActivationState copyWith({String? code, bool? isLoading, String? error}) => ActivationState(
-        code: code ?? this.code,
+  const ActivationState({this.machineCode = '', this.isLoading = false, this.error});
+  ActivationState copyWith({String? machineCode, bool? isLoading, String? error}) => ActivationState(
+        machineCode: machineCode ?? this.machineCode,
         isLoading: isLoading ?? this.isLoading,
         error: error,
       );
@@ -20,29 +20,38 @@ class ActivationState {
 class ActivationViewModel extends StateNotifier<ActivationState> {
   final KeyValueStore _store;
   final ActivationRepository _repo;
-  final TextEditingController codeController = TextEditingController();
+  final TextEditingController machineCodeController = TextEditingController();
+  // For now we hardcode app version; can be replaced with package_info_plus
+  static const String _appVersion = '1.0.0';
   ActivationViewModel(this._store, this._repo) : super(const ActivationState()) {
-    codeController.addListener(() {
-      state = state.copyWith(code: codeController.text, error: null);
+    machineCodeController.addListener(() {
+      state = state.copyWith(machineCode: machineCodeController.text, error: null);
     });
   }
 
   Future<void> mockScan() async {
-    // TODO integrate real QR scanner
-    codeController.text = 'X3V9YPJABVZGAELIZ9';
+    // TODO integrate real QR scanner for machine code
+    machineCodeController.text = 'X3V9YPJABVZGAELIZ9';
   }
 
   Future<void> submit(BuildContext context) async {
-    final raw = state.code.trim();
-    if (raw.isEmpty) return;
+    final mc = state.machineCode.trim();
+    if (mc.isEmpty) return;
     state = state.copyWith(isLoading: true, error: null);
     try {
-      await _repo.activate(raw);
-      await _store.write(AppStorageKeys.activationCode, raw);
+      debugPrint('[Activation] submit start machineCode=$mc');
+      await _repo.activate(machineCode: mc, version: _appVersion);
+      debugPrint('[Activation] backend success, writing storage');
+      // Persist machineCode under existing key for backward compatibility
+      await _store.write(AppStorageKeys.activationCode, mc);
+      final has = await _store.contains(AppStorageKeys.activationCode);
+      debugPrint('[Activation] storage contains=$has');
       if (context.mounted) {
+        debugPrint('[Activation] navigating to /pos');
         context.go('/pos');
       }
     } catch (e) {
+      debugPrint('[Activation] error: $e');
       state = state.copyWith(isLoading: false, error: '激活失败: $e');
       return;
     }
@@ -51,7 +60,7 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
 
   @override
   void dispose() {
-    codeController.dispose();
+    machineCodeController.dispose();
     super.dispose();
   }
 }

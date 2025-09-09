@@ -8,13 +8,34 @@ class ActivationRepositoryImpl implements ActivationRepository {
   final PosRemoteDataSource _remote;
   ActivationRepositoryImpl(this._remote);
   ShopInfoModel? _cachedShop;
+  String? _lastMachineCode;
+  Future<ShopInfoModel>? _inFlight;
+
   @override
-  Future<ShopInfoModel> activate(String code, {String? machineCode}) async {
-    final raw = await _remote.activateBoot(code: code, machineCode: machineCode);
-    if (raw is Map<String, dynamic>) {
-      _cachedShop = ShopInfoModel.fromJson(raw);
+  Future<ShopInfoModel> activate({required String machineCode, required String version}) async {
+    if (_cachedShop != null && _lastMachineCode == machineCode) {
+      // debug
+      // ignore: avoid_print
+      print('[ActivationRepo] return cached for $machineCode');
       return _cachedShop!;
     }
-    throw Exception('Invalid activateBoot response');
+    if (_inFlight != null) return _inFlight!;
+    // ignore: avoid_print
+    print('[ActivationRepo] firing network for $machineCode');
+    _inFlight = _remote.activateBoot(machineCode: machineCode, version: version).then((raw) {
+      if (raw is Map<String, dynamic>) {
+        _cachedShop = ShopInfoModel.fromJson(raw);
+        _lastMachineCode = machineCode;
+        // ignore: avoid_print
+        print('[ActivationRepo] network success cache set');
+        return _cachedShop!;
+      }
+      throw Exception('Invalid activateBoot response');
+    });
+    try {
+      return await _inFlight!;
+    } finally {
+      _inFlight = null;
+    }
   }
 }

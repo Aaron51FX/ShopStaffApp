@@ -28,15 +28,29 @@ class DioClient {
     final d = Dio(baseOptions);
     d.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        // TODO: attach token if available
+        // Initialize retry counter if absent
+        options.extra.putIfAbsent('_retries', () => 0);
         return handler.next(options);
       },
-      onError: (e, handler) {
+      onError: (e, handler) async {
         if (_shouldRetry(e)) {
-          d.fetch(e.requestOptions).then((r) => handler.resolve(r)).catchError((err, stack) {
-            handler.next(err is DioException ? err : DioException(requestOptions: e.requestOptions, error: err));
-          });
-          return;
+          final req = e.requestOptions;
+            final current = (req.extra['_retries'] as int? ?? 0);
+            const maxRetries = 3;
+            if (current < maxRetries) {
+              req.extra['_retries'] = current + 1;
+              // simple linear backoff
+              final delayMs = 200 * (current + 1);
+              await Future.delayed(Duration(milliseconds: delayMs));
+              try {
+                final response = await d.fetch(req);
+                return handler.resolve(response);
+              } catch (err) {
+                return handler.next(err is DioException
+                    ? err
+                    : DioException(requestOptions: req, error: err));
+              }
+            }
         }
         return handler.next(e);
       },

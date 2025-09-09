@@ -21,18 +21,18 @@ class AppConfig {
       case AppEnvironment.production:
         return const AppConfig._(
           env: AppEnvironment.production,
-          apiProfileBase: 'https://api.smartwe.jp/',
-          apiBase: 'https://api.smartwe.jp/',
-          fileBase: 'https://app.smartwe.co.jp/',
-          faceBase: 'https://oa.gutingjun.com/api/',
+          apiProfileBase: 'https://api.smartwe.jp',
+          apiBase: 'https://api.smartwe.jp',
+          fileBase: 'https://app.smartwe.co.jp',
+          faceBase: 'https://oa.gutingjun.com/api',
         );
       case AppEnvironment.staging:
         return const AppConfig._(
           env: AppEnvironment.staging,
-          apiProfileBase: 'https://sit-api.smartwe.jp/',
-          apiBase: 'https://sit-api.smartwe.jp/',
-          fileBase: 'https://app.smartwe.co.jp/',
-          faceBase: 'https://oa.gutingjun.com/api/',
+          apiProfileBase: 'https://sit-api.smartwe.jp',
+          apiBase: 'https://sit-api.smartwe.jp',
+          fileBase: 'https://app.smartwe.co.jp',
+          faceBase: 'https://oa.gutingjun.com/api',
         );
     }
   }

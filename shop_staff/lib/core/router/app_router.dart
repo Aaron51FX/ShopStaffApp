@@ -11,6 +11,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) async {
       // simple activation check
       final hasCode = await store.contains(AppStorageKeys.activationCode);
+  // debug
+  // ignore: avoid_print
+  print('[RouterRedirect] hasCode=$hasCode location=${state.matchedLocation}');
       final loggingIn = state.matchedLocation == '/login';
       if (!hasCode && !loggingIn) return '/login';
       if (hasCode && loggingIn) return '/pos';
