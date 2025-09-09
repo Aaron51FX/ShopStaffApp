@@ -1,24 +1,18 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shop_staff/features/pos/data/models/shop_info_models.dart';
+import '../models/shop_info_models.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/menu_repository.dart';
 import '../models/menu_models.dart';
 import '../datasources/remote/pos_remote_datasource.dart';
 
-final menuRepositoryProvider = Provider<MenuRepository>((ref) {
-  final ds = ref.watch(posRemoteDataSourceProvider);
-  return MenuRepositoryImpl(ds);
-});
-
 class MenuRepositoryImpl implements MenuRepository {
-  final dynamic _remote; // PosRemoteDataSource
+  final PosRemoteDataSource _remote;
   MenuRepositoryImpl(this._remote);
 
   // Simple cache to avoid repeated parsing in this example.
   List<Product>? _cache;
   List<CategoryModel>? _cachedCategories;
 
-    @override
+  @override
   Future<List<CategoryModel>> fetchCategories() async {
     if (_cachedCategories != null) return _cachedCategories!;
     final raw = await _remote.fetchCategoriesV2();
@@ -91,3 +85,4 @@ class MenuRepositoryImpl implements MenuRepository {
         isDefault: o.standard == 1,
       );
 }
+

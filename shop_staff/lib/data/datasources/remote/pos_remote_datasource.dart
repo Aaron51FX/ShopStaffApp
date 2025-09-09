@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../core/network/endpoints.dart';
-import '../../../../../core/network/dio_client.dart';
-import '../../../../../core/network/app_environment.dart';
+import 'package:shop_staff/core/network/app_environment.dart';
+import 'package:shop_staff/core/network/dio_client.dart';
+import 'package:shop_staff/core/network/endpoints.dart';
+
 
 final dioClientProvider = Provider<DioClient>((ref) {
   final config = AppConfig.forEnv(AppEnvironment.staging); // TODO: inject env

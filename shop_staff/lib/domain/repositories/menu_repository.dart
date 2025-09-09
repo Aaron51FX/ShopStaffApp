@@ -1,4 +1,4 @@
-import 'package:shop_staff/features/pos/data/models/shop_info_models.dart';
+import '../../data/models/shop_info_models.dart';
 
 import '../entities/product.dart';
 
