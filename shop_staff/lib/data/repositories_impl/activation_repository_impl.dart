@@ -24,7 +24,7 @@ class ActivationRepositoryImpl implements ActivationRepository {
     print('[ActivationRepo] firing network for $machineCode');
     _inFlight = _remote.activateBoot(machineCode: machineCode, version: version).then((raw) {
       if (raw is Map<String, dynamic>) {
-        _cachedShop = ShopInfoModel.fromJson(raw);
+        _cachedShop = ShopInfoModel.fromActivationResponse(raw);
         _lastMachineCode = machineCode;
         // ignore: avoid_print
         print('[ActivationRepo] network success cache set');
