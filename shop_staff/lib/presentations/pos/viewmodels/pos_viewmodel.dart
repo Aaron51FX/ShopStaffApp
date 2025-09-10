@@ -51,13 +51,14 @@ class PosViewModel extends StateNotifier<PosState> {
       final takeout = state.orderMode == 'take_out';
       final cats = await _menuRepository.fetchCategories(machineCode: machineCode, language: language, takeout: takeout);
       _lastCategoryFetchKey = '$machineCode|$language|$takeout';
-      debugPrint('Fetched ${cats.length} categories.');
+      
       _allProducts = await _menuRepository.fetchCategoriesAndFirstPage(
         machineCode: machineCode,
         language: language,
         takeout: takeout,
       );
-      debugPrint('Fetched initial products: ${_allProducts.length}');
+
+      debugPrint('Fetched initial products: $_allProducts');
       if (_allProducts.isEmpty) {
         debugPrint('Initial products empty after primary fetch; UI will show empty grid until category selection or fallback loads.');
       }

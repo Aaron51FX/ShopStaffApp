@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 import '../models/shop_info_models.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/menu_repository.dart';
@@ -32,6 +34,7 @@ class MenuRepositoryImpl implements MenuRepository {
     // 解析分类 (并缓存)
     final catList = _parseCategoriesFlexible(raw);
     if (catList.isNotEmpty) {
+      debugPrint('[MenuRepo] Parsed categories count=${catList.length} from home menu');
       if (_cachedCategories == null && catList.isNotEmpty) {
         _cachedCategories = catList;
       }
