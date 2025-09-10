@@ -32,7 +32,10 @@ class PosViewModel extends StateNotifier<PosState> {
   PosViewModel(this._menuRepository, this._ref) : super(PosState.initial());
   String? _lastCategoryFetchKey; // machineCode|language|takeout
 
-  List<Product> _allProducts = const [];
+  // 当前分类的商品列表 (不再一次性加载所有分类的全部商品)
+  List<Product> _categoryProducts = const [];
+  // 收藏商品缓存: key = product.id
+  final Map<int, Product> _favoriteCache = {};
   static const String favoritesCategoryCode = '__favorites__';
   // Exposed for provider-level listener sanity checks (not part of public API for widgets)
   bool get debugHasCategories => state.categories.isNotEmpty;
@@ -52,16 +55,7 @@ class PosViewModel extends StateNotifier<PosState> {
       final cats = await _menuRepository.fetchCategories(machineCode: machineCode, language: language, takeout: takeout);
       _lastCategoryFetchKey = '$machineCode|$language|$takeout';
       
-      _allProducts = await _menuRepository.fetchCategoriesAndFirstPage(
-        machineCode: machineCode,
-        language: language,
-        takeout: takeout,
-      );
-
-      debugPrint('Fetched initial products: $_allProducts');
-      if (_allProducts.isEmpty) {
-        debugPrint('Initial products empty after primary fetch; UI will show empty grid until category selection or fallback loads.');
-      }
+  // 不再预加载所有商品, 只获取分类列表, 后续按需加载
       // CategoryModel now imported via repository return type; using dynamic field names
       final firstCat = cats.isNotEmpty ? (cats.first as dynamic).categoryCode as String : '';
       // 注入一个“收藏”虚拟分类在最前
@@ -75,39 +69,91 @@ class PosViewModel extends StateNotifier<PosState> {
       state = state.copyWith(
         categories: augmentedCats,
         currentCategory: firstCat,
-        products: _allProducts.where((p) => p.categoryId == firstCat).toList(),
-        loading: false,
+        products: const [],
       );
+      if (firstCat.isNotEmpty) {
+        await _fetchCategoryProducts(firstCat, initial: true);
+      } else {
+        state = state.copyWith(loading: false);
+      }
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());
     }
   }
 
+  // 选择分类: 异步请求该分类商品
   void selectCategory(String categoryId) {
+    if (categoryId == state.currentCategory) return;
     state = state.copyWith(
       currentCategory: categoryId,
-      products: _filterProducts(categoryId: categoryId, query: state.searchQuery),
+      products: const [],
+      loading: true,
     );
+    if (categoryId == favoritesCategoryCode) {
+      // 收藏分类本地聚合
+      _loadFavoritesCategory();
+    } else {
+      _fetchCategoryProducts(categoryId); // fire & forget
+    }
   }
 
   void search(String query) {
     state = state.copyWith(
       searchQuery: query,
-      products: _filterProducts(categoryId: state.currentCategory, query: query),
+      products: _applySearch(query),
     );
   }
 
-  List<Product> _filterProducts({required String categoryId, required String query}) {
-    Iterable<Product> list;
-    if (categoryId == favoritesCategoryCode) {
-      list = _allProducts.where((p) => state.favoriteProductIds.contains(p.id));
+  // 搜索过滤当前分类(或收藏)商品
+  List<Product> _applySearch(String query) {
+    Iterable<Product> base;
+    if (state.currentCategory == favoritesCategoryCode) {
+      base = state.favoriteProductIds.map((id) => _favoriteCache[id]).whereType<Product>();
     } else {
-      list = _allProducts.where((p) => p.categoryId == categoryId);
+      base = _categoryProducts;
     }
-    if (query.isNotEmpty) {
-      list = list.where((p) => p.name.contains(query));
+    if (query.isEmpty) return base.toList();
+    return base.where((p) => p.name.contains(query)).toList();
+  }
+
+  Future<void> _fetchCategoryProducts(String categoryId, {bool initial = false}) async {
+    try {
+      if (!initial) {
+        state = state.copyWith(loading: true, error: null);
+      }
+      final machineCode = _ref.read(machineCodeProvider);
+      if (machineCode == null || machineCode.isEmpty) {
+        state = state.copyWith(loading: false, error: '未激活: 缺少machineCode');
+        return;
+      }
+      final language = _ref.read(shopLanguageProvider);
+      final takeout = state.orderMode == 'take_out';
+      final products = await _menuRepository.fetchMenuByCategory(
+        machineCode: machineCode,
+        language: language,
+        takeout: takeout,
+        categoryCode: categoryId,
+      );
+      _categoryProducts = products;
+      state = state.copyWith(
+        products: _applySearch(state.searchQuery),
+        loading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(loading: false, error: '获取分类商品失败: $e');
     }
-    return list.toList();
+  }
+
+  void _loadFavoritesCategory() {
+    final favProducts = state.favoriteProductIds
+        .map((id) => _favoriteCache[id])
+        .whereType<Product>()
+        .toList();
+    _categoryProducts = favProducts; // 复用结构
+    state = state.copyWith(
+      products: _applySearch(state.searchQuery),
+      loading: false,
+    );
   }
 
   void addProduct(Product product, {List<SelectedOption> options = const []}) {
@@ -182,8 +228,13 @@ class PosViewModel extends StateNotifier<PosState> {
         : (state.favoriteProductIds.toSet()..add(p.id));
     state = state.copyWith(favoriteProductIds: favs);
     // 如果当前在收藏分类，刷新产品
+    if (favs.contains(p.id)) {
+      _favoriteCache[p.id] = p; // 缓存收藏商品
+    } else {
+      _favoriteCache.remove(p.id);
+    }
     if (state.currentCategory == favoritesCategoryCode) {
-      state = state.copyWith(products: _filterProducts(categoryId: favoritesCategoryCode, query: state.searchQuery));
+      _loadFavoritesCategory();
     }
   }
 
@@ -221,8 +272,11 @@ class PosViewModel extends StateNotifier<PosState> {
       state = state.copyWith(
         categories: augmentedCats,
         currentCategory: firstCat,
-        products: _filterProducts(categoryId: firstCat, query: state.searchQuery),
+        products: const [],
       );
+      if (firstCat.isNotEmpty) {
+        _fetchCategoryProducts(firstCat); // fire & forget
+      }
     } catch (e) {
       state = state.copyWith(error: '分类刷新失败: $e');
     }

@@ -59,8 +59,21 @@ class PosRemoteDataSource {
     return _dedupe(key, () => _client.postJson(_e.activateV3, body: payload));
   }
 
-  Future<dynamic> fetchMenuByCategoryV2(String categoryId) async =>
-      _client.getJson(_e.bootIndexMenuV2, query: {'categoryId': categoryId});
+  Future<dynamic> fetchMenuByCategoryV2({
+    required String machineCode,
+    String language = 'JP',
+    bool takeout = false,
+    required String categoryCode,
+  }) async {
+    final payload = {
+      'machineCode': machineCode,
+      'language': language,
+      'takeout': takeout ? 0 : 2,
+      'categoryCode': categoryCode,
+    };
+    final key = 'POST:${_e.bootIndexMenuV2}:$machineCode:$language:$takeout:$categoryCode';
+    return _dedupe(key, () => _client.postJson(_e.bootIndexMenuV2, body: payload));
+  }
 
   Future<dynamic> submitOrderV4(Map<String, dynamic> payload) async =>
       _client.postJson(_e.orderV4, body: payload);

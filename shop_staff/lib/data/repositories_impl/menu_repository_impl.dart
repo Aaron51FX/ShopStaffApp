@@ -10,8 +10,6 @@ class MenuRepositoryImpl implements MenuRepository {
   final PosRemoteDataSource _remote;
   MenuRepositoryImpl(this._remote);
 
-  // Simple cache to avoid repeated parsing in this example.
-  List<Product>? _cache;
   List<CategoryModel>? _cachedCategories;
 
   @override
@@ -27,7 +25,7 @@ class MenuRepositoryImpl implements MenuRepository {
   }
 
   @override
-  Future<List<Product>> fetchCategoriesAndFirstPage({required String machineCode, String language = 'JP', bool takeout = false}) async {
+  Future<List<Product>> fetchFirstPage({required String machineCode, String language = 'JP', bool takeout = false}) async {
     // 调用与分类相同的接口, 服务端返回 categoryVoList, 每个分类里可能有 menuVoList 代表首批商品
     final raw = await _remote.fetchHomeMenu(machineCode: machineCode, language: language, takeout: takeout);
     final products = <Product>[];
@@ -55,22 +53,33 @@ class MenuRepositoryImpl implements MenuRepository {
       final models = parseMenuItems(raw.map((e) => Map<String, dynamic>.from(e as Map)).toList());
       products.addAll(models.map(_toEntity));
     }
-    _cache = products;
     return products;
   }
 
   @override
-  Future<List<Product>> fetchMenuByCategory(String categoryCode) async {
-    if (_cache != null) {
-      return _cache!.where((p) => p.categoryId == categoryCode).toList();
-    }
-    // Fallback to remote category fetch; expecting a list
-    final raw = await _remote.fetchMenuByCategoryV2(categoryCode);
+  Future<List<Product>> fetchMenuByCategory({required String machineCode, String language = 'JP', bool takeout = false, required String categoryCode}) async {
+    // 不再使用 _cache 里的所有商品过滤; 按需请求
+    final raw = await _remote.fetchMenuByCategoryV2(
+      machineCode: machineCode,
+      language: language,
+      takeout: takeout,
+      categoryCode: categoryCode,
+    );
     if (raw is List) {
       final models = parseMenuItems(raw.map((e) => Map<String, dynamic>.from(e as Map)).toList());
       return models.map(_toEntity).toList();
     }
-    return [];
+    // 兼容后端包装: 尝试在常见 data/result/payload 下找 list
+    if (raw is Map<String, dynamic>) {
+      for (final k in ['data','result','payload']) {
+        final v = raw[k];
+        if (v is List) {
+          final models = parseMenuItems(v.map((e) => Map<String, dynamic>.from(e as Map)).toList());
+          return models.map(_toEntity).toList();
+        }
+      }
+    }
+    return const [];
   }
 
   Product _toEntity(MenuItemModel m) => Product(
