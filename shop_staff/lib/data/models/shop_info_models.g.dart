@@ -25,6 +25,18 @@ _$CategoryModelImpl _$$CategoryModelImplFromJson(Map<String, dynamic> json) =>
       image: json['image'] as String?,
       printReceipt: (json['printReceipt'] as num?)?.toInt(),
       menuVoList: json['menuVoList'] as List<dynamic>? ?? const <dynamic>[],
+      recommends:
+          (json['recommends'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const <int>[],
+      recommendMenus:
+          (json['recommendMenus'] as List<dynamic>?)
+              ?.map(
+                (e) => RecommendMenuModel.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const <RecommendMenuModel>[],
     );
 
 Map<String, dynamic> _$$CategoryModelImplToJson(_$CategoryModelImpl instance) =>
@@ -37,6 +49,8 @@ Map<String, dynamic> _$$CategoryModelImplToJson(_$CategoryModelImpl instance) =>
       'image': instance.image,
       'printReceipt': instance.printReceipt,
       'menuVoList': instance.menuVoList,
+      'recommends': instance.recommends,
+      'recommendMenus': instance.recommendMenus,
     };
 
 _$RecommendMenuModelImpl _$$RecommendMenuModelImplFromJson(
@@ -127,18 +141,6 @@ _$ShopInfoModelImpl _$$ShopInfoModelImplFromJson(Map<String, dynamic> json) =>
       canToOrder: json['canToOrder'] as String?,
       uniqueOrderKey: json['uniqueOrderKey'] as String?,
       linePayChannelMap: json['linePayChannelMap'] as Map<String, dynamic>?,
-      recommends:
-          (json['recommends'] as List<dynamic>?)
-              ?.map((e) => (e as num).toInt())
-              .toList() ??
-          const <int>[],
-      recommendMenus:
-          (json['recommendMenus'] as List<dynamic>?)
-              ?.map(
-                (e) => RecommendMenuModel.fromJson(e as Map<String, dynamic>),
-              )
-              .toList() ??
-          const <RecommendMenuModel>[],
     );
 
 Map<String, dynamic> _$$ShopInfoModelImplToJson(_$ShopInfoModelImpl instance) =>
@@ -162,6 +164,4 @@ Map<String, dynamic> _$$ShopInfoModelImplToJson(_$ShopInfoModelImpl instance) =>
       'canToOrder': instance.canToOrder,
       'uniqueOrderKey': instance.uniqueOrderKey,
       'linePayChannelMap': instance.linePayChannelMap,
-      'recommends': instance.recommends,
-      'recommendMenus': instance.recommendMenus,
     };

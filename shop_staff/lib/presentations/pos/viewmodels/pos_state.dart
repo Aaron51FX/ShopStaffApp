@@ -15,6 +15,9 @@ class PosState {
   final String searchQuery;
   final List<SuspendedOrder> suspended; //挂单列表
   final int suspendedCounter; //用于生成挂单号
+  final Set<int> favoriteProductIds; // 收藏商品 id 集合
+  final String orderMode; // dine_in / take_out
+  final double discount; // 未来可扩展多种优惠, 先简单一个数值
 
   const PosState({
     required this.categories,
@@ -27,6 +30,9 @@ class PosState {
     required this.searchQuery,
     required this.suspended,
     required this.suspendedCounter,
+    required this.favoriteProductIds,
+    required this.orderMode,
+    required this.discount,
   });
 
   factory PosState.initial() => const PosState(
@@ -40,9 +46,13 @@ class PosState {
       searchQuery: '',
       suspended: [],
       suspendedCounter: 0,
+      favoriteProductIds: {},
+      orderMode: 'dine_in',
+      discount: 0,
     );
 
   double get subtotal => cart.fold(0, (p, e) => p + e.lineTotal);
+  double get total => (subtotal - discount).clamp(0, double.infinity);
 
   PosState copyWith({
     List<CategoryModel>? categories,
@@ -55,6 +65,9 @@ class PosState {
     String? searchQuery,
     List<SuspendedOrder>? suspended,
     int? suspendedCounter,
+    Set<int>? favoriteProductIds,
+    String? orderMode,
+    double? discount,
   }) {
     return PosState(
       categories: categories ?? this.categories,
@@ -67,6 +80,9 @@ class PosState {
       searchQuery: searchQuery ?? this.searchQuery,
       suspended: suspended ?? this.suspended,
       suspendedCounter: suspendedCounter ?? this.suspendedCounter,
+      favoriteProductIds: favoriteProductIds ?? this.favoriteProductIds,
+      orderMode: orderMode ?? this.orderMode,
+      discount: discount ?? this.discount,
     );
   }
 }

@@ -197,6 +197,9 @@ mixin _$CategoryModel {
   String? get image => throw _privateConstructorUsedError;
   int? get printReceipt => throw _privateConstructorUsedError;
   List<dynamic> get menuVoList => throw _privateConstructorUsedError;
+  List<int> get recommends => throw _privateConstructorUsedError;
+  List<RecommendMenuModel> get recommendMenus =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this CategoryModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -224,6 +227,8 @@ abstract class $CategoryModelCopyWith<$Res> {
     String? image,
     int? printReceipt,
     List<dynamic> menuVoList,
+    List<int> recommends,
+    List<RecommendMenuModel> recommendMenus,
   });
 }
 
@@ -250,6 +255,8 @@ class _$CategoryModelCopyWithImpl<$Res, $Val extends CategoryModel>
     Object? image = freezed,
     Object? printReceipt = freezed,
     Object? menuVoList = null,
+    Object? recommends = null,
+    Object? recommendMenus = null,
   }) {
     return _then(
       _value.copyWith(
@@ -285,6 +292,14 @@ class _$CategoryModelCopyWithImpl<$Res, $Val extends CategoryModel>
                 ? _value.menuVoList
                 : menuVoList // ignore: cast_nullable_to_non_nullable
                       as List<dynamic>,
+            recommends: null == recommends
+                ? _value.recommends
+                : recommends // ignore: cast_nullable_to_non_nullable
+                      as List<int>,
+            recommendMenus: null == recommendMenus
+                ? _value.recommendMenus
+                : recommendMenus // ignore: cast_nullable_to_non_nullable
+                      as List<RecommendMenuModel>,
           )
           as $Val,
     );
@@ -309,6 +324,8 @@ abstract class _$$CategoryModelImplCopyWith<$Res>
     String? image,
     int? printReceipt,
     List<dynamic> menuVoList,
+    List<int> recommends,
+    List<RecommendMenuModel> recommendMenus,
   });
 }
 
@@ -334,6 +351,8 @@ class __$$CategoryModelImplCopyWithImpl<$Res>
     Object? image = freezed,
     Object? printReceipt = freezed,
     Object? menuVoList = null,
+    Object? recommends = null,
+    Object? recommendMenus = null,
   }) {
     return _then(
       _$CategoryModelImpl(
@@ -369,6 +388,14 @@ class __$$CategoryModelImplCopyWithImpl<$Res>
             ? _value._menuVoList
             : menuVoList // ignore: cast_nullable_to_non_nullable
                   as List<dynamic>,
+        recommends: null == recommends
+            ? _value._recommends
+            : recommends // ignore: cast_nullable_to_non_nullable
+                  as List<int>,
+        recommendMenus: null == recommendMenus
+            ? _value._recommendMenus
+            : recommendMenus // ignore: cast_nullable_to_non_nullable
+                  as List<RecommendMenuModel>,
       ),
     );
   }
@@ -386,7 +413,12 @@ class _$CategoryModelImpl implements _CategoryModel {
     this.image,
     this.printReceipt,
     final List<dynamic> menuVoList = const <dynamic>[],
-  }) : _menuVoList = menuVoList;
+    final List<int> recommends = const <int>[],
+    final List<RecommendMenuModel> recommendMenus =
+        const <RecommendMenuModel>[],
+  }) : _menuVoList = menuVoList,
+       _recommends = recommends,
+       _recommendMenus = recommendMenus;
 
   factory _$CategoryModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$CategoryModelImplFromJson(json);
@@ -414,9 +446,27 @@ class _$CategoryModelImpl implements _CategoryModel {
     return EqualUnmodifiableListView(_menuVoList);
   }
 
+  final List<int> _recommends;
+  @override
+  @JsonKey()
+  List<int> get recommends {
+    if (_recommends is EqualUnmodifiableListView) return _recommends;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_recommends);
+  }
+
+  final List<RecommendMenuModel> _recommendMenus;
+  @override
+  @JsonKey()
+  List<RecommendMenuModel> get recommendMenus {
+    if (_recommendMenus is EqualUnmodifiableListView) return _recommendMenus;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_recommendMenus);
+  }
+
   @override
   String toString() {
-    return 'CategoryModel(categoryCode: $categoryCode, categoryName: $categoryName, showType: $showType, color: $color, background: $background, image: $image, printReceipt: $printReceipt, menuVoList: $menuVoList)';
+    return 'CategoryModel(categoryCode: $categoryCode, categoryName: $categoryName, showType: $showType, color: $color, background: $background, image: $image, printReceipt: $printReceipt, menuVoList: $menuVoList, recommends: $recommends, recommendMenus: $recommendMenus)';
   }
 
   @override
@@ -439,6 +489,14 @@ class _$CategoryModelImpl implements _CategoryModel {
             const DeepCollectionEquality().equals(
               other._menuVoList,
               _menuVoList,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._recommends,
+              _recommends,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._recommendMenus,
+              _recommendMenus,
             ));
   }
 
@@ -454,6 +512,8 @@ class _$CategoryModelImpl implements _CategoryModel {
     image,
     printReceipt,
     const DeepCollectionEquality().hash(_menuVoList),
+    const DeepCollectionEquality().hash(_recommends),
+    const DeepCollectionEquality().hash(_recommendMenus),
   );
 
   /// Create a copy of CategoryModel
@@ -480,6 +540,8 @@ abstract class _CategoryModel implements CategoryModel {
     final String? image,
     final int? printReceipt,
     final List<dynamic> menuVoList,
+    final List<int> recommends,
+    final List<RecommendMenuModel> recommendMenus,
   }) = _$CategoryModelImpl;
 
   factory _CategoryModel.fromJson(Map<String, dynamic> json) =
@@ -501,6 +563,10 @@ abstract class _CategoryModel implements CategoryModel {
   int? get printReceipt;
   @override
   List<dynamic> get menuVoList;
+  @override
+  List<int> get recommends;
+  @override
+  List<RecommendMenuModel> get recommendMenus;
 
   /// Create a copy of CategoryModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1133,9 +1199,6 @@ mixin _$ShopInfoModel {
   String? get uniqueOrderKey => throw _privateConstructorUsedError;
   Map<String, dynamic>? get linePayChannelMap =>
       throw _privateConstructorUsedError;
-  List<int> get recommends => throw _privateConstructorUsedError;
-  List<RecommendMenuModel> get recommendMenus =>
-      throw _privateConstructorUsedError;
 
   /// Serializes this ShopInfoModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1174,8 +1237,6 @@ abstract class $ShopInfoModelCopyWith<$Res> {
     String? canToOrder,
     String? uniqueOrderKey,
     Map<String, dynamic>? linePayChannelMap,
-    List<int> recommends,
-    List<RecommendMenuModel> recommendMenus,
   });
 }
 
@@ -1213,8 +1274,6 @@ class _$ShopInfoModelCopyWithImpl<$Res, $Val extends ShopInfoModel>
     Object? canToOrder = freezed,
     Object? uniqueOrderKey = freezed,
     Object? linePayChannelMap = freezed,
-    Object? recommends = null,
-    Object? recommendMenus = null,
   }) {
     return _then(
       _value.copyWith(
@@ -1294,14 +1353,6 @@ class _$ShopInfoModelCopyWithImpl<$Res, $Val extends ShopInfoModel>
                 ? _value.linePayChannelMap
                 : linePayChannelMap // ignore: cast_nullable_to_non_nullable
                       as Map<String, dynamic>?,
-            recommends: null == recommends
-                ? _value.recommends
-                : recommends // ignore: cast_nullable_to_non_nullable
-                      as List<int>,
-            recommendMenus: null == recommendMenus
-                ? _value.recommendMenus
-                : recommendMenus // ignore: cast_nullable_to_non_nullable
-                      as List<RecommendMenuModel>,
           )
           as $Val,
     );
@@ -1337,8 +1388,6 @@ abstract class _$$ShopInfoModelImplCopyWith<$Res>
     String? canToOrder,
     String? uniqueOrderKey,
     Map<String, dynamic>? linePayChannelMap,
-    List<int> recommends,
-    List<RecommendMenuModel> recommendMenus,
   });
 }
 
@@ -1375,8 +1424,6 @@ class __$$ShopInfoModelImplCopyWithImpl<$Res>
     Object? canToOrder = freezed,
     Object? uniqueOrderKey = freezed,
     Object? linePayChannelMap = freezed,
-    Object? recommends = null,
-    Object? recommendMenus = null,
   }) {
     return _then(
       _$ShopInfoModelImpl(
@@ -1456,14 +1503,6 @@ class __$$ShopInfoModelImplCopyWithImpl<$Res>
             ? _value._linePayChannelMap
             : linePayChannelMap // ignore: cast_nullable_to_non_nullable
                   as Map<String, dynamic>?,
-        recommends: null == recommends
-            ? _value._recommends
-            : recommends // ignore: cast_nullable_to_non_nullable
-                  as List<int>,
-        recommendMenus: null == recommendMenus
-            ? _value._recommendMenus
-            : recommendMenus // ignore: cast_nullable_to_non_nullable
-                  as List<RecommendMenuModel>,
       ),
     );
   }
@@ -1492,14 +1531,9 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
     this.canToOrder,
     this.uniqueOrderKey,
     final Map<String, dynamic>? linePayChannelMap,
-    final List<int> recommends = const <int>[],
-    final List<RecommendMenuModel> recommendMenus =
-        const <RecommendMenuModel>[],
   }) : _languages = languages,
        _categoryVoList = categoryVoList,
-       _linePayChannelMap = linePayChannelMap,
-       _recommends = recommends,
-       _recommendMenus = recommendMenus;
+       _linePayChannelMap = linePayChannelMap;
 
   factory _$ShopInfoModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ShopInfoModelImplFromJson(json);
@@ -1565,27 +1599,9 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
     return EqualUnmodifiableMapView(value);
   }
 
-  final List<int> _recommends;
-  @override
-  @JsonKey()
-  List<int> get recommends {
-    if (_recommends is EqualUnmodifiableListView) return _recommends;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_recommends);
-  }
-
-  final List<RecommendMenuModel> _recommendMenus;
-  @override
-  @JsonKey()
-  List<RecommendMenuModel> get recommendMenus {
-    if (_recommendMenus is EqualUnmodifiableListView) return _recommendMenus;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_recommendMenus);
-  }
-
   @override
   String toString() {
-    return 'ShopInfoModel(shopCode: $shopCode, machineCode: $machineCode, languages: $languages, shopName: $shopName, ntaNo: $ntaNo, stationMachineCode: $stationMachineCode, language: $language, shopAddress: $shopAddress, shopTelephone: $shopTelephone, businessTime: $businessTime, seatNumber: $seatNumber, categoryVoList: $categoryVoList, onlineCall: $onlineCall, taxSystem: $taxSystem, dynamicCode: $dynamicCode, multiplayer: $multiplayer, canToOrder: $canToOrder, uniqueOrderKey: $uniqueOrderKey, linePayChannelMap: $linePayChannelMap, recommends: $recommends, recommendMenus: $recommendMenus)';
+    return 'ShopInfoModel(shopCode: $shopCode, machineCode: $machineCode, languages: $languages, shopName: $shopName, ntaNo: $ntaNo, stationMachineCode: $stationMachineCode, language: $language, shopAddress: $shopAddress, shopTelephone: $shopTelephone, businessTime: $businessTime, seatNumber: $seatNumber, categoryVoList: $categoryVoList, onlineCall: $onlineCall, taxSystem: $taxSystem, dynamicCode: $dynamicCode, multiplayer: $multiplayer, canToOrder: $canToOrder, uniqueOrderKey: $uniqueOrderKey, linePayChannelMap: $linePayChannelMap)';
   }
 
   @override
@@ -1635,14 +1651,6 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
             const DeepCollectionEquality().equals(
               other._linePayChannelMap,
               _linePayChannelMap,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other._recommends,
-              _recommends,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other._recommendMenus,
-              _recommendMenus,
             ));
   }
 
@@ -1669,8 +1677,6 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
     canToOrder,
     uniqueOrderKey,
     const DeepCollectionEquality().hash(_linePayChannelMap),
-    const DeepCollectionEquality().hash(_recommends),
-    const DeepCollectionEquality().hash(_recommendMenus),
   ]);
 
   /// Create a copy of ShopInfoModel
@@ -1708,8 +1714,6 @@ abstract class _ShopInfoModel implements ShopInfoModel {
     final String? canToOrder,
     final String? uniqueOrderKey,
     final Map<String, dynamic>? linePayChannelMap,
-    final List<int> recommends,
-    final List<RecommendMenuModel> recommendMenus,
   }) = _$ShopInfoModelImpl;
 
   factory _ShopInfoModel.fromJson(Map<String, dynamic> json) =
@@ -1753,10 +1757,6 @@ abstract class _ShopInfoModel implements ShopInfoModel {
   String? get uniqueOrderKey;
   @override
   Map<String, dynamic>? get linePayChannelMap;
-  @override
-  List<int> get recommends;
-  @override
-  List<RecommendMenuModel> get recommendMenus;
 
   /// Create a copy of ShopInfoModel
   /// with the given fields replaced by the non-null parameter values.

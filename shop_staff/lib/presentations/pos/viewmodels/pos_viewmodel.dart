@@ -1,34 +1,78 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
 import 'package:shop_staff/domain/repositories/menu_repository.dart';
+import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'pos_state.dart';
 
 final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((ref) {
   final menuRepo = ref.watch(menuRepositoryProvider);
-  final vm = PosViewModel(menuRepo);
-  // fire and forget init
+  final vm = PosViewModel(menuRepo, ref);
+  // fire-and-forget initial bootstrap (may early-exit if machineCode not yet ready)
   vm.bootstrap();
+  // Listen for shopInfo becoming available after splash and trigger bootstrap once.
+  ref.listen<ShopInfoModel?>(shopInfoProvider, (prev, next) {
+    if (next != null && (prev == null)) {
+      // Only re-bootstrap if we currently have no categories loaded.
+      final hasCategories = vm.debugHasCategories;
+      if (!hasCategories) {
+        vm.bootstrap();
+      }
+    }
+  });
   return vm;
 });
 
 class PosViewModel extends StateNotifier<PosState> {
   final MenuRepository _menuRepository;
-  PosViewModel(this._menuRepository) : super(PosState.initial());
+  final Ref _ref;
+  PosViewModel(this._menuRepository, this._ref) : super(PosState.initial());
+  String? _lastCategoryFetchKey; // machineCode|language|takeout
 
   List<Product> _allProducts = const [];
+  static const String favoritesCategoryCode = '__favorites__';
+  // Exposed for provider-level listener sanity checks (not part of public API for widgets)
+  bool get debugHasCategories => state.categories.isNotEmpty;
 
   Future<void> bootstrap() async {
+    debugPrint('Bootstrapping POS ViewModel...');
     state = state.copyWith(loading: true, error: null);
     try {
-  final cats = await _menuRepository.fetchCategories();
-      _allProducts = await _menuRepository.fetchCategoriesAndFirstPage();
-  // CategoryModel now imported via repository return type; using dynamic field names
-  final firstCat = cats.isNotEmpty ? (cats.first as dynamic).categoryCode as String : '';
+      final machineCode = _ref.read(machineCodeProvider);
+      debugPrint('Current machineCode: $machineCode');
+      if (machineCode == null || machineCode.isEmpty) {
+        state = state.copyWith(loading: false, error: '未激活: 缺少machineCode');
+        return;
+      }
+      final language = _ref.read(shopLanguageProvider);
+      final takeout = state.orderMode == 'take_out';
+      final cats = await _menuRepository.fetchCategories(machineCode: machineCode, language: language, takeout: takeout);
+      _lastCategoryFetchKey = '$machineCode|$language|$takeout';
+      debugPrint('Fetched ${cats.length} categories.');
+      _allProducts = await _menuRepository.fetchCategoriesAndFirstPage(
+        machineCode: machineCode,
+        language: language,
+        takeout: takeout,
+      );
+      debugPrint('Fetched initial products: ${_allProducts.length}');
+      if (_allProducts.isEmpty) {
+        debugPrint('Initial products empty after primary fetch; UI will show empty grid until category selection or fallback loads.');
+      }
+      // CategoryModel now imported via repository return type; using dynamic field names
+      final firstCat = cats.isNotEmpty ? (cats.first as dynamic).categoryCode as String : '';
+      // 注入一个“收藏”虚拟分类在最前
+      final augmentedCats = [
+        if (cats.isNotEmpty)
+          (cats.first as dynamic).runtimeType != String // keep structure
+              ? CategoryModel(categoryCode: favoritesCategoryCode, categoryName: '❤ 收藏', showType: 'normal')
+              : null,
+        ...cats,
+      ].whereType<CategoryModel>().toList();
       state = state.copyWith(
-        categories: cats,
+        categories: augmentedCats,
         currentCategory: firstCat,
         products: _allProducts.where((p) => p.categoryId == firstCat).toList(),
         loading: false,
@@ -53,7 +97,12 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   List<Product> _filterProducts({required String categoryId, required String query}) {
-    Iterable<Product> list = _allProducts.where((p) => p.categoryId == categoryId);
+    Iterable<Product> list;
+    if (categoryId == favoritesCategoryCode) {
+      list = _allProducts.where((p) => state.favoriteProductIds.contains(p.id));
+    } else {
+      list = _allProducts.where((p) => p.categoryId == categoryId);
+    }
     if (query.isNotEmpty) {
       list = list.where((p) => p.name.contains(query));
     }
@@ -124,6 +173,58 @@ class PosViewModel extends StateNotifier<PosState> {
   void checkout() {
     // For now just increment order number and clear cart
     state = state.copyWith(orderNumber: state.orderNumber + 1, cart: []);
+  }
+
+  void toggleFavorite(Product p) {
+    final favs = state.favoriteProductIds.contains(p.id)
+        ? (state.favoriteProductIds.toSet()..remove(p.id))
+        : (state.favoriteProductIds.toSet()..add(p.id));
+    state = state.copyWith(favoriteProductIds: favs);
+    // 如果当前在收藏分类，刷新产品
+    if (state.currentCategory == favoritesCategoryCode) {
+      state = state.copyWith(products: _filterProducts(categoryId: favoritesCategoryCode, query: state.searchQuery));
+    }
+  }
+
+  void switchOrderMode() {
+  final newMode = state.orderMode == 'dine_in' ? 'take_out' : 'dine_in';
+  state = state.copyWith(orderMode: newMode);
+  _maybeReloadCategories(force: true);
+  }
+
+  void applyDiscount(double value) {
+    state = state.copyWith(discount: value);
+  }
+
+  // Public API: call when languageOverrideProvider changes
+  Future<void> onLanguageChanged() async {
+    await _maybeReloadCategories(force: true);
+  }
+
+  Future<void> _maybeReloadCategories({bool force = false}) async {
+    final machineCode = _ref.read(machineCodeProvider);
+    if (machineCode == null || machineCode.isEmpty) return;
+    final language = _ref.read(shopLanguageProvider);
+    final takeout = state.orderMode == 'take_out';
+    final key = '$machineCode|$language|$takeout';
+    if (!force && key == _lastCategoryFetchKey) return;
+    try {
+      final cats = await _menuRepository.fetchCategories(machineCode: machineCode, language: language, takeout: takeout);
+      _lastCategoryFetchKey = key;
+      final firstCat = cats.isNotEmpty ? (cats.first as dynamic).categoryCode as String : '';
+      final augmentedCats = [
+        if (cats.isNotEmpty)
+          CategoryModel(categoryCode: PosViewModel.favoritesCategoryCode, categoryName: '❤ 收藏', showType: 'normal'),
+        ...cats,
+      ];
+      state = state.copyWith(
+        categories: augmentedCats,
+        currentCategory: firstCat,
+        products: _filterProducts(categoryId: firstCat, query: state.searchQuery),
+      );
+    } catch (e) {
+      state = state.copyWith(error: '分类刷新失败: $e');
+    }
   }
 
   // 挂单: 保存当前购物车并清空

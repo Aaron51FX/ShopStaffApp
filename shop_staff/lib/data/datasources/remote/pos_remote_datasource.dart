@@ -30,9 +30,26 @@ class PosRemoteDataSource {
 
   Endpoints get _e => _client.endpoints;
 
-  Future<dynamic> fetchHomeMenu() async => _dedupe('GET:${_e.bootIndexV1}', () => _client.getJson(_e.bootIndexV1));
+  Future<dynamic> fetchHomeMenu({required String machineCode, String language = 'JP', bool takeout = false}) async {
+    // 与 fetchCategoriesV2 一致: POST 同一分类接口, 便于统一首批数据来源
+    final payload = {
+      'machineCode': machineCode,
+      'language': language,
+      'takeout': takeout ? 0 : 2,
+    };
+    final key = 'POST:HOME:${_e.bootIndexV1}:$machineCode:$language:$takeout';
+    return _dedupe(key, () => _client.postJson(_e.bootIndexV1, body: payload));
+  }
 
-  Future<dynamic> fetchCategoriesV2() async => _dedupe('GET:${_e.bootIndexCategoryV2}', () => _client.getJson(_e.bootIndexCategoryV2));
+  Future<dynamic> fetchCategoriesV2({required String machineCode, String language = 'JP', bool takeout = false}) async {
+    final payload = {
+      'machineCode': machineCode,
+      'language': language,
+      'takeout': takeout ? 0 : 2,
+    };
+    final key = 'POST:${_e.bootIndexCategoryV2}:$machineCode:$language:$takeout';
+    return _dedupe(key, () => _client.postJson(_e.bootIndexCategoryV2, body: payload));
+  }
 
   /// Activate (V3) - backend now expects only machineCode + version.
   /// Returns shop info payload.

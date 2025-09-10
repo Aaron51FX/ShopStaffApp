@@ -30,10 +30,15 @@ class CategoryModel with _$CategoryModel {
     String? image,
     int? printReceipt,
     @Default(<dynamic>[]) List<dynamic> menuVoList,
+  @Default(<int>[]) List<int> recommends,
+  @Default(<RecommendMenuModel>[]) List<RecommendMenuModel> recommendMenus,
   }) = _CategoryModel;
   factory CategoryModel.fromJson(Map<String, dynamic> json) => _$CategoryModelFromJson(json);
   factory CategoryModel.fromJsonSafe(Map<String, dynamic>? json) {
     final j = json ?? const {};
+  List<int> _listInt(dynamic v) => (v is List)
+    ? v.whereType<num>().map((e) => e.toInt()).toList()
+    : <int>[];
     return CategoryModel(
       categoryCode: (j['categoryCode'] ?? j['code'] ?? '') as String? ?? '',
       categoryName: (j['categoryName'] ?? j['name'] ?? '') as String? ?? '',
@@ -43,6 +48,11 @@ class CategoryModel with _$CategoryModel {
       image: j['image'] as String?,
       printReceipt: j['printReceipt'] as int?,
       menuVoList: (j['menuVoList'] as List?)?.toList() ?? const [],
+    recommends: _listInt(j['recommends']),
+    recommendMenus: (j['recommendMenus'] as List?)
+        ?.map((e) => RecommendMenuModel.fromJsonSafe((e as Map).cast<String, dynamic>()))
+        .toList() ??
+      const [],
     );
   }
 }
@@ -122,16 +132,11 @@ class ShopInfoModel with _$ShopInfoModel {
     String? canToOrder,
     String? uniqueOrderKey,
     Map<String, dynamic>? linePayChannelMap,
-    @Default(<int>[]) List<int> recommends,
-    @Default(<RecommendMenuModel>[]) List<RecommendMenuModel> recommendMenus,
   }) = _ShopInfoModel;
 
   factory ShopInfoModel.fromJson(Map<String, dynamic> json) => _$ShopInfoModelFromJson(json);
   factory ShopInfoModel.fromJsonSafe(Map<String, dynamic>? json) {
     final j = json ?? const {};
-    List<int> _listInt(dynamic v) => (v is List)
-        ? v.whereType<num>().map((e) => e.toInt()).toList()
-        : <int>[];
     List<LanguageModel> _langs(dynamic v) {
       if (v is List) {
         return v.map<LanguageModel>((e) {
@@ -170,11 +175,6 @@ class ShopInfoModel with _$ShopInfoModel {
       linePayChannelMap: j['linePayChannelMap'] != null
           ? Map<String, dynamic>.from(j['linePayChannelMap'] as Map)
           : null,
-      recommends: _listInt(j['recommends']),
-  recommendMenus: (j['recommendMenus'] as List?)
-      ?.map((e) => RecommendMenuModel.fromJsonSafe((e as Map).cast<String, dynamic>()))
-              .toList() ??
-          const [],
     );
   }
   static ShopInfoModel fromActivationResponse(Map<String, dynamic> raw) {

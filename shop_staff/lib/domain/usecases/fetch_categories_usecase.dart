@@ -5,5 +5,8 @@ import '../repositories/menu_repository.dart';
 class FetchCategoriesUseCase {
   final MenuRepository _repo;
   FetchCategoriesUseCase(this._repo);
-  Future<List<CategoryModel>> call() => _repo.fetchCategories();
+
+  Future<List<CategoryModel>> call({required String machineCode, String language = 'JP', bool takeout = false}) {
+    return _repo.fetchCategories(machineCode: machineCode, language: language, takeout: takeout);
+  }
 }

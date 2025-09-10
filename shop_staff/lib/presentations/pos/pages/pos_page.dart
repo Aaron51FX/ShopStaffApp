@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shop_staff/domain/entities/cart_item.dart';
+import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/domain/entities/product.dart';
+import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_state.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
+import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
+import '../widgets/cart_panel.dart';
+import '../widgets/pos_app_bar.dart';
+import '../widgets/product_grid.dart';
+import '../widgets/side_bar.dart';
 
 class PosPage extends ConsumerWidget {
   const PosPage({super.key});
@@ -12,157 +18,47 @@ class PosPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final PosState pos = ref.watch(posViewModelProvider);
     final vm = ref.read(posViewModelProvider.notifier);
-
     return Scaffold(
-      appBar: AppBar(
-        title: Text('订单号 #${pos.orderNumber}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: vm.clearCart,
-            tooltip: '清空',
-          ),
-          PopupMenuButton<String>(
-            tooltip: '挂单/取单',
-            onSelected: (val) {
-              if (val == 'suspend') vm.suspendCurrentOrder();
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'suspend', child: Text('挂单 (保存当前)')),
-              if (pos.suspended.isNotEmpty) const PopupMenuDivider(),
-              ...pos.suspended.map((o) => PopupMenuItem(
-                    value: o.id,
-                    child: Text('取单 ${o.id}  ¥${o.subtotal.toStringAsFixed(0)}'),
-                    onTap: () => vm.resumeSuspended(o.id),
-                  )),
-            ],
-          )
-        ],
-      ),
+      backgroundColor: AppColors.stone100,
+      appBar: const PosAppBar(),
       body: pos.loading
           ? const Center(child: CircularProgressIndicator())
           : Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Categories
-                SizedBox(
-                  width: 140,
-                  child: ListView(
-                    children: pos.categories
-                        .map((cat) => ListTile(
-                              title: Text(cat.categoryName),
-                              selected: cat.categoryCode == pos.currentCategory,
-                              onTap: () => vm.selectCategory(cat.categoryCode),
-                            ))
-                        .toList(),
-                  ),
-                ),
-                const VerticalDivider(width: 1),
-                // Products
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: TextField(
-                          decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: '搜索商品'),
-                          onChanged: vm.search,
-                        ),
-                      ),
-                      Expanded(
-                        child: GridView.count(
-                          crossAxisCount: 3,
-                          childAspectRatio: 1.2,
-                          children: pos.products
-                              .map((p) => Card(
-                                    child: InkWell(
-                                      onTap: () => _handleAddProduct(context, vm, p),
-                                      child: Center(
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                                            const SizedBox(height: 4),
-                                            Text('¥${p.price.toStringAsFixed(2)}'),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ))
-                              .toList(),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const VerticalDivider(width: 1),
-                // Cart
-                Expanded(
-                  child: Column(
-                    children: [
-                      const ListTile(title: Text('购物车')),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: pos.cart.length,
-                          itemBuilder: (context, index) {
-                            final item = pos.cart[index];
-                            return InkWell(
-                              onLongPress: () => _showEditOptionsDialog(context, vm, item),
-                              child: ListTile(
-                                title: Text(item.product.name),
-                                subtitle: Text('单价: ¥${item.unitPrice.toStringAsFixed(2)}'),
-                                trailing: SizedBox(
-                                  width: 176,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.edit_note_outlined),
-                                        tooltip: '编辑选项',
-                                        onPressed: () => _showEditOptionsDialog(context, vm, item),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.remove_circle_outline),
-                                        onPressed: () => vm.changeQuantity(item.id, -1),
-                                      ),
-                                      Text('${item.quantity}'),
-                                      IconButton(
-                                        icon: const Icon(Icons.add_circle_outline),
-                                        onPressed: () => vm.changeQuantity(item.id, 1),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text('小计: ¥${pos.subtotal.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
+                const CategorySidebar(),
+                ProductGrid(onTapProduct: (p) => _handleAddProduct(context, vm, p)),
+                CartPanel(
+                  onEdit: (item) => _showEditOptionsDialog(context, vm, item),
+                  onCheckout: vm.checkout,
+                  onSuspend: vm.suspendCurrentOrder,
+                  onClear: vm.clearCart,
+                  onDiscount: () async {
+                    final v = await showDialog<double>(
+                      context: context,
+                      builder: (ctx) {
+                        final controller = TextEditingController(text: pos.discount.toString());
+                        return AlertDialog(
+                          title: const Text('输入折扣金额'),
+                          content: TextField(
+                            controller: controller,
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          ),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
                             ElevatedButton(
-                              onPressed: pos.cart.isEmpty ? null : vm.checkout,
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 12.0),
-                                child: Text('结账'),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton.icon(
-                              onPressed: pos.cart.isEmpty ? null : vm.suspendCurrentOrder,
-                              icon: const Icon(Icons.pause_circle_outline),
-                              label: const Text('挂单'),
+                              onPressed: () {
+                                final parsed = double.tryParse(controller.text) ?? 0;
+                                Navigator.pop(ctx, parsed);
+                              },
+                              child: const Text('确定'),
                             )
                           ],
-                        ),
-                      )
-                    ],
-                  ),
+                        );
+                      },
+                    );
+                    if (v != null) vm.applyDiscount(v);
+                  },
                 ),
               ],
             ),
@@ -170,6 +66,7 @@ class PosPage extends ConsumerWidget {
   }
 }
 
+// === Option Dialog Logic ===
 void _handleAddProduct(BuildContext context, PosViewModel vm, Product p) {
   if (!p.isCustomizable) {
     vm.addProduct(p);
@@ -180,7 +77,7 @@ void _handleAddProduct(BuildContext context, PosViewModel vm, Product p) {
 
 void _showEditOptionsDialog(BuildContext context, PosViewModel vm, CartItem item) {
   final product = item.product;
-  if (!product.isCustomizable) return; // nothing to edit
+  if (!product.isCustomizable) return;
   _showOptionSelectDialog(context, vm, product, existing: item);
 }
 
@@ -191,7 +88,6 @@ void _showOptionSelectDialog(BuildContext context, PosViewModel vm, Product prod
       selected.putIfAbsent(o.groupCode, () => <String>{}).add(o.optionCode);
     }
   } else {
-    // preselect defaults
     for (final g in product.optionGroups) {
       final defaults = g.options.where((o) => o.isDefault).toList();
       if (defaults.isNotEmpty) {
@@ -200,109 +96,149 @@ void _showOptionSelectDialog(BuildContext context, PosViewModel vm, Product prod
     }
   }
 
-  showModalBottomSheet(
+  showGeneralDialog(
     context: context,
-    isScrollControlled: true,
-    builder: (ctx) {
-      return StatefulBuilder(builder: (ctx, setState) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: Text(product.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: ListView(
+    barrierDismissible: true,
+    barrierLabel: 'options',
+    barrierColor: Colors.black.withAlpha(115),
+    transitionDuration: const Duration(milliseconds: 180),
+    pageBuilder: (ctx, a1, a2) => const SizedBox.shrink(),
+    transitionBuilder: (ctx, anim, _, __) {
+      final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+      return FadeTransition(
+        opacity: curved,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
+          child: Center(
+            child: StatefulBuilder(builder: (ctx, setState) {
+              return ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520, maxHeight: 640),
+                child: Material(
+                  color: Colors.white,
+                  elevation: 12,
+                  borderRadius: BorderRadius.circular(20),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
                     children: [
-                      for (final group in product.optionGroups) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Text(group.groupName, style: const TextStyle(fontWeight: FontWeight.w600)),
-                        ),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                        decoration: const BoxDecoration(color: AppColors.amberPrimary),
+                        child: Row(children: [
+                          Expanded(
+                            child: Text(product.name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          ),
+                          IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: () => Navigator.of(ctx).pop())
+                        ]),
+                      ),
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                           children: [
-                            for (final opt in group.options)
-                              FilterChip(
-                                label: Text('${opt.name}${opt.extraPrice > 0 ? ' +${opt.extraPrice}' : ''}'),
-                                selected: selected[group.groupCode]?.contains(opt.code) ?? false,
-                                onSelected: (sel) {
-                                  setState(() {
-                                    final set = selected.putIfAbsent(group.groupCode, () => <String>{});
-                                    final multiple = group.multiple;
-                                    if (!multiple) {
-                                      set.clear();
-                                      if (sel) {
-                                        set.add(opt.code);
-                                      } else {
-                                        set.remove(opt.code);
-                                      }
-                                    } else {
-                                      if (sel) {
-                                        set.add(opt.code);
-                                      } else {
-                                        set.remove(opt.code);
-                                      }
-                                    }
-                                  });
-                                },
+                            for (final group in product.optionGroups) ...[
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0, bottom: 4),
+                                child: Text(group.groupName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
                               ),
+                              Wrap(
+                                spacing: 10,
+                                runSpacing: 10,
+                                children: [
+                                  for (final opt in group.options)
+                                    _OptionChip(
+                                      label: opt.name,
+                                      extra: opt.extraPrice,
+                                      selected: selected[group.groupCode]?.contains(opt.code) ?? false,
+                                      onTap: () {
+                                        setState(() {
+                                          final set = selected.putIfAbsent(group.groupCode, () => <String>{});
+                                          if (!group.multiple) {
+                                            set.clear();
+                                            set.add(opt.code);
+                                          } else {
+                                            if (!set.add(opt.code)) set.remove(opt.code);
+                                          }
+                                        });
+                                      },
+                                    ),
+                                ],
+                              ),
+                              const Divider(height: 28),
+                            ],
                           ],
                         ),
-                        const Divider(height: 24),
-                      ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                        decoration: const BoxDecoration(color: AppColors.stone100),
+                        child: Row(children: [
+                          Expanded(
+                            child: PrimaryButton(
+                              label: existing == null ? '确认添加' : '更新',
+                              onTap: () {
+                                final selectedOptions = <SelectedOption>[];
+                                for (final g in product.optionGroups) {
+                                  final codes = selected[g.groupCode] ?? {};
+                                  for (final code in codes) {
+                                    final opt = g.options.firstWhere((o) => o.code == code);
+                                    selectedOptions.add(SelectedOption(
+                                      groupCode: g.groupCode,
+                                      groupName: g.groupName,
+                                      optionCode: opt.code,
+                                      optionName: opt.name,
+                                      extraPrice: opt.extraPrice,
+                                    ));
+                                  }
+                                }
+                                if (existing != null) {
+                                  vm.updateCartItemOptions(oldId: existing.id, product: product, newOptions: selectedOptions);
+                                } else {
+                                  vm.addProduct(product, options: selectedOptions);
+                                }
+                                Navigator.of(ctx).pop();
+                              },
+                              color: AppColors.amberPrimary,
+                              textColor: Colors.white,
+                              height: 48,
+                            ),
+                          ),
+                        ]),
+                      )
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          final selectedOptions = <SelectedOption>[];
-                          for (final g in product.optionGroups) {
-                            final codes = selected[g.groupCode] ?? {};
-                            for (final code in codes) {
-                              final opt = g.options.firstWhere((o) => o.code == code);
-                              selectedOptions.add(SelectedOption(
-                                groupCode: g.groupCode,
-                                groupName: g.groupName,
-                                optionCode: opt.code,
-                                optionName: opt.name,
-                                extraPrice: opt.extraPrice,
-                              ));
-                            }
-                          }
-                          if (existing != null) {
-                            vm.updateCartItemOptions(oldId: existing.id, product: product, newOptions: selectedOptions);
-                          } else {
-                            vm.addProduct(product, options: selectedOptions);
-                          }
-                          Navigator.of(ctx).pop();
-                        },
-                        child: Text(existing == null ? '添加' : '更新'),
-                      ),
-                    )
-                  ],
-                )
-              ],
-            ),
+              );
+            }),
           ),
-        );
-      });
+        ),
+      );
     },
   );
 }
+
+class _OptionChip extends StatelessWidget {
+  final String label; final double extra; final bool selected; final VoidCallback onTap;
+  const _OptionChip({required this.label, required this.extra, required this.selected, required this.onTap});
+  @override
+  Widget build(BuildContext context) {
+    final bg = selected ? AppColors.amberPrimary : AppColors.stone100;
+    final fg = selected ? Colors.white : AppColors.stone600;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: selected ? AppColors.amberPrimary : AppColors.stone300),
+        ),
+        child: Text(
+          extra > 0 ? '$label +${extra.toStringAsFixed(0)}' : label,
+          style: TextStyle(color: fg, fontSize: 13, fontWeight: FontWeight.w500),
+        ),
+      ),
+    );
+  }
+}
+
+
