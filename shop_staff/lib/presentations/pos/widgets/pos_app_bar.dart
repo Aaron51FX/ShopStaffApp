@@ -14,7 +14,9 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
     final now = ref.watch(timeProvider).maybeWhen(data: (d) => d, orElse: () => DateTime.now());
     final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
     return AppBar(
-      elevation: 2,
+      toolbarHeight: 64,
+      elevation: 6, // stronger shadow
+      shadowColor: Colors.grey.withAlpha(100),
       backgroundColor: Colors.white,
       foregroundColor: AppColors.stone500,
       titleSpacing: 0,

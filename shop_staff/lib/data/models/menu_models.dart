@@ -3,6 +3,23 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'menu_models.freezed.dart';
 part 'menu_models.g.dart';
 
+// --- Helpers for tolerant numeric parsing (backend may return string or number) ---
+int _toInt(dynamic v) {
+  if (v == null) return 0;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v.trim()) ?? 0;
+  return 0;
+}
+
+int? _toIntOrNull(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.toInt();
+  if (v is String) return int.tryParse(v.trim());
+  return null;
+}
+
 /// Option inside a group
 @JsonSerializable(explicitToJson: true)
 class OptionVoModel {
@@ -13,13 +30,13 @@ class OptionVoModel {
   final String? subTitle;
   final String printText;
   final String? extend1;
-  final int? price; // legacy price, can be null
-  final int? currentPrice;
+  @JsonKey(fromJson: _toIntOrNull) final int? price; // legacy price, can be null (string/int)
+  @JsonKey(fromJson: _toIntOrNull) final int? currentPrice;
   final String? homeImage;
   final String? homeImageHttp;
-  final int? standard; // 1 default selected
-  final int? bounds; // inventory bound or -1
-  final int? boundsPrice;
+  @JsonKey(fromJson: _toIntOrNull) final int? standard; // 1 default selected
+  @JsonKey(fromJson: _toIntOrNull) final int? bounds; // inventory bound or -1
+  @JsonKey(fromJson: _toIntOrNull) final int? boundsPrice;
   final String? buttonColorValue; // two colors separated by comma
 
   OptionVoModel({
@@ -51,8 +68,8 @@ class OptionGroupModel {
   final String groupName;
   final String printText;
   final String? remark;
-  final int multipleState; // 1 single, >1 maybe multi? (legacy semantics)
-  final int smallest; // min selection
+  @JsonKey(fromJson: _toInt) final int multipleState; // 1 single, >1 maybe multi? (legacy semantics)
+  @JsonKey(fromJson: _toInt) final int smallest; // min selection
   final List<OptionVoModel> optionVoList;
 
   OptionGroupModel({

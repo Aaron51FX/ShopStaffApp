@@ -65,21 +65,128 @@ class MenuRepositoryImpl implements MenuRepository {
       takeout: takeout,
       categoryCode: categoryCode,
     );
+    debugPrint('[MenuRepo] fetchMenuByCategory raw type=${raw.runtimeType}');
+    debugPrint('[MenuRepo] fetchMenuByCategory raw content=${raw.toString()}');
     if (raw is List) {
-      final models = parseMenuItems(raw.map((e) => Map<String, dynamic>.from(e as Map)).toList());
-      return models.map(_toEntity).toList();
+  return _safeParseMenuList(raw);
     }
     // 兼容后端包装: 尝试在常见 data/result/payload 下找 list
     if (raw is Map<String, dynamic>) {
       for (final k in ['data','result','payload']) {
         final v = raw[k];
+        debugPrint('[MenuRepo] fetchMenuByCategory envelope key=$k type=${v.runtimeType}');
         if (v is List) {
-          final models = parseMenuItems(v.map((e) => Map<String, dynamic>.from(e as Map)).toList());
-          return models.map(_toEntity).toList();
+          debugPrint('[MenuRepo] fetchMenuByCategory found list under key=$k count=${v.length}');
+          final entities = _safeParseMenuList(v);
+          debugPrint('[MenuRepo] fetchMenuByCategory parsed models count=${entities.length}');
+          return entities;
         }
       }
     }
     return const [];
+  }
+
+  List<Product> _safeParseMenuList(List dynamicList) {
+    final list = <Product>[];
+    for (var i = 0; i < dynamicList.length; i++) {
+      final rawItem = dynamicList[i];
+      if (rawItem is! Map) {
+        debugPrint('[MenuRepo] skip index=$i not a Map type=${rawItem.runtimeType}');
+        continue;
+      }
+      try {
+        final normalized = _normalizeMenuJson(Map<String, dynamic>.from(rawItem.cast<String, dynamic>()));
+        final model = MenuItemModel.fromJson(normalized);
+        list.add(_toEntity(model));
+      } catch (e, st) {
+        debugPrint('[MenuRepo] parse item failed index=$i error=$e json=$rawItem');
+        debugPrint(st.toString());
+      }
+    }
+    return list;
+  }
+
+  Map<String, dynamic> _normalizeMenuJson(Map<String, dynamic> json) {
+    // subtitle: 后端可能是 null / string / list
+    final sub = json['subtitle'];
+    if (sub == null) {
+      json['subtitle'] = <String>[]; // match factory default (List<String>)
+    } else if (sub is String) {
+      json['subtitle'] = sub.isEmpty ? <String>[] : <String>[sub];
+    } else if (sub is List) {
+      json['subtitle'] = sub.whereType<String>().toList();
+    }
+    // tax: 后端给了字符串 "0"
+    final tax = json['tax'];
+    if (tax is String) {
+      json['tax'] = int.tryParse(tax) ?? 0;
+    } else if (tax == null) {
+      json['tax'] = 0;
+    }
+    // optionGroupVoList: 可能为 null
+    if (json['optionGroupVoList'] == null || json['optionGroupVoList'] is! List) {
+      json['optionGroupVoList'] = <Map<String, dynamic>>[];
+    }
+    // 深度规范化 optionGroupVoList -> optionVoList 数字字段
+    final ogList = json['optionGroupVoList'];
+    if (ogList is List) {
+      for (var gi = 0; gi < ogList.length; gi++) {
+        final g = ogList[gi];
+        if (g is Map) {
+          // 组层级
+          final ms = g['multipleState'];
+            if (ms is String) g['multipleState'] = int.tryParse(ms) ?? 0;
+            else if (ms is! int) g['multipleState'] = 0;
+          final sm = g['smallest'];
+            if (sm is String) g['smallest'] = int.tryParse(sm) ?? 0;
+            else if (sm is! int) g['smallest'] = 0;
+          // 子选项
+          final ovList = g['optionVoList'];
+          if (ovList is List) {
+            for (var oi = 0; oi < ovList.length; oi++) {
+              final o = ovList[oi];
+              if (o is Map) {
+                for (final key in ['price','currentPrice','standard','bounds','boundsPrice']) {
+                  final v = o[key];
+                  if (v is String) {
+                    o[key] = int.tryParse(v) ?? (v.isEmpty ? null : null);
+                  } else if (v == null) {
+                    // leave null; model允许部分为 null
+                  } else if (v is num) {
+                    o[key] = v.toInt();
+                  }
+                }
+              }
+            }
+          } else {
+            g['optionVoList'] = <Map<String, dynamic>>[];
+          }
+        } else {
+          // 非 Map 条目丢弃
+          ogList[gi] = <String, dynamic>{
+            'groupCode': 'UNK_$gi',
+            'groupName': 'UNK',
+            'printText': 'UNK',
+            'remark': null,
+            'multipleState': 0,
+            'smallest': 0,
+            'optionVoList': <Map<String, dynamic>>[],
+          };
+        }
+      }
+    }
+    // timeBoundsStart/End: 可能为 null
+    if (json['timeBoundsStart'] == null || json['timeBoundsStart'] is! List) {
+      json['timeBoundsStart'] = <int>[];
+    }
+    if (json['timeBoundsEnd'] == null || json['timeBoundsEnd'] is! List) {
+      json['timeBoundsEnd'] = <int>[];
+    }
+    // ensure required numeric fields
+    json['currentPrice'] ??= json['price'] ?? 0;
+    json['qtyBounds'] ??= -1;
+    json['type'] ??= 1;
+    return json;
   }
 
   Product _toEntity(MenuItemModel m) => Product(
