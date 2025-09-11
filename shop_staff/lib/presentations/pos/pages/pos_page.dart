@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
-import 'package:shop_staff/presentations/pos/viewmodels/pos_state.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
 import '../widgets/cart_panel.dart';
@@ -16,52 +15,53 @@ class PosPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final PosState pos = ref.watch(posViewModelProvider);
     final vm = ref.read(posViewModelProvider.notifier);
     return Scaffold(
       backgroundColor: AppColors.stone100,
       appBar: const PosAppBar(),
-      body: pos.loading
-          ? const Center(child: CircularProgressIndicator())
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const CategorySidebar(),
-                ProductGrid(onTapProduct: (p) => _handleAddProduct(context, vm, p)),
-                CartPanel(
-                  onEdit: (item) => _showEditOptionsDialog(context, vm, item),
-                  onCheckout: vm.checkout,
-                  onSuspend: vm.suspendCurrentOrder,
-                  onClear: vm.clearCart,
-                  onDiscount: () async {
-                    final v = await showDialog<double>(
-                      context: context,
-                      builder: (ctx) {
-                        final controller = TextEditingController(text: pos.discount.toString());
-                        return AlertDialog(
-                          title: const Text('输入折扣金额'),
-                          content: TextField(
-                            controller: controller,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          ),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-                            ElevatedButton(
-                              onPressed: () {
-                                final parsed = double.tryParse(controller.text) ?? 0;
-                                Navigator.pop(ctx, parsed);
-                              },
-                              child: const Text('确定'),
-                            )
-                          ],
-                        );
-                      },
+      body: Container(
+        margin: const EdgeInsets.only(top: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const CategorySidebar(),
+            ProductGrid(onTapProduct: (p) => _handleAddProduct(context, vm, p)),
+            CartPanel(
+              onEdit: (item) => _showEditOptionsDialog(context, vm, item),
+              onCheckout: vm.checkout,
+              onSuspend: vm.suspendCurrentOrder,
+              onClear: vm.clearCart,
+              onDiscount: () async {
+                final discount = ref.read(posViewModelProvider.select((s) => s.discount));
+                final v = await showDialog<double>(
+                  context: context,
+                  builder: (ctx) {
+                    final controller = TextEditingController(text: discount.toString());
+                    return AlertDialog(
+                      title: const Text('输入折扣金额'),
+                      content: TextField(
+                        controller: controller,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      ),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
+                        ElevatedButton(
+                          onPressed: () {
+                            final parsed = double.tryParse(controller.text) ?? 0;
+                            Navigator.pop(ctx, parsed);
+                          },
+                          child: const Text('确定'),
+                        )
+                      ],
                     );
-                    if (v != null) vm.applyDiscount(v);
                   },
-                ),
-              ],
+                );
+                if (v != null) vm.applyDiscount(v);
+              },
             ),
+          ],
+        ),
+      ),
     );
   }
 }

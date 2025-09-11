@@ -12,7 +12,8 @@ class ProductGrid extends ConsumerWidget {
   const ProductGrid({super.key, required this.onTapProduct});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final products = ref.watch(posViewModelProvider.select((s) => s.products));
+  final products = ref.watch(posViewModelProvider.select((s) => s.products));
+  final loading = ref.watch(posViewModelProvider.select((s) => s.loading));
     final favorites = ref.watch(posViewModelProvider.select((s) => s.favoriteProductIds));
     final vm = ref.read(posViewModelProvider.notifier);
     return Expanded(
@@ -34,7 +35,8 @@ class ProductGrid extends ConsumerWidget {
             return RepaintBoundary(
               child: ScrollConfiguration(
                 behavior: const NoScrollbarBehavior(),
-                child: GridView.builder(
+                child: Stack(children: [
+                  GridView.builder(
                   padding: const EdgeInsets.all(8),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxis,
@@ -106,6 +108,16 @@ class ProductGrid extends ConsumerWidget {
                     );
                   },
                 ),
+                  if (loading)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Container(
+                          color: Colors.white.withOpacity(0.6),
+                          child: const Center(child: CircularProgressIndicator()),
+                        ),
+                      ),
+                    ),
+                ]),
               ),
             );
           }),

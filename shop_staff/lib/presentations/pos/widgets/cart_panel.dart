@@ -20,7 +20,12 @@ class CartPanel extends ConsumerWidget {
   const CartPanel({super.key, required this.onEdit, required this.onCheckout, required this.onSuspend, required this.onClear, required this.onDiscount});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(posViewModelProvider);
+  final orderNumber = ref.watch(posViewModelProvider.select((s) => s.orderNumber));
+  final orderMode = ref.watch(posViewModelProvider.select((s) => s.orderMode));
+  final cart = ref.watch(posViewModelProvider.select((s) => s.cart));
+  final subtotal = ref.watch(posViewModelProvider.select((s) => s.subtotal));
+  final discount = ref.watch(posViewModelProvider.select((s) => s.discount));
+  final total = ref.watch(posViewModelProvider.select((s) => s.total));
     final vm = ref.read(posViewModelProvider.notifier);
     return Container(
       width: 360,
@@ -34,18 +39,18 @@ class CartPanel extends ConsumerWidget {
           child: Row(children: [
             const Text('订单号:', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(width: 6),
-            Text('#${state.orderNumber}', style: const TextStyle(color: AppColors.amberPrimary, fontWeight: FontWeight.bold)),
+            Text('#$orderNumber', style: const TextStyle(color: AppColors.amberPrimary, fontWeight: FontWeight.bold)),
             const Spacer(),
             ToggleButtons(
               constraints: const BoxConstraints(minHeight: 32, minWidth: 54),
               borderRadius: BorderRadius.circular(10),
-              isSelected: [state.orderMode == 'dine_in', state.orderMode == 'take_out'],
+              isSelected: [orderMode == 'dine_in', orderMode == 'take_out'],
               selectedColor: Colors.white,
               fillColor: AppColors.amberPrimary,
               color: AppColors.stone500,
               onPressed: (i) {
                 final target = i == 0 ? 'dine_in' : 'take_out';
-                if (target != state.orderMode) vm.switchOrderMode();
+                if (target != orderMode) vm.switchOrderMode();
               },
               children: const [Text('堂食'), Text('外带')],
             ),
@@ -56,7 +61,7 @@ class CartPanel extends ConsumerWidget {
           child: RepaintBoundary(
             child: ScrollConfiguration(
               behavior: const NoScrollbarBehavior(),
-              child: state.cart.isEmpty
+              child: cart.isEmpty
                   ? const Center(
                       child: Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.0),
@@ -65,9 +70,9 @@ class CartPanel extends ConsumerWidget {
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(vertical: 4),
-                      itemCount: state.cart.length,
+                      itemCount: cart.length,
                       itemBuilder: (context, index) {
-                        final item = state.cart[index];
+                        final item = cart[index];
                         final optionText = item.options.isNotEmpty ? item.options.map((o) => o.optionName).join(', ') : '';
                         return KeyedSubtree(
                           key: ValueKey(item.id),
@@ -124,21 +129,21 @@ class CartPanel extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(children: [
-            _SummaryRow(label: '小计', value: '¥${state.subtotal.toStringAsFixed(2)}'),
+            _SummaryRow(label: '小计', value: '¥${subtotal.toStringAsFixed(2)}'),
             const SizedBox(height: 4),
-            _SummaryRow(label: '折扣', value: '-¥${state.discount.toStringAsFixed(2)}', onTap: state.cart.isEmpty ? null : onDiscount),
+            _SummaryRow(label: '折扣', value: '-¥${discount.toStringAsFixed(2)}', onTap: cart.isEmpty ? null : onDiscount),
             const Divider(height: 24),
-            _SummaryRow(label: '应付总额', value: '¥${state.total.toStringAsFixed(2)}', emphasized: true),
+            _SummaryRow(label: '应付总额', value: '¥${total.toStringAsFixed(2)}', emphasized: true),
             const SizedBox(height: 12),
             Row(children: [
-              Expanded(child: PrimaryButton(label: '挂单', onTap: state.cart.isEmpty ? null : onSuspend, color: AppColors.stone200, textColor: AppColors.stone600)),
+              Expanded(child: PrimaryButton(label: '挂单', onTap: cart.isEmpty ? null : onSuspend, color: AppColors.stone200, textColor: AppColors.stone600)),
               const SizedBox(width: 8),
-              Expanded(child: PrimaryButton(label: '折扣', onTap: state.cart.isEmpty ? null : () => onDiscount(), color: AppColors.stone200, textColor: AppColors.stone600)),
+              Expanded(child: PrimaryButton(label: '折扣', onTap: cart.isEmpty ? null : () => onDiscount(), color: AppColors.stone200, textColor: AppColors.stone600)),
               const SizedBox(width: 8),
-              Expanded(child: PrimaryButton(label: '清空', onTap: state.cart.isEmpty ? null : onClear, color: Colors.red.shade100, textColor: Colors.red.shade700)),
+              Expanded(child: PrimaryButton(label: '清空', onTap: cart.isEmpty ? null : onClear, color: Colors.red.shade100, textColor: Colors.red.shade700)),
             ]),
             const SizedBox(height: 8),
-            PrimaryButton(label: '结 账', onTap: state.cart.isEmpty ? null : onCheckout, color: AppColors.emerald600, textColor: Colors.white, height: 52),
+            PrimaryButton(label: '结 账', onTap: cart.isEmpty ? null : onCheckout, color: AppColors.emerald600, textColor: Colors.white, height: 52),
           ]),
         )
       ]),
