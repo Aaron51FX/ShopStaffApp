@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/product.dart';
@@ -213,8 +214,15 @@ class PosViewModel extends StateNotifier<PosState> {
     state = state.copyWith(cart: updated);
   }
 
-  void clearCart() {
-    state = state.copyWith(cart: []);
+  void clearCart() async{
+    final ok = await _ref.read(dialogControllerProvider.notifier).confirm(
+      title: '清空购物车',
+      message: '确认要清空购物车吗？',
+      destructive: true,
+    );
+    if (ok) {
+      state = state.copyWith(cart: []);
+    }
   }
 
   void checkout() {
