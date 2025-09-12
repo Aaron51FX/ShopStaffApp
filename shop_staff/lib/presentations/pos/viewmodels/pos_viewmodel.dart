@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/data/providers.dart';
+import 'package:shop_staff/core/storage/key_value_store.dart';
+import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
@@ -20,6 +22,14 @@ final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((ref)
       // Only re-bootstrap if we currently have no categories loaded.
       final hasCategories = vm.debugHasCategories;
       if (!hasCategories) {
+        vm.bootstrap();
+      }
+    }
+  });
+  // Also listen specifically for machineCode becoming non-empty (covers case where shopInfo was already set before this provider was built)
+  ref.listen<String?>(machineCodeProvider, (prev, next) {
+    if ((prev == null || prev.isEmpty) && next != null && next.isNotEmpty) {
+      if (!vm.debugHasCategories) {
         vm.bootstrap();
       }
     }
@@ -222,6 +232,32 @@ class PosViewModel extends StateNotifier<PosState> {
     );
     if (ok) {
       state = state.copyWith(cart: []);
+    }
+  }
+
+  void logout() async{
+    final ok = await _ref.read(dialogControllerProvider.notifier).confirm(
+      title: '注销',
+      message: '确认要注销吗？',
+      destructive: true,
+    );
+    if (ok) {
+      try {
+        // 清空购物车与本地状态
+        state = PosState.initial();
+        // 清理仓库缓存
+        _menuRepository.clearCache();
+        // 删除激活码
+        final store = _ref.read(keyValueStoreProvider);
+        await store.delete(AppStorageKeys.activationCode);
+        // 清空全局店铺信息
+        _ref.read(shopInfoProvider.notifier).state = null;
+        // 跳转登录
+        final router = _ref.read(appRouterProvider);
+        router.go('/login');
+      } catch (e) {
+        debugPrint('Logout failed: $e');
+      }
     }
   }
 

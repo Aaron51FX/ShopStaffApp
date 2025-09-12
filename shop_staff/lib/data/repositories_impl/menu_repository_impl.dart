@@ -11,6 +11,12 @@ class MenuRepositoryImpl implements MenuRepository {
   MenuRepositoryImpl(this._remote);
 
   List<CategoryModel>? _cachedCategories;
+  
+  @override
+  void clearCache() {
+    _cachedCategories = null;
+    debugPrint('[MenuRepo] cache cleared');
+  }
 
   @override
   Future<List<CategoryModel>> fetchCategories({required String machineCode, String language = 'JP', bool takeout = false}) async {

@@ -12,4 +12,5 @@ abstract class MenuRepository {
     bool takeout = false,
     required String categoryCode,
   });
+  void clearCache();
 }
