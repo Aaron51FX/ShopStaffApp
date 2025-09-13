@@ -155,7 +155,8 @@ class OptionChoiceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasExtra = option.extraPrice > 0;
-    final showQtyControls = hasExtra && selected && (!isLastSlotSingle);
+  // 显示数量操作区域条件: 多选 + 有附加价 + 已选中 + 不是“最后一个 slot 未选”场景 + (可继续增加 或 当前数量>1 可减少)
+  final showQtyControls = hasExtra && selected && (!isLastSlotSingle) && (canAddMore || quantity > 1);
     final bg = selected ? AppColors.amberPrimary : AppColors.stone100;
     final fg = selected ? Colors.white : AppColors.stone600;
     return Column(
@@ -186,7 +187,7 @@ class OptionChoiceTile extends StatelessWidget {
         if (showQtyControls) ...[
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(
                   color: bg, // 稍微淡一点的背景条
                   borderRadius: BorderRadius.circular(12),
@@ -194,7 +195,7 @@ class OptionChoiceTile extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _QtyButton(icon: Icons.remove, enabled: quantity > 1, onPressed: quantity > 1 ? onDec : null, fg: fg),
+                    _QtyButton(icon: Icons.remove, enabled: quantity > 0, onPressed: quantity > 0 ? onDec : null, fg: fg),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 6),
                       child: Text('$quantity', style: TextStyle(color: fg, fontSize: 13, fontWeight: FontWeight.bold)),
@@ -220,8 +221,8 @@ class _QtyButton extends StatelessWidget {
         onTap: enabled ? onPressed : null,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          width: 24,
-          height: 24,
+          width: 26,
+          height: 26,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: enabled ? fg.withAlpha(38) : Colors.transparent,
