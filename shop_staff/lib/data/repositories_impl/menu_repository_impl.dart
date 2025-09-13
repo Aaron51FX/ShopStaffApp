@@ -211,7 +211,7 @@ class MenuRepositoryImpl implements MenuRepository {
         groupName: g.groupName,
         multiple: g.multipleState != 1, // assumption: 1 single, else multi
         minSelect: g.smallest,
-        maxSelect: null,
+        maxSelect: g.multipleState,
         options: g.optionVoList.map(_mapOption).toList(),
       );
 

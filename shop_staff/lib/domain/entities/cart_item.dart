@@ -7,15 +7,17 @@ class SelectedOption extends Equatable {
   final String optionCode;
   final String optionName;
   final double extraPrice;
+  final int quantity; // 新增: 该附加项的数量 (>=1)
   const SelectedOption({
     required this.groupCode,
     required this.groupName,
     required this.optionCode,
     required this.optionName,
     required this.extraPrice,
+    this.quantity = 1,
   });
   @override
-  List<Object?> get props => [groupCode, groupName, optionCode, optionName, extraPrice];
+  List<Object?> get props => [groupCode, groupName, optionCode, optionName, extraPrice, quantity];
 }
 
 class CartItem extends Equatable {
@@ -33,7 +35,7 @@ class CartItem extends Equatable {
     this.note,
   });
 
-  double get unitPrice => product.price + options.fold(0, (p, e) => p + e.extraPrice);
+  double get unitPrice => product.price + options.fold(0, (p, e) => p + e.extraPrice * e.quantity);
   double get lineTotal => unitPrice * quantity;
 
   CartItem copyWith({List<SelectedOption>? options, int? quantity, String? id, String? note}) => CartItem(

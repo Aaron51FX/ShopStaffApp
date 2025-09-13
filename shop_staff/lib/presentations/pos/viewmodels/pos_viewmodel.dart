@@ -9,6 +9,9 @@ import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
 import 'package:shop_staff/domain/repositories/menu_repository.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
+import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
+import 'package:shop_staff/presentations/pos/widgets/option_dialog_widgets.dart';
 import 'pos_state.dart';
 
 final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((ref) {
@@ -356,5 +359,186 @@ class PosViewModel extends StateNotifier<PosState> {
   final sorted = [...options]..sort((a, b) => a.optionCode.compareTo(b.optionCode));
   final optionKey = sorted.map((e) => '${e.groupCode}:${e.optionCode}').join('|');
   return '${p.id}-$optionKey';
+  }
+
+  // ================= Option Dialog Public APIs =================
+  void addProductWithOptions(BuildContext context, Product product) {
+    if (!product.isCustomizable) {
+      addProduct(product);
+      return;
+    }
+    _openOptionDialog(context, product);
+  }
+
+  void editCartItemOptions(BuildContext context, CartItem item) {
+    final product = item.product;
+    if (!product.isCustomizable) return;
+    _openOptionDialog(context, product, existing: item);
+  }
+
+  // ================= Option Dialog Core =================
+  void _openOptionDialog(BuildContext context, Product product, {CartItem? existing}) {
+    final Map<String, Map<String, int>> selected = {};
+    if (existing != null) {
+      for (final o in existing.options) {
+        selected.putIfAbsent(o.groupCode, () => <String, int>{})[o.optionCode] = o.quantity;
+      }
+    } else {
+      for (final g in product.optionGroups) {
+        final defaults = g.options.where((o) => o.isDefault).toList();
+        if (defaults.isNotEmpty) {
+          final map = <String, int>{};
+            for (final d in defaults) {
+              map[d.code] = 1;
+            }
+          selected[g.groupCode] = map;
+        }
+      }
+    }
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'options',
+      barrierColor: Colors.black.withAlpha(115),
+      transitionDuration: const Duration(milliseconds: 180),
+      pageBuilder: (_, __, ___) => const SizedBox.shrink(),
+      transitionBuilder: (ctx, anim, _, __) {
+        final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+        return FadeTransition(
+          opacity: curved,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
+            child: Center(
+              child: StatefulBuilder(
+                builder: (ctx, setState) {
+                  return ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 520, maxHeight: 640),
+                    child: Material(
+                      color: Colors.white,
+                      elevation: 12,
+                      borderRadius: BorderRadius.circular(20),
+                      clipBehavior: Clip.antiAlias,
+                      child: Column(
+                        children: [
+                          // Header
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                            decoration: const BoxDecoration(color: AppColors.amberPrimary),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    product.name,
+                                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, color: Colors.white),
+                                  onPressed: () => Navigator.of(ctx).pop(),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Body
+                          Expanded(
+                            child: ListView(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              children: [
+                                for (final group in product.optionGroups) ...[
+                                  OptionGroupWidget(
+                                    group: group,
+                                    selected: selected[group.groupCode] ?? const {},
+                                    onChanged: (map) {
+                                      setState(() {
+                                        if (map.isEmpty) {
+                                          selected.remove(group.groupCode);
+                                        } else {
+                                          selected[group.groupCode] = map;
+                                        }
+                                      });
+                                    },
+                                    onMaxReached: () {
+                                      _ref.read(dialogControllerProvider.notifier).confirm(
+                                        title: '已达到最大可选',
+                                        message: '${group.groupName} 已达到最多可选数量',
+                                        okText: '知道了',
+                                        cancelText: '关闭',
+                                      );
+                                    },
+                                  ),
+                                  const Divider(height: 28),
+                                ],
+                              ],
+                            ),
+                          ),
+                          // Footer
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                            decoration: const BoxDecoration(color: AppColors.stone100),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: PrimaryButton(
+                                    label: existing == null ? '确认添加' : '更新',
+                                    onTap: () {
+                                      final missingGroups = <String>[];
+                                      for (final g in product.optionGroups) {
+                                        final map = selected[g.groupCode] ?? const {};
+                                        final total = map.values.fold(0, (p, e) => p + e);
+                                        if (g.minSelect > 0 && total < g.minSelect) {
+                                          missingGroups.add('${g.groupName}(至少${g.minSelect})');
+                                        }
+                                      }
+                                      if (missingGroups.isNotEmpty) {
+                                        _ref.read(dialogControllerProvider.notifier).confirm(
+                                          title: '缺少必选项',
+                                          message: missingGroups.join('\n'),
+                                          okText: '好的',
+                                          cancelText: '关闭',
+                                        );
+                                        return;
+                                      }
+                                      final selectedOptions = <SelectedOption>[];
+                                      for (final g in product.optionGroups) {
+                                        final map = selected[g.groupCode] ?? const {};
+                                        map.forEach((code, qty) {
+                                          final opt = g.options.firstWhere((o) => o.code == code);
+                                          selectedOptions.add(SelectedOption(
+                                            groupCode: g.groupCode,
+                                            groupName: g.groupName,
+                                            optionCode: opt.code,
+                                            optionName: opt.name,
+                                            extraPrice: opt.extraPrice,
+                                            quantity: qty,
+                                          ));
+                                        });
+                                      }
+                                      if (existing != null) {
+                                        updateCartItemOptions(oldId: existing.id, product: product, newOptions: selectedOptions);
+                                      } else {
+                                        addProduct(product, options: selectedOptions);
+                                      }
+                                      Navigator.of(ctx).pop();
+                                    },
+                                    color: AppColors.amberPrimary,
+                                    textColor: Colors.white,
+                                    height: 48,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

@@ -5,7 +5,7 @@ import 'package:shop_staff/core/network/endpoints.dart';
 
 
 final dioClientProvider = Provider<DioClient>((ref) {
-  final config = AppConfig.forEnv(AppEnvironment.staging); // TODO: inject env
+  final config = AppConfig.forEnv(AppEnvironment.production); // TODO: inject env
   return DioClient.create(config);
 });
 

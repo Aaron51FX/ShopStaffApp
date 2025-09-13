@@ -59,7 +59,7 @@ class ProductGrid extends ConsumerWidget {
                           children: [
                             // Image area
                             AspectRatio(
-                              aspectRatio: 1.4,
+                              aspectRatio: 1.5,
                               child: _ProductImage(url: p.imageUrl),
                             ),
                             Expanded(
@@ -112,7 +112,7 @@ class ProductGrid extends ConsumerWidget {
                     Positioned.fill(
                       child: IgnorePointer(
                         child: Container(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withAlpha(153),
                           child: const Center(child: CircularProgressIndicator()),
                         ),
                       ),
