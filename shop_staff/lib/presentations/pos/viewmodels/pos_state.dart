@@ -3,6 +3,7 @@ import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
+import 'package:shop_staff/domain/entities/order_submission_result.dart';
 
 class PosState {
   final List<CategoryModel> categories; // category list with name/code
@@ -18,6 +19,7 @@ class PosState {
   final Set<int> favoriteProductIds; // 收藏商品 id 集合
   final String orderMode; // dine_in / take_out
   final double discount; // 未来可扩展多种优惠, 先简单一个数值
+  final OrderSubmissionResult? lastOrderResult; // 最近一次下单结果
 
   const PosState({
     required this.categories,
@@ -33,6 +35,7 @@ class PosState {
     required this.favoriteProductIds,
     required this.orderMode,
     required this.discount,
+  required this.lastOrderResult,
   });
 
   factory PosState.initial() => const PosState(
@@ -49,6 +52,7 @@ class PosState {
       favoriteProductIds: {},
       orderMode: 'dine_in',
       discount: 0,
+  lastOrderResult: null,
     );
 
   double get subtotal => cart.fold(0, (p, e) => p + e.lineTotal);
@@ -68,6 +72,7 @@ class PosState {
     Set<int>? favoriteProductIds,
     String? orderMode,
     double? discount,
+  OrderSubmissionResult? lastOrderResult,
   }) {
     return PosState(
       categories: categories ?? this.categories,
@@ -83,6 +88,7 @@ class PosState {
       favoriteProductIds: favoriteProductIds ?? this.favoriteProductIds,
       orderMode: orderMode ?? this.orderMode,
       discount: discount ?? this.discount,
+  lastOrderResult: lastOrderResult ?? this.lastOrderResult,
     );
   }
 }

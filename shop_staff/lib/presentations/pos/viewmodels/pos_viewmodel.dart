@@ -8,6 +8,8 @@ import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
 import 'package:shop_staff/domain/repositories/menu_repository.dart';
+import 'package:shop_staff/domain/repositories/order_repository.dart'; // ensure type reference
+import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
@@ -265,8 +267,9 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   void checkout() {
-    // For now just increment order number and clear cart
-    state = state.copyWith(orderNumber: state.orderNumber + 1, cart: []);
+  _submitOrder();
+
+
   }
 
   void toggleFavorite(Product p) {
@@ -374,6 +377,32 @@ class PosViewModel extends StateNotifier<PosState> {
     final product = item.product;
     if (!product.isCustomizable) return;
     _openOptionDialog(context, product, existing: item);
+  }
+
+  Future<void> _submitOrder() async {
+    if (state.cart.isEmpty) return;
+    final machineCode = _ref.read(machineCodeProvider);
+    if (machineCode == null || machineCode.isEmpty) {
+      state = state.copyWith(error: '无法下单: 缺少machineCode');
+      return;
+    }
+    final language = _ref.read(shopLanguageProvider);
+    final takeout = state.orderMode == 'take_out';
+    final total = state.cart.fold<double>(0, (p, e) => p + e.lineTotal) - state.discount;
+    try {
+      final OrderRepository orderRepo = _ref.read(orderRepositoryProvider);
+      final OrderSubmissionResult result = await orderRepo.submitOrder(
+        items: state.cart,
+        machineCode: machineCode,
+        language: language,
+        takeout: takeout,
+        total: total,
+      );
+      state = state.copyWith(orderNumber: state.orderNumber + 1, cart: [], lastOrderResult: result);
+      debugPrint('Order submitted: ${result.orderId} total=${result.total} tax1=${result.tax1} tax2=${result.tax2}');
+    } catch (e) {
+      state = state.copyWith(error: '下单失败: $e');
+    }
   }
 
   // ================= Option Dialog Core =================
