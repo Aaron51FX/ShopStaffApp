@@ -13,8 +13,14 @@ class OrderRepositoryImpl implements OrderRepository {
 		for (final e in items) {
 			final optionCodes = e.options.isEmpty
 					? ''
-					: e.options
-							.map((o) => '${o.groupCode}:${o.optionCode}${o.quantity > 1 ? 'x${o.quantity}' : ''}')
+					: e.options //when o.quantity > 1, just add same option multiple times like "OP1,OP1"
+							.map((o) {
+                String subOptions = '';
+                for (int i = 0; i < o.quantity; i++) {
+                  subOptions += o.optionCode + (i < o.quantity - 1 ? ',' : '');
+                }
+                return subOptions;
+							})
 							.join(',');
 			final line = <String, dynamic>{
 				'menuCode': e.product.id.toString(),
