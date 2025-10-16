@@ -60,6 +60,12 @@ class PosViewModel extends StateNotifier<PosState> {
     debugPrint('Bootstrapping POS ViewModel...');
     state = state.copyWith(loading: true, error: null);
     try {
+      // load suspended orders from local storage (non-blocking for network)
+      final local = _ref.read(suspendedOrderLocalDataSourceProvider);
+      final loaded = await local.loadAll();
+      if (loaded.isNotEmpty) {
+        state = state.copyWith(suspended: loaded, suspendedCounter: loaded.length);
+      }
       final machineCode = _ref.read(machineCodeProvider);
       debugPrint('Current machineCode: $machineCode');
       if (machineCode == null || machineCode.isEmpty) {
@@ -266,10 +272,12 @@ class PosViewModel extends StateNotifier<PosState> {
     }
   }
 
+  void navToSuspendedOrder() {
+    _ref.read(appRouterProvider).push('/pos/suspended');
+  }
+
   void checkout() {
-  _submitOrder();
-
-
+    _submitOrder();
   }
 
   void toggleFavorite(Product p) {
@@ -335,18 +343,29 @@ class PosViewModel extends StateNotifier<PosState> {
   // 挂单: 保存当前购物车并清空
   void suspendCurrentOrder() {
     if (state.cart.isEmpty) return;
-    final id = 'S${(state.suspendedCounter + 1).toString().padLeft(3, '0')}';
-    final suspendedOrder = SuspendedOrder(
-      id: id,
-      items: state.cart,
-      subtotal: state.subtotal,
-      createdAt: DateTime.now(),
-    );
-    state = state.copyWith(
-      suspended: [...state.suspended, suspendedOrder],
-      suspendedCounter: state.suspendedCounter + 1,
-      cart: [],
-    );
+
+    _ref.read(dialogControllerProvider.notifier).confirm(
+      title: '挂单',
+      message: '确认要挂单吗？',
+    ).then((ok) {
+      if (ok) {
+        final id = 'S${(state.suspendedCounter + 1).toString().padLeft(3, '0')}';
+        final suspendedOrder = SuspendedOrder(
+          id: id,
+          items: state.cart,
+          subtotal: state.subtotal,
+          createdAt: DateTime.now(),
+        );
+  state = state.copyWith(
+          suspended: [...state.suspended, suspendedOrder],
+          suspendedCounter: state.suspendedCounter + 1,
+          cart: [],
+        );
+  // persist
+  _ref.read(suspendedOrderLocalDataSourceProvider).save(suspendedOrder);
+      }
+    });
+
   }
 
   // 取单: 根据挂单 id 恢复
@@ -356,6 +375,8 @@ class PosViewModel extends StateNotifier<PosState> {
     if (idx == -1) return;
     final order = list.removeAt(idx);
     state = state.copyWith(cart: order.items, suspended: list);
+  // remove from local
+  _ref.read(suspendedOrderLocalDataSourceProvider).delete(id);
   }
 
   String _generateKey(Product p, List<SelectedOption> options) {

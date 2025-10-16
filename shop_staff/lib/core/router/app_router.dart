@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../presentations/pos/pages/pos_page.dart';
 import '../../presentations/auth/pages/login_page.dart';
 import '../../presentations/splash/pages/splash_page.dart';
+import '../../presentations/pos/pages/suspended_orders_page.dart';
 import '../storage/key_value_store.dart';
 // Removed providers.dart import (not needed here)
 
@@ -37,6 +38,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/pos',
         name: 'pos',
         builder: (context, state) => const PosPage(),
+      ),
+      GoRoute(
+        path: '/pos/suspended',
+        name: 'suspended',
+        builder: (context, state) => const SuspendedOrdersPage(),
       ),
     ],
   );
