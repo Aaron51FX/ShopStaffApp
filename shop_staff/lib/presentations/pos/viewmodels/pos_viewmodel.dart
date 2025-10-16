@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
+import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/core/storage/key_value_store.dart';
 import 'package:shop_staff/core/router/app_router.dart';
@@ -421,8 +422,10 @@ class PosViewModel extends StateNotifier<PosState> {
       );
       state = state.copyWith(orderNumber: state.orderNumber + 1, cart: [], lastOrderResult: result);
       debugPrint('Order submitted: ${result.orderId} total=${result.total} tax1=${result.tax1} tax2=${result.tax2}');
+      SimpleToast.successGlobal('下单成功');
     } catch (e) {
       state = state.copyWith(error: '下单失败: $e');
+      SimpleToast.errorGlobal('下单失败');
     }
   }
 

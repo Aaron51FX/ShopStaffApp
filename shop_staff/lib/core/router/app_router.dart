@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../presentations/pos/pages/pos_page.dart';
@@ -5,6 +6,8 @@ import '../../presentations/auth/pages/login_page.dart';
 import '../../presentations/splash/pages/splash_page.dart';
 import '../../presentations/pos/pages/suspended_orders_page.dart';
 import '../storage/key_value_store.dart';
+// Expose a root navigator key for global navigation/overlay usage
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 // Removed providers.dart import (not needed here)
 
 // Removed inline SplashPage class definition
@@ -12,6 +15,7 @@ import '../storage/key_value_store.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   final store = ref.read(keyValueStoreProvider);
   return GoRouter(
+  navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     redirect: (context, state) async {
       final loc = state.matchedLocation;
