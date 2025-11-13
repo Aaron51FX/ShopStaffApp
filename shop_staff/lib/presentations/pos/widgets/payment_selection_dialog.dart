@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 
-typedef OnPaymentSelected = void Function(String group, String code);
+typedef OnPaymentSelected = void Function(String group, String code, String? label);
 
 // A large, vertical payment selection dialog. First row shows Cash and QR payments,
 // second row Credit Cards, third row Transit/IC and E-money. Scrolls if overflow.
@@ -26,7 +26,7 @@ Future<void> showPaymentSelectionDialog({
   final qrVendors = <_Vendor>[
     _Vendor('LinePay', 'LINE Pay'),
     _Vendor('PayPay', 'PayPay'),
-    _Vendor('AliPay', 'Alipay'),
+    _Vendor('Alipay', 'Alipay'),
     _Vendor('Wechat', 'WeChat Pay'),
     _Vendor('m_Pay', 'メルペイ'),
     _Vendor('R_Pay', '楽天ペイ'),
@@ -69,6 +69,7 @@ Future<void> showPaymentSelectionDialog({
     transitionDuration: const Duration(milliseconds: 180),
     pageBuilder: (_, __, ___) => const SizedBox.shrink(),
     transitionBuilder: (ctx, anim, _, __) {
+      debugPrint('Payment selection dialog animation: $shop');
       final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
       return FadeTransition(
         opacity: curved,
@@ -119,7 +120,7 @@ Future<void> showPaymentSelectionDialog({
                                     child: const Text('现金支付'),
                                     onTap: () {
                                       Navigator.of(ctx).pop();
-                                      onSelected('cash', 'cash');
+                                      onSelected('cash', 'cash', '现金');
                                     },
                                   ),
                                 ),
@@ -132,13 +133,13 @@ Future<void> showPaymentSelectionDialog({
                                         ? null
                                         : () {
                                             Navigator.of(ctx).pop();
-                                            onSelected('qr', 'qr');
+                                            onSelected('qr', 'qr', '二维码支付');
                                           },
                                     child: _VendorWrap(
                                       vendors: qrVendors,
                                       onTap: (v) {
                                         Navigator.of(ctx).pop();
-                                        onSelected('qr', v.key);
+                                        onSelected('qr', v.key, v.label);
                                       },
                                     ),
                                   ),
@@ -154,13 +155,13 @@ Future<void> showPaymentSelectionDialog({
                                   ? null
                                   : () {
                                       Navigator.of(ctx).pop();
-                                      onSelected('card', 'card');
+                                      onSelected('card', 'card', '信用卡');
                                     },
                               child: _VendorWrap(
                                 vendors: cardBrands,
                                 onTap: (v) {
                                   Navigator.of(ctx).pop();
-                                  onSelected('card', v.key);
+                                  onSelected('card', v.key, v.label);
                                 },
                               ),
                             ),
@@ -173,13 +174,13 @@ Future<void> showPaymentSelectionDialog({
                                   ? null
                                   : () {
                                       Navigator.of(ctx).pop();
-                                      onSelected('transit', 'transit');
+                                      onSelected('transit', 'transit', '电子货币');
                                     },
                               child: _VendorWrap(
                                 vendors: transitBrands,
                                 onTap: (v) {
                                   Navigator.of(ctx).pop();
-                                  onSelected('transit', v.key);
+                                  onSelected('transit', v.key, v.label);
                                 },
                               ),
                             ),
@@ -217,9 +218,12 @@ class _VendorWrap extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: vendors
-          .map((v) => InkWell(
+          .map(
+            (v) => Material(
+              color: Colors.transparent,
+              child: InkWell(
                 borderRadius: BorderRadius.circular(8),
-                //onTap: () => onTap(v),
+                onTap: () => onTap(v),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
@@ -229,7 +233,9 @@ class _VendorWrap extends StatelessWidget {
                   ),
                   child: Text(v.label, style: const TextStyle(fontWeight: FontWeight.w600)),
                 ),
-              ))
+              ),
+            ),
+          )
           .toList(),
     );
   }

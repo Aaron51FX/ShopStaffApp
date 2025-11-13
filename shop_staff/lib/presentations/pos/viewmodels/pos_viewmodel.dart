@@ -11,14 +11,18 @@ import 'package:shop_staff/domain/entities/suspended_order.dart';
 import 'package:shop_staff/domain/repositories/menu_repository.dart';
 import 'package:shop_staff/domain/repositories/order_repository.dart'; // ensure type reference
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_viewmodel.dart';
 import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
 import 'package:shop_staff/presentations/pos/widgets/option_dialog_widgets.dart';
 import 'pos_state.dart';
 import 'package:shop_staff/presentations/pos/widgets/payment_selection_dialog.dart';
 
-final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((ref) {
+final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((
+  ref,
+) {
   final menuRepo = ref.watch(menuRepositoryProvider);
   final vm = PosViewModel(menuRepo, ref);
   // fire-and-forget initial bootstrap (may early-exit if machineCode not yet ready)
@@ -66,7 +70,10 @@ class PosViewModel extends StateNotifier<PosState> {
       final local = _ref.read(suspendedOrderLocalDataSourceProvider);
       final loaded = await local.loadAll();
       if (loaded.isNotEmpty) {
-        state = state.copyWith(suspended: loaded, suspendedCounter: loaded.length);
+        state = state.copyWith(
+          suspended: loaded,
+          suspendedCounter: loaded.length,
+        );
       }
       final machineCode = _ref.read(machineCodeProvider);
       debugPrint('Current machineCode: $machineCode');
@@ -76,17 +83,28 @@ class PosViewModel extends StateNotifier<PosState> {
       }
       final language = _ref.read(shopLanguageProvider);
       final takeout = state.orderMode == 'take_out';
-      final cats = await _menuRepository.fetchCategories(machineCode: machineCode, language: language, takeout: takeout);
+      final cats = await _menuRepository.fetchCategories(
+        machineCode: machineCode,
+        language: language,
+        takeout: takeout,
+      );
       _lastCategoryFetchKey = '$machineCode|$language|$takeout';
-      
-  // 不再预加载所有商品, 只获取分类列表, 后续按需加载
+
+      // 不再预加载所有商品, 只获取分类列表, 后续按需加载
       // CategoryModel now imported via repository return type; using dynamic field names
-      final firstCat = cats.isNotEmpty ? (cats.first as dynamic).categoryCode as String : '';
+      final firstCat = cats.isNotEmpty
+          ? (cats.first as dynamic).categoryCode as String
+          : '';
       // 注入一个“收藏”虚拟分类在最前
       final augmentedCats = [
         if (cats.isNotEmpty)
-          (cats.first as dynamic).runtimeType != String // keep structure
-              ? CategoryModel(categoryCode: favoritesCategoryCode, categoryName: '❤ 收藏', showType: 'normal')
+          (cats.first as dynamic).runtimeType !=
+                  String // keep structure
+              ? CategoryModel(
+                  categoryCode: favoritesCategoryCode,
+                  categoryName: '❤ 收藏',
+                  showType: 'normal',
+                )
               : null,
         ...cats,
       ].whereType<CategoryModel>().toList();
@@ -122,17 +140,16 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   void search(String query) {
-    state = state.copyWith(
-      searchQuery: query,
-      products: _applySearch(query),
-    );
+    state = state.copyWith(searchQuery: query, products: _applySearch(query));
   }
 
   // 搜索过滤当前分类(或收藏)商品
   List<Product> _applySearch(String query) {
     Iterable<Product> base;
     if (state.currentCategory == favoritesCategoryCode) {
-      base = state.favoriteProductIds.map((id) => _favoriteCache[id]).whereType<Product>();
+      base = state.favoriteProductIds
+          .map((id) => _favoriteCache[id])
+          .whereType<Product>();
     } else {
       base = _categoryProducts;
     }
@@ -140,7 +157,10 @@ class PosViewModel extends StateNotifier<PosState> {
     return base.where((p) => p.name.contains(query)).toList();
   }
 
-  Future<void> _fetchCategoryProducts(String categoryId, {bool initial = false}) async {
+  Future<void> _fetchCategoryProducts(
+    String categoryId, {
+    bool initial = false,
+  }) async {
     try {
       if (!initial) {
         state = state.copyWith(loading: true, error: null);
@@ -185,7 +205,9 @@ class PosViewModel extends StateNotifier<PosState> {
     final existing = state.cart.where((c) => c.id == key).toList();
     List<CartItem> updated;
     if (existing.isNotEmpty) {
-      updated = state.cart.map((c) => c.id == key ? c.copyWith(quantity: c.quantity + 1) : c).toList();
+      updated = state.cart
+          .map((c) => c.id == key ? c.copyWith(quantity: c.quantity + 1) : c)
+          .toList();
     } else {
       updated = [
         ...state.cart,
@@ -195,32 +217,49 @@ class PosViewModel extends StateNotifier<PosState> {
     state = state.copyWith(cart: updated);
   }
 
-  void updateCartItemOptions({required String oldId, required Product product, required List<SelectedOption> newOptions}) {
+  void updateCartItemOptions({
+    required String oldId,
+    required Product product,
+    required List<SelectedOption> newOptions,
+  }) {
     final newKey = _generateKey(product, newOptions);
     if (newKey == oldId) {
       // simple in-place update of options (price recalculated dynamically)
       state = state.copyWith(
-        cart: state.cart.map((c) => c.id == oldId ? c.copyWith(options: newOptions) : c).toList(),
+        cart: state.cart
+            .map((c) => c.id == oldId ? c.copyWith(options: newOptions) : c)
+            .toList(),
       );
       return;
     }
     final existingTarget = state.cart.firstWhere(
       (c) => c.id == newKey,
-      orElse: () => CartItem(id: '', product: product, options: const [], quantity: 0),
+      orElse: () =>
+          CartItem(id: '', product: product, options: const [], quantity: 0),
     );
     List<CartItem> updated = [];
     for (final c in state.cart) {
       if (c.id == oldId) {
         if (existingTarget.id.isNotEmpty) {
           // merge quantities into existingTarget
-          updated = state.cart
-              .where((x) => x.id != oldId && x.id != newKey)
-              .toList()
-            ..add(existingTarget.copyWith(quantity: existingTarget.quantity + c.quantity));
+          updated =
+              state.cart.where((x) => x.id != oldId && x.id != newKey).toList()
+                ..add(
+                  existingTarget.copyWith(
+                    quantity: existingTarget.quantity + c.quantity,
+                  ),
+                );
           state = state.copyWith(cart: updated);
           return;
         } else {
-          updated.add(CartItem(id: newKey, product: product, options: newOptions, quantity: c.quantity));
+          updated.add(
+            CartItem(
+              id: newKey,
+              product: product,
+              options: newOptions,
+              quantity: c.quantity,
+            ),
+          );
         }
       } else if (c.id != newKey) {
         updated.add(c);
@@ -231,29 +270,29 @@ class PosViewModel extends StateNotifier<PosState> {
 
   void changeQuantity(String id, int delta) {
     final updated = state.cart
-        .map((c) => c.id == id ? c.copyWith(quantity: (c.quantity + delta).clamp(0, 999)) : c)
+        .map(
+          (c) => c.id == id
+              ? c.copyWith(quantity: (c.quantity + delta).clamp(0, 999))
+              : c,
+        )
         .where((c) => c.quantity > 0)
         .toList();
     state = state.copyWith(cart: updated);
   }
 
-  void clearCart() async{
-    final ok = await _ref.read(dialogControllerProvider.notifier).confirm(
-      title: '清空购物车',
-      message: '确认要清空购物车吗？',
-      destructive: true,
-    );
+  void clearCart() async {
+    final ok = await _ref
+        .read(dialogControllerProvider.notifier)
+        .confirm(title: '清空购物车', message: '确认要清空购物车吗？', destructive: true);
     if (ok) {
       state = state.copyWith(cart: []);
     }
   }
 
-  void logout() async{
-    final ok = await _ref.read(dialogControllerProvider.notifier).confirm(
-      title: '注销',
-      message: '确认要注销吗？',
-      destructive: true,
-    );
+  void logout() async {
+    final ok = await _ref
+        .read(dialogControllerProvider.notifier)
+        .confirm(title: '注销', message: '确认要注销吗？', destructive: true);
     if (ok) {
       try {
         // 清空购物车与本地状态
@@ -299,9 +338,9 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   void switchOrderMode() {
-  final newMode = state.orderMode == 'dine_in' ? 'take_out' : 'dine_in';
-  state = state.copyWith(orderMode: newMode);
-  _maybeReloadCategories(force: true);
+    final newMode = state.orderMode == 'dine_in' ? 'take_out' : 'dine_in';
+    state = state.copyWith(orderMode: newMode);
+    _maybeReloadCategories(force: true);
   }
 
   void applyDiscount(double value) {
@@ -321,12 +360,22 @@ class PosViewModel extends StateNotifier<PosState> {
     final key = '$machineCode|$language|$takeout';
     if (!force && key == _lastCategoryFetchKey) return;
     try {
-      final cats = await _menuRepository.fetchCategories(machineCode: machineCode, language: language, takeout: takeout);
+      final cats = await _menuRepository.fetchCategories(
+        machineCode: machineCode,
+        language: language,
+        takeout: takeout,
+      );
       _lastCategoryFetchKey = key;
-      final firstCat = cats.isNotEmpty ? (cats.first as dynamic).categoryCode as String : '';
+      final firstCat = cats.isNotEmpty
+          ? (cats.first as dynamic).categoryCode as String
+          : '';
       final augmentedCats = [
         if (cats.isNotEmpty)
-          CategoryModel(categoryCode: PosViewModel.favoritesCategoryCode, categoryName: '❤ 收藏', showType: 'normal'),
+          CategoryModel(
+            categoryCode: PosViewModel.favoritesCategoryCode,
+            categoryName: '❤ 收藏',
+            showType: 'normal',
+          ),
         ...cats,
       ];
       state = state.copyWith(
@@ -346,28 +395,30 @@ class PosViewModel extends StateNotifier<PosState> {
   void suspendCurrentOrder() {
     if (state.cart.isEmpty) return;
 
-    _ref.read(dialogControllerProvider.notifier).confirm(
-      title: '挂单',
-      message: '确认要挂单吗？',
-    ).then((ok) {
-      if (ok) {
-        final id = 'S${(state.suspendedCounter + 1).toString().padLeft(3, '0')}';
-        final suspendedOrder = SuspendedOrder(
-          id: id,
-          items: state.cart,
-          subtotal: state.subtotal,
-          createdAt: DateTime.now(),
-        );
-  state = state.copyWith(
-          suspended: [...state.suspended, suspendedOrder],
-          suspendedCounter: state.suspendedCounter + 1,
-          cart: [],
-        );
-  // persist
-  _ref.read(suspendedOrderLocalDataSourceProvider).save(suspendedOrder);
-      }
-    });
-
+    _ref
+        .read(dialogControllerProvider.notifier)
+        .confirm(title: '挂单', message: '确认要挂单吗？')
+        .then((ok) {
+          if (ok) {
+            final id =
+                'S${(state.suspendedCounter + 1).toString().padLeft(3, '0')}';
+            final suspendedOrder = SuspendedOrder(
+              id: id,
+              items: state.cart,
+              subtotal: state.subtotal,
+              createdAt: DateTime.now(),
+            );
+            state = state.copyWith(
+              suspended: [...state.suspended, suspendedOrder],
+              suspendedCounter: state.suspendedCounter + 1,
+              cart: [],
+            );
+            // persist
+            _ref
+                .read(suspendedOrderLocalDataSourceProvider)
+                .save(suspendedOrder);
+          }
+        });
   }
 
   // 取单: 根据挂单 id 恢复
@@ -377,14 +428,17 @@ class PosViewModel extends StateNotifier<PosState> {
     if (idx == -1) return;
     final order = list.removeAt(idx);
     state = state.copyWith(cart: order.items, suspended: list);
-  // remove from local
-  _ref.read(suspendedOrderLocalDataSourceProvider).delete(id);
+    // remove from local
+    _ref.read(suspendedOrderLocalDataSourceProvider).delete(id);
   }
 
   String _generateKey(Product p, List<SelectedOption> options) {
-  final sorted = [...options]..sort((a, b) => a.optionCode.compareTo(b.optionCode));
-  final optionKey = sorted.map((e) => '${e.groupCode}:${e.optionCode}').join('|');
-  return '${p.id}-$optionKey';
+    final sorted = [...options]
+      ..sort((a, b) => a.optionCode.compareTo(b.optionCode));
+    final optionKey = sorted
+        .map((e) => '${e.groupCode}:${e.optionCode}')
+        .join('|');
+    return '${p.id}-$optionKey';
   }
 
   // ================= Option Dialog Public APIs =================
@@ -411,7 +465,8 @@ class PosViewModel extends StateNotifier<PosState> {
     }
     final language = _ref.read(shopLanguageProvider);
     final takeout = state.orderMode == 'take_out';
-    final total = state.cart.fold<double>(0, (p, e) => p + e.lineTotal) - state.discount;
+    final total =
+        state.cart.fold<double>(0, (p, e) => p + e.lineTotal) - state.discount;
     try {
       final OrderRepository orderRepo = _ref.read(orderRepositoryProvider);
       final OrderSubmissionResult result = await orderRepo.submitOrder(
@@ -421,8 +476,14 @@ class PosViewModel extends StateNotifier<PosState> {
         takeout: takeout,
         total: total,
       );
-      state = state.copyWith(orderNumber: state.orderNumber + 1, cart: [], lastOrderResult: result);
-      debugPrint('Order submitted: ${result.orderId} total=${result.total} tax1=${result.tax1} tax2=${result.tax2}');
+      state = state.copyWith(
+        orderNumber: state.orderNumber + 1,
+        cart: [],
+        lastOrderResult: result,
+      );
+      debugPrint(
+        'Order submitted: ${result.orderId} total=${result.total} tax1=${result.tax1} tax2=${result.tax2}',
+      );
       // SimpleToast.successGlobal('下单成功');
       // After successful order, present payment selection dialog
       final shop = _ref.read(shopInfoProvider);
@@ -432,11 +493,21 @@ class PosViewModel extends StateNotifier<PosState> {
           await showPaymentSelectionDialog(
             context: ctx,
             shop: shop,
-            onSelected: (group, code) {
-              debugPrint('Payment selected: group=$group code=$code for order ${result.orderId}');
-              // TODO: Implement specific payment flows per channel.
-              // For now, just show a toast for feedback.
-              SimpleToast.successGlobal('已选择支付方式: $code');
+            onSelected: (group, code, label) {
+              try {
+                final args = _buildPaymentArgs(
+                  order: result,
+                  shop: shop,
+                  machineCode: machineCode,
+                  group: group,
+                  code: code,
+                  label: label,
+                );
+                _ref.read(appRouterProvider).push('/payment', extra: args);
+              } catch (e) {
+                debugPrint('Failed to start payment flow: $e');
+                SimpleToast.errorGlobal(e.toString());
+              }
             },
           );
         }
@@ -447,21 +518,66 @@ class PosViewModel extends StateNotifier<PosState> {
     }
   }
 
+  PaymentFlowPageArgs _buildPaymentArgs({
+    required OrderSubmissionResult order,
+    required ShopInfoModel shop,
+    required String machineCode,
+    required String group,
+    required String code,
+    String? label,
+  }) {
+    final config = Map<String, dynamic>.from(
+      shop.linePayChannelMap ?? const {},
+    );
+    config['selectedChannel'] = code;
+
+    if (group == PaymentChannels.card) {
+      final ip = '172.50.10.28'; //config['posIp'] ?? config['ip'];
+      final port = 9999;
+      //config['posPort'] ?? config['port'];
+      if (ip == null || ip.toString().isEmpty) {
+        throw StateError('未配置POS终端IP');
+      }
+      if (port == null || port.toString().isEmpty) {
+        throw StateError('未配置POS终端端口');
+      }
+    }
+
+    final metadata = <String, dynamic>{
+      'machineCode': machineCode,
+      'shopCode': shop.shopCode,
+    };
+
+    return PaymentFlowPageArgs(
+      order: order,
+      channelGroup: group,
+      channelCode: code,
+      channelDisplayName: label,
+      channelConfig: config.isEmpty ? null : config,
+      metadata: metadata,
+    );
+  }
+
   // ================= Option Dialog Core =================
-  void _openOptionDialog(BuildContext context, Product product, {CartItem? existing}) {
+  void _openOptionDialog(
+    BuildContext context,
+    Product product, {
+    CartItem? existing,
+  }) {
     final Map<String, Map<String, int>> selected = {};
     if (existing != null) {
       for (final o in existing.options) {
-        selected.putIfAbsent(o.groupCode, () => <String, int>{})[o.optionCode] = o.quantity;
+        selected.putIfAbsent(o.groupCode, () => <String, int>{})[o.optionCode] =
+            o.quantity;
       }
     } else {
       for (final g in product.optionGroups) {
         final defaults = g.options.where((o) => o.isDefault).toList();
         if (defaults.isNotEmpty) {
           final map = <String, int>{};
-            for (final d in defaults) {
-              map[d.code] = 1;
-            }
+          for (final d in defaults) {
+            map[d.code] = 1;
+          }
           selected[g.groupCode] = map;
         }
       }
@@ -475,7 +591,11 @@ class PosViewModel extends StateNotifier<PosState> {
       transitionDuration: const Duration(milliseconds: 180),
       pageBuilder: (_, __, ___) => const SizedBox.shrink(),
       transitionBuilder: (ctx, anim, _, __) {
-        final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
+        final curved = CurvedAnimation(
+          parent: anim,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
         return FadeTransition(
           opacity: curved,
           child: ScaleTransition(
@@ -484,7 +604,10 @@ class PosViewModel extends StateNotifier<PosState> {
               child: StatefulBuilder(
                 builder: (ctx, setState) {
                   return ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 520, maxHeight: 640),
+                    constraints: const BoxConstraints(
+                      maxWidth: 520,
+                      maxHeight: 640,
+                    ),
                     child: Material(
                       color: Colors.white,
                       elevation: 12,
@@ -494,18 +617,30 @@ class PosViewModel extends StateNotifier<PosState> {
                         children: [
                           // Header
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                            decoration: const BoxDecoration(color: AppColors.amberPrimary),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: AppColors.amberPrimary,
+                            ),
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Text(
                                     product.name,
-                                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.close, color: Colors.white),
+                                  icon: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                  ),
                                   onPressed: () => Navigator.of(ctx).pop(),
                                 ),
                               ],
@@ -514,12 +649,16 @@ class PosViewModel extends StateNotifier<PosState> {
                           // Body
                           Expanded(
                             child: ListView(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 16,
+                              ),
                               children: [
                                 for (final group in product.optionGroups) ...[
                                   OptionGroupWidget(
                                     group: group,
-                                    selected: selected[group.groupCode] ?? const {},
+                                    selected:
+                                        selected[group.groupCode] ?? const {},
                                     onChanged: (map) {
                                       setState(() {
                                         if (map.isEmpty) {
@@ -530,12 +669,17 @@ class PosViewModel extends StateNotifier<PosState> {
                                       });
                                     },
                                     onMaxReached: () {
-                                      _ref.read(dialogControllerProvider.notifier).confirm(
-                                        title: '已达到最大可选',
-                                        message: '${group.groupName} 已达到最多可选数量',
-                                        okText: '知道了',
-                                        cancelText: '关闭',
-                                      );
+                                      _ref
+                                          .read(
+                                            dialogControllerProvider.notifier,
+                                          )
+                                          .confirm(
+                                            title: '已达到最大可选',
+                                            message:
+                                                '${group.groupName} 已达到最多可选数量',
+                                            okText: '知道了',
+                                            cancelText: '关闭',
+                                          );
                                     },
                                   ),
                                   const Divider(height: 28),
@@ -546,7 +690,9 @@ class PosViewModel extends StateNotifier<PosState> {
                           // Footer
                           Container(
                             padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                            decoration: const BoxDecoration(color: AppColors.stone100),
+                            decoration: const BoxDecoration(
+                              color: AppColors.stone100,
+                            ),
                             child: Row(
                               children: [
                                 Expanded(
@@ -555,40 +701,64 @@ class PosViewModel extends StateNotifier<PosState> {
                                     onTap: () {
                                       final missingGroups = <String>[];
                                       for (final g in product.optionGroups) {
-                                        final map = selected[g.groupCode] ?? const {};
-                                        final total = map.values.fold(0, (p, e) => p + e);
-                                        if (g.minSelect > 0 && total < g.minSelect) {
-                                          missingGroups.add('${g.groupName}(至少${g.minSelect})');
+                                        final map =
+                                            selected[g.groupCode] ?? const {};
+                                        final total = map.values.fold(
+                                          0,
+                                          (p, e) => p + e,
+                                        );
+                                        if (g.minSelect > 0 &&
+                                            total < g.minSelect) {
+                                          missingGroups.add(
+                                            '${g.groupName}(至少${g.minSelect})',
+                                          );
                                         }
                                       }
                                       if (missingGroups.isNotEmpty) {
-                                        _ref.read(dialogControllerProvider.notifier).confirm(
-                                          title: '缺少必选项',
-                                          message: missingGroups.join('\n'),
-                                          okText: '好的',
-                                          cancelText: '关闭',
-                                        );
+                                        _ref
+                                            .read(
+                                              dialogControllerProvider.notifier,
+                                            )
+                                            .confirm(
+                                              title: '缺少必选项',
+                                              message: missingGroups.join('\n'),
+                                              okText: '好的',
+                                              cancelText: '关闭',
+                                            );
                                         return;
                                       }
-                                      final selectedOptions = <SelectedOption>[];
+                                      final selectedOptions =
+                                          <SelectedOption>[];
                                       for (final g in product.optionGroups) {
-                                        final map = selected[g.groupCode] ?? const {};
+                                        final map =
+                                            selected[g.groupCode] ?? const {};
                                         map.forEach((code, qty) {
-                                          final opt = g.options.firstWhere((o) => o.code == code);
-                                          selectedOptions.add(SelectedOption(
-                                            groupCode: g.groupCode,
-                                            groupName: g.groupName,
-                                            optionCode: opt.code,
-                                            optionName: opt.name,
-                                            extraPrice: opt.extraPrice,
-                                            quantity: qty,
-                                          ));
+                                          final opt = g.options.firstWhere(
+                                            (o) => o.code == code,
+                                          );
+                                          selectedOptions.add(
+                                            SelectedOption(
+                                              groupCode: g.groupCode,
+                                              groupName: g.groupName,
+                                              optionCode: opt.code,
+                                              optionName: opt.name,
+                                              extraPrice: opt.extraPrice,
+                                              quantity: qty,
+                                            ),
+                                          );
                                         });
                                       }
                                       if (existing != null) {
-                                        updateCartItemOptions(oldId: existing.id, product: product, newOptions: selectedOptions);
+                                        updateCartItemOptions(
+                                          oldId: existing.id,
+                                          product: product,
+                                          newOptions: selectedOptions,
+                                        );
                                       } else {
-                                        addProduct(product, options: selectedOptions);
+                                        addProduct(
+                                          product,
+                                          options: selectedOptions,
+                                        );
                                       }
                                       Navigator.of(ctx).pop();
                                     },

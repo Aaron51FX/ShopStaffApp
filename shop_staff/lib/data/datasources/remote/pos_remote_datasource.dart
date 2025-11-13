@@ -80,4 +80,13 @@ class PosRemoteDataSource {
 
   Future<dynamic> calculateOrder(Map<String, dynamic> payload) async =>
       _client.postJson(_e.calculateOrder, body: payload);
+
+  Future<dynamic> requestPosPayment(Map<String, dynamic> payload) async =>
+    _client.postJson(_e.toPayV2, body: payload);
+
+  Future<dynamic> reportPosPayment(Map<String, dynamic> payload) async =>
+    _client.postJson(_e.posPayReport, body: payload);
+
+  Future<dynamic> cancelCreditCard(Map<String, dynamic> payload) async =>
+    _client.postJson(_e.creditCardCancel, body: payload);
 }
