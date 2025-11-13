@@ -16,6 +16,7 @@ import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
 import 'package:shop_staff/presentations/pos/widgets/option_dialog_widgets.dart';
 import 'pos_state.dart';
+import 'package:shop_staff/presentations/pos/widgets/payment_selection_dialog.dart';
 
 final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((ref) {
   final menuRepo = ref.watch(menuRepositoryProvider);
@@ -422,7 +423,24 @@ class PosViewModel extends StateNotifier<PosState> {
       );
       state = state.copyWith(orderNumber: state.orderNumber + 1, cart: [], lastOrderResult: result);
       debugPrint('Order submitted: ${result.orderId} total=${result.total} tax1=${result.tax1} tax2=${result.tax2}');
-      SimpleToast.successGlobal('下单成功');
+      // SimpleToast.successGlobal('下单成功');
+      // After successful order, present payment selection dialog
+      final shop = _ref.read(shopInfoProvider);
+      if (shop != null) {
+        final ctx = rootNavigatorKey.currentContext;
+        if (ctx != null) {
+          await showPaymentSelectionDialog(
+            context: ctx,
+            shop: shop,
+            onSelected: (group, code) {
+              debugPrint('Payment selected: group=$group code=$code for order ${result.orderId}');
+              // TODO: Implement specific payment flows per channel.
+              // For now, just show a toast for feedback.
+              SimpleToast.successGlobal('已选择支付方式: $code');
+            },
+          );
+        }
+      }
     } catch (e) {
       state = state.copyWith(error: '下单失败: $e');
       SimpleToast.errorGlobal('下单失败');
