@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import 'api_exception.dart';
@@ -56,16 +57,18 @@ class DioClient {
       },
     ));
 
-    d.interceptors.add(
-      PrettyDioLogger(
-        requestHeader: true,
-        requestBody: true,
-        responseHeader: false,
-        responseBody: true,
-        compact: true,
-        maxWidth: 120,
-      ),
-    );
+    if (kDebugMode) {
+      d.interceptors.add(
+        PrettyDioLogger(
+          requestHeader: true,
+          requestBody: true,
+          responseHeader: false,
+          responseBody: true,
+          compact: true,
+          maxWidth: 120,
+        ),
+      );
+    }
 
     return DioClient._(d, config, Endpoints(config));
   }
