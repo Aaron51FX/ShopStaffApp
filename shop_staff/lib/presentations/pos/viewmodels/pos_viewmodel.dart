@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/data/providers.dart';
-import 'package:shop_staff/core/storage/key_value_store.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/product.dart';
@@ -299,11 +298,11 @@ class PosViewModel extends StateNotifier<PosState> {
         state = PosState.initial();
         // 清理仓库缓存
         _menuRepository.clearCache();
-        // 删除激活码
-        final store = _ref.read(keyValueStoreProvider);
-        await store.delete(AppStorageKeys.activationCode);
-        // 清空全局店铺信息
-        _ref.read(shopInfoProvider.notifier).state = null;
+  // 删除激活码与本地设置
+  await _ref.read(startupServiceProvider).clear();
+  // 清空全局店铺信息与设置快照
+  _ref.read(shopInfoProvider.notifier).state = null;
+  _ref.read(appSettingsSnapshotProvider.notifier).state = null;
         // 跳转登录
         final router = _ref.read(appRouterProvider);
         router.go('/login');
@@ -531,14 +530,22 @@ class PosViewModel extends StateNotifier<PosState> {
     );
     config['selectedChannel'] = code;
 
+    final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
+
     if (group == PaymentChannels.card) {
-      final ip = '172.50.10.28'; //config['posIp'] ?? config['ip'];
-      final port = 9999;
-      //config['posPort'] ?? config['port'];
-      if (ip == null || ip.toString().isEmpty) {
+      // final dynamic ipValue = config['posIp'] ?? config['ip'];
+      // final String ip = ipValue == null ? '' : ipValue.toString().trim();
+      // final dynamic portValue = config['posPort'] ?? config['port'];
+      // final String portString = portValue == null ? '' : portValue.toString().trim();
+
+      //pos setting from settings
+      final String ip = posInfo?.posIp ?? '';
+      final int portString = posInfo?.posPort ?? 0;
+
+      if (ip.isEmpty) {
         throw StateError('未配置POS终端IP');
       }
-      if (port == null || port.toString().isEmpty) {
+      if (portString == 0) {
         throw StateError('未配置POS终端端口');
       }
     }

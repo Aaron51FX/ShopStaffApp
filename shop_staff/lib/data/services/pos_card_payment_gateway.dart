@@ -104,4 +104,22 @@ class PosCardPaymentGateway {
     }
     return base;
   }
+
+  //cancel function
+  Future<void> cancelPayment(PosPaymentRequest request) async {
+    // final payload = _buildRequestPayload(request);
+    // final resp = await _remote.cancelPosPayment(payload);
+    // if (resp is! Map<String, dynamic>) {
+    //   throw Exception('POS支付取消接口响应异常');
+    // }
+    // final code = resp['code'] as int?;
+    // if (code != 200) {
+    //   final msg = resp['msg'] ?? resp['message'] ?? 'POS支付取消接口异常($code)';
+    //   throw Exception(msg.toString());
+    // }
+    // final data = resp['data'];
+    // if (data is! bool || data != true) {
+    //   throw Exception('POS支付取消失败');
+    // }
+  }
 }

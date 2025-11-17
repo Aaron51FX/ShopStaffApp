@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/providers.dart';
-import '../../../core/storage/key_value_store.dart';
 import '../../../core/network/api_exception.dart';
 
 /// SplashPage: 每次启动重新获取 ShopInfo / 做后续健康检查入口
@@ -23,30 +22,20 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   }
 
   Future<void> _run() async {
-    if (_inFlight) return; setState(() => _inFlight = true);
-    final store = ref.read(keyValueStoreProvider);
-    final hasCode = await store.contains(AppStorageKeys.activationCode);
-    if (!mounted) return;
-    if (!hasCode) {
-      context.go('/login');
-      return;
-    }
-    final code = await store.read(AppStorageKeys.activationCode) ?? '';
-    if (code.isEmpty) {
-      context.go('/login');
-      return;
-    }
+    if (_inFlight) return;
+    setState(() => _inFlight = true);
     try {
-      final repo = ref.read(activationRepositoryProvider);
-  final shop = await repo.activate(machineCode: code, version: '1.0.0');
-      ref.read(shopInfoProvider.notifier).state = shop; // 注入全局
-      // 补齐 machineCode (激活接口未返回时)
-      final current = ref.read(shopInfoProvider);
-      if (current != null && (current.machineCode == null || current.machineCode!.isEmpty)) {
-        ref.read(shopInfoProvider.notifier).state = current.copyWith(machineCode: code);
-      }
-      debugPrint('[Splash] backend success, navigating to /pos');
+      final startup = ref.read(startupServiceProvider);
+      final result = await startup.resume();
       if (!mounted) return;
+      if (result == null) {
+        context.go('/login');
+        return;
+      }
+      ref.read(shopInfoProvider.notifier).state = result.shopInfo;
+      ref.read(appSettingsSnapshotProvider.notifier).state = result.settings;
+      _error = null;
+      debugPrint('[Splash] resume success, navigating to /pos');
       context.go('/pos');
     } catch (e) {
       String msg;

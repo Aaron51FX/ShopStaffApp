@@ -35,4 +35,7 @@ final keyValueStoreProvider = Provider<KeyValueStore>((_) => const SecureKeyValu
 // Common keys
 class AppStorageKeys {
   static const activationCode = 'activation_code';
+  static const settingsBasic = 'settings_basic';
+  static const settingsPosTerminal = 'settings_pos_terminal';
+  static const settingsPrinter = 'settings_printer';
 }
