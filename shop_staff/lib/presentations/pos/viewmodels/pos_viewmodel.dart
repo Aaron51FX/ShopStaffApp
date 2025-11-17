@@ -316,6 +316,10 @@ class PosViewModel extends StateNotifier<PosState> {
     _ref.read(appRouterProvider).push('/pos/suspended');
   }
 
+  void navToSettings() {
+    _ref.read(appRouterProvider).push('/settings');
+  }
+
   void checkout() {
     _submitOrder();
   }

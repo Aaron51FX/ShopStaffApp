@@ -31,7 +31,7 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
           const Spacer(),
           Text(timeStr, style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()])),
           const SizedBox(width: 12),
-          IconButton(tooltip: '设置', onPressed: () {}, icon: const Icon(Icons.settings_outlined)),
+          IconButton(tooltip: '设置', onPressed: vm.navToSettings, icon: const Icon(Icons.settings_outlined)),
           IconButton(tooltip: '取单', onPressed: vm.navToSuspendedOrder, icon: const Icon(Icons.history_sharp)),
           IconButton(tooltip: '退出', onPressed: vm.logout, icon: const Icon(Icons.exit_to_app)),
         ]),
