@@ -9,21 +9,33 @@ class ActivationState {
   final String machineCode;
   final bool isLoading;
   final String? error;
-  const ActivationState({this.machineCode = '', this.isLoading = false, this.error});
-  ActivationState copyWith({String? machineCode, bool? isLoading, String? error}) => ActivationState(
-        machineCode: machineCode ?? this.machineCode,
-        isLoading: isLoading ?? this.isLoading,
-        error: error,
-      );
+  const ActivationState({
+    this.machineCode = '',
+    this.isLoading = false,
+    this.error,
+  });
+  ActivationState copyWith({
+    String? machineCode,
+    bool? isLoading,
+    String? error,
+  }) => ActivationState(
+    machineCode: machineCode ?? this.machineCode,
+    isLoading: isLoading ?? this.isLoading,
+    error: error,
+  );
 }
 
 class ActivationViewModel extends StateNotifier<ActivationState> {
   final StartupService _startupService;
   final Ref _ref;
   final TextEditingController machineCodeController = TextEditingController();
-  ActivationViewModel(this._startupService, this._ref) : super(const ActivationState()) {
+  ActivationViewModel(this._startupService, this._ref)
+    : super(const ActivationState()) {
     machineCodeController.addListener(() {
-      state = state.copyWith(machineCode: machineCodeController.text, error: null);
+      state = state.copyWith(
+        machineCode: machineCodeController.text,
+        error: null,
+      );
     });
   }
 
@@ -43,8 +55,8 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
       _ref.read(appSettingsSnapshotProvider.notifier).state = result.settings;
       debugPrint('[Activation] backend success, writing storage');
       if (context.mounted) {
-        debugPrint('[Activation] navigating to /pos');
-        context.go('/pos');
+        debugPrint('[Activation] navigating to /entry');
+        context.go('/entry');
       }
     } catch (e) {
       debugPrint('[Activation] error: $e');
@@ -61,7 +73,8 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
   }
 }
 
-final activationViewModelProvider = StateNotifierProvider<ActivationViewModel, ActivationState>((ref) {
-  final startupService = ref.read(startupServiceProvider);
-  return ActivationViewModel(startupService, ref);
-});
+final activationViewModelProvider =
+    StateNotifierProvider<ActivationViewModel, ActivationState>((ref) {
+      final startupService = ref.read(startupServiceProvider);
+      return ActivationViewModel(startupService, ref);
+    });

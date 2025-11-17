@@ -8,7 +8,9 @@ import '../../presentations/splash/pages/splash_page.dart';
 import '../../presentations/pos/pages/suspended_orders_page.dart';
 import '../../presentations/payment/pages/payment_flow_page.dart';
 import '../../presentations/payment/viewmodels/payment_flow_viewmodel.dart';
+import '../../presentations/entry/pages/entry_page.dart';
 import '../storage/key_value_store.dart';
+
 // Expose a root navigator key for global navigation/overlay usage
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 // Removed providers.dart import (not needed here)
@@ -18,7 +20,7 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 final appRouterProvider = Provider<GoRouter>((ref) {
   final store = ref.read(keyValueStoreProvider);
   return GoRouter(
-  navigatorKey: rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     redirect: (context, state) async {
       final loc = state.matchedLocation;
@@ -26,7 +28,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final hasCode = await store.contains(AppStorageKeys.activationCode);
       // ignore: avoid_print
       print('[RouterRedirect] hasCode=$hasCode location=$loc');
-      if (!hasCode && (loc == '/pos')) return '/login';
+      final protectedPaths = {
+        '/entry',
+        '/pos',
+        '/pos/suspended',
+        '/settings',
+        '/payment',
+      };
+      final needsGuard =
+          protectedPaths.contains(loc) || loc.startsWith('/pos/');
+      if (!hasCode && needsGuard) return '/login';
       if (hasCode && loc == '/login') return '/splash';
       return null;
     },
@@ -40,6 +51,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/login',
         name: 'login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/entry',
+        name: 'entry',
+        builder: (context, state) => const EntryPage(),
       ),
       GoRoute(
         path: '/pos',
@@ -62,9 +78,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final args = state.extra;
           if (args is! PaymentFlowPageArgs) {
-            return const Scaffold(
-              body: Center(child: Text('缺少支付参数')),
-            );
+            return const Scaffold(body: Center(child: Text('缺少支付参数')));
           }
           return PaymentFlowPage(args: args);
         },

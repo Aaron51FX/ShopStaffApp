@@ -1,29 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
-import 'package:shop_staff/core/toast/simple_toast.dart';
-import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/core/router/app_router.dart';
+import 'package:shop_staff/core/toast/simple_toast.dart';
+import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/data/models/shop_info_models.dart';
+import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
+import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/repositories/menu_repository.dart';
 import 'package:shop_staff/domain/repositories/order_repository.dart'; // ensure type reference
-import 'package:shop_staff/domain/entities/order_submission_result.dart';
-import 'package:shop_staff/domain/payments/payment_models.dart';
-import 'package:shop_staff/data/models/shop_info_models.dart';
-import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_viewmodel.dart';
-import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
 import 'package:shop_staff/presentations/pos/widgets/option_dialog_widgets.dart';
+import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
 import 'pos_state.dart';
 import 'package:shop_staff/presentations/pos/widgets/payment_selection_dialog.dart';
+
+final orderModeSelectionProvider = StateProvider<String>((ref) => 'dine_in');
 
 final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((
   ref,
 ) {
   final menuRepo = ref.watch(menuRepositoryProvider);
-  final vm = PosViewModel(menuRepo, ref);
+  final initialMode = ref.read(orderModeSelectionProvider);
+  final vm = PosViewModel(menuRepo, ref, initialMode: initialMode);
   // fire-and-forget initial bootstrap (may early-exit if machineCode not yet ready)
   vm.bootstrap();
   // Listen for shopInfo becoming available after splash and trigger bootstrap once.
@@ -50,7 +53,13 @@ final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((
 class PosViewModel extends StateNotifier<PosState> {
   final MenuRepository _menuRepository;
   final Ref _ref;
-  PosViewModel(this._menuRepository, this._ref) : super(PosState.initial());
+  bool _bootstrapped = false;
+  PosViewModel(this._menuRepository, this._ref, {required String initialMode})
+    : super(
+        PosState.initial().copyWith(
+          orderMode: initialMode == 'take_out' ? 'take_out' : 'dine_in',
+        ),
+      );
   String? _lastCategoryFetchKey; // machineCode|language|takeout
 
   // 当前分类的商品列表 (不再一次性加载所有分类的全部商品)
@@ -117,6 +126,7 @@ class PosViewModel extends StateNotifier<PosState> {
       } else {
         state = state.copyWith(loading: false);
       }
+      _bootstrapped = true;
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());
     }
@@ -298,11 +308,12 @@ class PosViewModel extends StateNotifier<PosState> {
         state = PosState.initial();
         // 清理仓库缓存
         _menuRepository.clearCache();
-  // 删除激活码与本地设置
-  await _ref.read(startupServiceProvider).clear();
-  // 清空全局店铺信息与设置快照
-  _ref.read(shopInfoProvider.notifier).state = null;
-  _ref.read(appSettingsSnapshotProvider.notifier).state = null;
+        // 删除激活码与本地设置
+        await _ref.read(startupServiceProvider).clear();
+        // 清空全局店铺信息与设置快照
+        _ref.read(shopInfoProvider.notifier).state = null;
+        _ref.read(appSettingsSnapshotProvider.notifier).state = null;
+        _ref.read(orderModeSelectionProvider.notifier).state = 'dine_in';
         // 跳转登录
         final router = _ref.read(appRouterProvider);
         router.go('/login');
@@ -340,10 +351,30 @@ class PosViewModel extends StateNotifier<PosState> {
     }
   }
 
-  void switchOrderMode() {
+  Future<void> switchOrderMode() async {
     final newMode = state.orderMode == 'dine_in' ? 'take_out' : 'dine_in';
-    state = state.copyWith(orderMode: newMode);
-    _maybeReloadCategories(force: true);
+    await setOrderMode(newMode);
+  }
+
+  Future<void> setOrderMode(
+    String mode, {
+    bool clearCart = false,
+    bool forceReload = false,
+  }) async {
+    final normalized = mode == 'take_out' ? 'take_out' : 'dine_in';
+    final changed = state.orderMode != normalized;
+    if (clearCart && state.cart.isNotEmpty) {
+      state = state.copyWith(cart: [], discount: 0);
+    }
+    if (!changed && !forceReload && _bootstrapped) {
+      return;
+    }
+    state = state.copyWith(orderMode: normalized);
+    if (_bootstrapped) {
+      await _maybeReloadCategories(force: true);
+    } else {
+      await bootstrap();
+    }
   }
 
   void applyDiscount(double value) {

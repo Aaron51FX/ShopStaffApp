@@ -1,0 +1,315 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/router/app_router.dart';
+import '../../pos/viewmodels/pos_viewmodel.dart';
+
+final _clockProvider = StreamProvider<DateTime>((ref) {
+  return Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
+});
+
+class EntryPage extends ConsumerWidget {
+  const EntryPage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final now = ref.watch(_clockProvider).maybeWhen(
+          data: (value) => value,
+          orElse: DateTime.now,
+        );
+    final timeText = _formatTime(now);
+    final dateText = _formatDate(now);
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF0F172A),
+              Color(0xFF1E3A8A),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+            child: Column(
+              children: [
+                _buildTopBar(context, ref, timeText, dateText),
+                const SizedBox(height: 40),
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 960),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '欢迎使用智能点餐系统',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            '请选择点餐方式以开始新的订单',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              color: Colors.white.withOpacity(0.72),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 36),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final isNarrow = constraints.maxWidth < 720;
+                              final options = [
+                                _EntryOptionButton(
+                                  title: '店内堂食',
+                                  subtitle: '适用于店内用餐，自动匹配堂食菜单与价格',
+                                  icon: Icons.restaurant_menu_rounded,
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF22D3EE),
+                                      Color(0xFF6366F1),
+                                    ],
+                                  ),
+                                  onTap: () => _startOrder(ref, 'dine_in'),
+                                ),
+                                _EntryOptionButton(
+                                  title: '外带打包',
+                                  subtitle: '快速处理外带订单，展示外带专属菜品与优惠',
+                                  icon: Icons.shopping_bag_rounded,
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFFF97316),
+                                      Color(0xFFF43F5E),
+                                    ],
+                                  ),
+                                  onTap: () => _startOrder(ref, 'take_out'),
+                                ),
+                              ];
+                              if (isNarrow) {
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    options[0],
+                                    const SizedBox(height: 20),
+                                    options[1],
+                                  ],
+                                );
+                              }
+                              return Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Expanded(child: options[0]),
+                                  const SizedBox(width: 24),
+                                  Expanded(child: options[1]),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopBar(
+    BuildContext context,
+    WidgetRef ref,
+    String timeText,
+    String dateText,
+  ) {
+    final router = ref.read(appRouterProvider);
+    return Row(
+      children: [
+        FilledButton.icon(
+          onPressed: () => router.push('/pos/suspended'),
+          icon: const Icon(Icons.assignment_returned_outlined),
+          label: const Text('取单'),
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.white.withOpacity(0.12),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+          ),
+        ),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                timeText,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 44,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                dateText,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 16,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton.filledTonal(
+          onPressed: () => router.push('/settings'),
+          icon: const Icon(Icons.settings_rounded),
+          style: IconButton.styleFrom(
+            backgroundColor: Colors.white.withOpacity(0.12),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.all(14),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EntryOptionButton extends StatelessWidget {
+  const _EntryOptionButton({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.gradient,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final LinearGradient gradient;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(28),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(28),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 24,
+                offset: const Offset(0, 14),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.fromLTRB(26, 28, 26, 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, size: 28, color: Colors.white),
+              ),
+              const SizedBox(height: 26),
+              Text(
+                title,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withOpacity(0.82),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Text(
+                    '开始点餐',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_rounded, color: Colors.white),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+void _startOrder(WidgetRef ref, String mode) {
+  ref.read(orderModeSelectionProvider.notifier).state = mode;
+  ref.invalidate(posViewModelProvider);
+  ref.read(appRouterProvider).push('/pos');
+}
+
+String _formatTime(DateTime now) {
+  final h = now.hour.toString().padLeft(2, '0');
+  final m = now.minute.toString().padLeft(2, '0');
+  final s = now.second.toString().padLeft(2, '0');
+  return '$h:$m:$s';
+}
+
+String _formatDate(DateTime now) {
+  final weekday = _weekdayLabel(now.weekday);
+  final month = now.month.toString().padLeft(2, '0');
+  final day = now.day.toString().padLeft(2, '0');
+  return '${now.year}年$month月$day日 · $weekday';
+}
+
+String _weekdayLabel(int weekday) {
+  switch (weekday) {
+    case DateTime.monday:
+      return '星期一';
+    case DateTime.tuesday:
+      return '星期二';
+    case DateTime.wednesday:
+      return '星期三';
+    case DateTime.thursday:
+      return '星期四';
+    case DateTime.friday:
+      return '星期五';
+    case DateTime.saturday:
+      return '星期六';
+    case DateTime.sunday:
+    default:
+      return '星期日';
+  }
+}
