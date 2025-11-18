@@ -18,9 +18,10 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
       title: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const _LogoAvatar(),
-            const SizedBox(width: 18),
+            //const _LogoAvatar(),
+            const SizedBox(width: 158),
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -30,22 +31,21 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 18),
-            IconButton(
-              tooltip: '设置',
-              onPressed: vm.navToSettings,
-              icon: const Icon(Icons.settings_outlined),
-            ),
-            IconButton(
-              tooltip: '取单',
-              onPressed: vm.navToSuspendedOrder,
-              icon: const Icon(Icons.history_sharp),
-            ),
-            IconButton(
-              tooltip: '退出',
-              onPressed: vm.logout,
-              icon: const Icon(Icons.exit_to_app),
-            ),
+            // IconButton(
+            //   tooltip: '设置',
+            //   onPressed: vm.navToSettings,
+            //   icon: const Icon(Icons.settings_outlined),
+            // ),
+            // IconButton(
+            //   tooltip: '取单',
+            //   onPressed: vm.navToSuspendedOrder,
+            //   icon: const Icon(Icons.history_sharp),
+            // ),
+            // IconButton(
+            //   tooltip: '退出',
+            //   onPressed: vm.logout,
+            //   icon: const Icon(Icons.exit_to_app),
+            // ),
           ],
         ),
       ),

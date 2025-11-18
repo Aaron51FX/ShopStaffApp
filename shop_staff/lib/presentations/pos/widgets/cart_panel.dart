@@ -37,22 +37,18 @@ class CartPanel extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Row(children: [
-            const Text('订单号:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('订单号:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(width: 6),
-            Text('#$orderNumber', style: const TextStyle(color: AppColors.amberPrimary, fontWeight: FontWeight.bold)),
+            Text('#$orderNumber', style: const TextStyle(color: AppColors.amberPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
             const Spacer(),
-            ToggleButtons(
-              constraints: const BoxConstraints(minHeight: 32, minWidth: 54),
-              borderRadius: BorderRadius.circular(10),
-              isSelected: [orderMode == 'dine_in', orderMode == 'take_out'],
-              selectedColor: Colors.white,
-              fillColor: AppColors.amberPrimary,
-              color: AppColors.stone500,
-              onPressed: (i) {
-                final target = i == 0 ? 'dine_in' : 'take_out';
-                if (target != orderMode) vm.switchOrderMode();
-              },
-              children: const [Text('堂食'), Text('外带')],
+            //only display order mode
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.amberPrimary,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(orderMode == 'dine_in' ? '堂食' : '外带', style: const TextStyle(color: AppColors.stone100, fontWeight: FontWeight.bold, fontSize: 16)),
             ),
           ]),
         ),
