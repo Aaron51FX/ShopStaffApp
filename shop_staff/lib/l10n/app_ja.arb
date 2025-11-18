@@ -25,5 +25,8 @@
   "settingsSectionSystemTitle": "システム設定",
   "settingsSectionSystemSubtitle": "端末ネットワークとプリンターの設定",
   "settingsSectionMachineTitle": "機器情報",
-  "settingsSectionMachineSubtitle": "現在の端末と稼働環境"
+  "settingsSectionMachineSubtitle": "現在の端末と稼働環境",
+  "posDiscountDialogTitle": "割引金額を入力してください",
+  "dialogCancel": "キャンセル",
+  "dialogConfirm": "決定"
 }

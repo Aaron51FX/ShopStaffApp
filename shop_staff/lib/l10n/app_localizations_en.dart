@@ -92,4 +92,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsSectionMachineSubtitle =>
       'Active device and runtime context';
+
+  @override
+  String get posDiscountDialogTitle => 'Enter discount amount';
+
+  @override
+  String get dialogCancel => 'Cancel';
+
+  @override
+  String get dialogConfirm => 'Confirm';
 }

@@ -25,5 +25,8 @@
   "settingsSectionSystemTitle": "系统设置",
   "settingsSectionSystemSubtitle": "终端网络与打印配置",
   "settingsSectionMachineTitle": "机器信息",
-  "settingsSectionMachineSubtitle": "当前设备与运行环境"
+  "settingsSectionMachineSubtitle": "当前设备与运行环境",
+  "posDiscountDialogTitle": "输入折扣金额",
+  "dialogCancel": "取消",
+  "dialogConfirm": "确定"
 }

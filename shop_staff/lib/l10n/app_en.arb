@@ -25,5 +25,8 @@
   "settingsSectionSystemTitle": "System settings",
   "settingsSectionSystemSubtitle": "Terminal network and printer configuration",
   "settingsSectionMachineTitle": "Device info",
-  "settingsSectionMachineSubtitle": "Active device and runtime context"
+  "settingsSectionMachineSubtitle": "Active device and runtime context",
+  "posDiscountDialogTitle": "Enter discount amount",
+  "dialogCancel": "Cancel",
+  "dialogConfirm": "Confirm"
 }

@@ -82,7 +82,7 @@ class _SearchBar extends ConsumerWidget {
     final vm = ref.read(posViewModelProvider.notifier);
     return TextField(
       decoration: InputDecoration(
-        hintText: "搜索商品 (例如: '拿铁' 或 'nt')",
+        hintText: "搜索商品 ...",
         prefixIcon: const Icon(
           Icons.search,
           size: 20,

@@ -85,4 +85,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsSectionMachineSubtitle => '現在の端末と稼働環境';
+
+  @override
+  String get posDiscountDialogTitle => '割引金額を入力してください';
+
+  @override
+  String get dialogCancel => 'キャンセル';
+
+  @override
+  String get dialogConfirm => '決定';
 }

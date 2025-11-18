@@ -255,6 +255,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Active device and runtime context'**
   String get settingsSectionMachineSubtitle;
+
+  /// No description provided for @posDiscountDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter discount amount'**
+  String get posDiscountDialogTitle;
+
+  /// No description provided for @dialogCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get dialogCancel;
+
+  /// No description provided for @dialogConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get dialogConfirm;
 }
 
 class _AppLocalizationsDelegate

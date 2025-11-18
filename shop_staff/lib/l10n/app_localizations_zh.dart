@@ -85,4 +85,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsSectionMachineSubtitle => '当前设备与运行环境';
+
+  @override
+  String get posDiscountDialogTitle => '输入折扣金额';
+
+  @override
+  String get dialogCancel => '取消';
+
+  @override
+  String get dialogConfirm => '确定';
 }
