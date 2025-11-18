@@ -28,5 +28,14 @@
   "settingsSectionMachineSubtitle": "Active device and runtime context",
   "posDiscountDialogTitle": "Enter discount amount",
   "dialogCancel": "Cancel",
-  "dialogConfirm": "Confirm"
+  "dialogConfirm": "Confirm",
+  "settingsEditAction": "Edit",
+  "settingsNetworkEditIpTitle": "Edit terminal IP",
+  "settingsNetworkEditIpLabel": "Terminal IP address",
+  "settingsNetworkEditIpHint": "Leave empty to clear the address",
+  "settingsNetworkEditInvalidIp": "Enter a valid IPv4 address",
+  "settingsNetworkEditPortTitle": "Edit terminal port",
+  "settingsNetworkEditPortLabel": "Terminal port",
+  "settingsNetworkEditPortHint": "Leave empty to clear the port",
+  "settingsNetworkEditInvalidPort": "Enter a port between 1 and 65535"
 }

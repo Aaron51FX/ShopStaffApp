@@ -101,4 +101,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dialogConfirm => 'Confirm';
+
+  @override
+  String get settingsEditAction => 'Edit';
+
+  @override
+  String get settingsNetworkEditIpTitle => 'Edit terminal IP';
+
+  @override
+  String get settingsNetworkEditIpLabel => 'Terminal IP address';
+
+  @override
+  String get settingsNetworkEditIpHint => 'Leave empty to clear the address';
+
+  @override
+  String get settingsNetworkEditInvalidIp => 'Enter a valid IPv4 address';
+
+  @override
+  String get settingsNetworkEditPortTitle => 'Edit terminal port';
+
+  @override
+  String get settingsNetworkEditPortLabel => 'Terminal port';
+
+  @override
+  String get settingsNetworkEditPortHint => 'Leave empty to clear the port';
+
+  @override
+  String get settingsNetworkEditInvalidPort =>
+      'Enter a port between 1 and 65535';
 }

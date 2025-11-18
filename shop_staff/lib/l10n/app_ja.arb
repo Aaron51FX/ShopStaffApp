@@ -28,5 +28,14 @@
   "settingsSectionMachineSubtitle": "現在の端末と稼働環境",
   "posDiscountDialogTitle": "割引金額を入力してください",
   "dialogCancel": "キャンセル",
-  "dialogConfirm": "決定"
+  "dialogConfirm": "決定",
+  "settingsEditAction": "編集",
+  "settingsNetworkEditIpTitle": "端末IPを編集",
+  "settingsNetworkEditIpLabel": "端末IPアドレス",
+  "settingsNetworkEditIpHint": "空欄にすると値がクリアされます",
+  "settingsNetworkEditInvalidIp": "有効なIPv4アドレスを入力してください",
+  "settingsNetworkEditPortTitle": "端末ポートを編集",
+  "settingsNetworkEditPortLabel": "端末ポート",
+  "settingsNetworkEditPortHint": "空欄にすると値がクリアされます",
+  "settingsNetworkEditInvalidPort": "1～65535のポート番号を入力してください"
 }

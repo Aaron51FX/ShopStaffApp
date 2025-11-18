@@ -28,5 +28,14 @@
   "settingsSectionMachineSubtitle": "当前设备与运行环境",
   "posDiscountDialogTitle": "输入折扣金额",
   "dialogCancel": "取消",
-  "dialogConfirm": "确定"
+  "dialogConfirm": "确定",
+  "settingsEditAction": "编辑",
+  "settingsNetworkEditIpTitle": "编辑终端IP",
+  "settingsNetworkEditIpLabel": "终端IP地址",
+  "settingsNetworkEditIpHint": "留空可清除该地址",
+  "settingsNetworkEditInvalidIp": "请输入合法的IPv4地址",
+  "settingsNetworkEditPortTitle": "编辑终端端口",
+  "settingsNetworkEditPortLabel": "终端端口",
+  "settingsNetworkEditPortHint": "留空可清除该端口",
+  "settingsNetworkEditInvalidPort": "请输入1到65535之间的端口号"
 }

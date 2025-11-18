@@ -273,6 +273,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm'**
   String get dialogConfirm;
+
+  /// No description provided for @settingsEditAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get settingsEditAction;
+
+  /// No description provided for @settingsNetworkEditIpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit terminal IP'**
+  String get settingsNetworkEditIpTitle;
+
+  /// No description provided for @settingsNetworkEditIpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal IP address'**
+  String get settingsNetworkEditIpLabel;
+
+  /// No description provided for @settingsNetworkEditIpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to clear the address'**
+  String get settingsNetworkEditIpHint;
+
+  /// No description provided for @settingsNetworkEditInvalidIp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid IPv4 address'**
+  String get settingsNetworkEditInvalidIp;
+
+  /// No description provided for @settingsNetworkEditPortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit terminal port'**
+  String get settingsNetworkEditPortTitle;
+
+  /// No description provided for @settingsNetworkEditPortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal port'**
+  String get settingsNetworkEditPortLabel;
+
+  /// No description provided for @settingsNetworkEditPortHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave empty to clear the port'**
+  String get settingsNetworkEditPortHint;
+
+  /// No description provided for @settingsNetworkEditInvalidPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a port between 1 and 65535'**
+  String get settingsNetworkEditInvalidPort;
 }
 
 class _AppLocalizationsDelegate

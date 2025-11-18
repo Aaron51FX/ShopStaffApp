@@ -94,4 +94,31 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dialogConfirm => '确定';
+
+  @override
+  String get settingsEditAction => '编辑';
+
+  @override
+  String get settingsNetworkEditIpTitle => '编辑终端IP';
+
+  @override
+  String get settingsNetworkEditIpLabel => '终端IP地址';
+
+  @override
+  String get settingsNetworkEditIpHint => '留空可清除该地址';
+
+  @override
+  String get settingsNetworkEditInvalidIp => '请输入合法的IPv4地址';
+
+  @override
+  String get settingsNetworkEditPortTitle => '编辑终端端口';
+
+  @override
+  String get settingsNetworkEditPortLabel => '终端端口';
+
+  @override
+  String get settingsNetworkEditPortHint => '留空可清除该端口';
+
+  @override
+  String get settingsNetworkEditInvalidPort => '请输入1到65535之间的端口号';
 }

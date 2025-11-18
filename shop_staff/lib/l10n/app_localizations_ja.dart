@@ -94,4 +94,31 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get dialogConfirm => '決定';
+
+  @override
+  String get settingsEditAction => '編集';
+
+  @override
+  String get settingsNetworkEditIpTitle => '端末IPを編集';
+
+  @override
+  String get settingsNetworkEditIpLabel => '端末IPアドレス';
+
+  @override
+  String get settingsNetworkEditIpHint => '空欄にすると値がクリアされます';
+
+  @override
+  String get settingsNetworkEditInvalidIp => '有効なIPv4アドレスを入力してください';
+
+  @override
+  String get settingsNetworkEditPortTitle => '端末ポートを編集';
+
+  @override
+  String get settingsNetworkEditPortLabel => '端末ポート';
+
+  @override
+  String get settingsNetworkEditPortHint => '空欄にすると値がクリアされます';
+
+  @override
+  String get settingsNetworkEditInvalidPort => '1～65535のポート番号を入力してください';
 }

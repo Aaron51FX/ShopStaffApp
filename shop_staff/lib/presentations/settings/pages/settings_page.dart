@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
@@ -378,6 +379,7 @@ class _SystemSettingsView extends ConsumerWidget {
     final printers = state.snapshot.printers;
     final selectedLocale = ref.watch(localeControllerProvider);
     final controller = ref.read(localeControllerProvider.notifier);
+    final vm = ref.read(settingsViewModelProvider.notifier);
 
     return _RefreshableScroll(
       onRefresh: onRefresh,
@@ -423,11 +425,57 @@ class _SystemSettingsView extends ConsumerWidget {
               icon: Icons.language_rounded,
               label: '终端 IP',
               value: _displayValue(pos.posIp),
+              editLabel: t.settingsEditAction,
+              onEdit: () async {
+                final input = await _promptForValue(
+                  context,
+                  t: t,
+                  title: t.settingsNetworkEditIpTitle,
+                  label: t.settingsNetworkEditIpLabel,
+                  hint: t.settingsNetworkEditIpHint,
+                  initialValue: pos.posIp ?? '',
+                  keyboardType: TextInputType.text,
+                  validator: (value) => _validateIp(t, value),
+                );
+                if (input == null) return;
+                final trimmed = input.trim();
+                await vm.savePosTerminal(
+                  PosTerminalSettings(
+                    posIp: trimmed.isEmpty ? null : trimmed,
+                    posPort: pos.posPort,
+                  ),
+                );
+              },
             ),
             _InfoRow(
               icon: Icons.settings_ethernet,
               label: '终端端口',
-              value: pos.posPort != null ? pos.posPort.toString() : '未配置',
+              value: _displayValue(pos.posPort?.toString()),
+              editLabel: t.settingsEditAction,
+              onEdit: () async {
+                final input = await _promptForValue(
+                  context,
+                  t: t,
+                  title: t.settingsNetworkEditPortTitle,
+                  label: t.settingsNetworkEditPortLabel,
+                  hint: t.settingsNetworkEditPortHint,
+                  initialValue: pos.posPort?.toString() ?? '',
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: false,
+                    signed: false,
+                  ),
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  validator: (value) => _validatePort(t, value),
+                );
+                if (input == null) return;
+                final trimmed = input.trim();
+                final int? newPort = trimmed.isEmpty
+                    ? null
+                    : int.parse(trimmed);
+                await vm.savePosTerminal(
+                  PosTerminalSettings(posIp: pos.posIp, posPort: newPort),
+                );
+              },
             ),
           ],
         ),
@@ -441,6 +489,138 @@ class _SystemSettingsView extends ConsumerWidget {
                     _PrinterTile(printer: printer),
                 ],
         ),
+      ],
+    );
+  }
+
+  Future<String?> _promptForValue(
+    BuildContext context, {
+    required AppLocalizations t,
+    required String title,
+    required String label,
+    String? hint,
+    required String initialValue,
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+    required String? Function(String value) validator,
+  }) async {
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => _ValuePromptDialog(
+        title: title,
+        label: label,
+        hint: hint,
+        initialValue: initialValue,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
+        validator: validator,
+        t: t,
+      ),
+    );
+  }
+
+  String? _validateIp(AppLocalizations t, String value) {
+    if (value.isEmpty) {
+      return null;
+    }
+    final segments = value.split('.');
+    if (segments.length != 4) {
+      return t.settingsNetworkEditInvalidIp;
+    }
+    for (final segment in segments) {
+      final part = int.tryParse(segment);
+      if (part == null || part < 0 || part > 255) {
+        return t.settingsNetworkEditInvalidIp;
+      }
+    }
+    return null;
+  }
+
+  String? _validatePort(AppLocalizations t, String value) {
+    if (value.isEmpty) {
+      return null;
+    }
+    final port = int.tryParse(value);
+    if (port == null || port < 1 || port > 65535) {
+      return t.settingsNetworkEditInvalidPort;
+    }
+    return null;
+  }
+}
+
+class _ValuePromptDialog extends StatefulWidget {
+  const _ValuePromptDialog({
+    required this.title,
+    required this.label,
+    required this.initialValue,
+    required this.validator,
+    required this.t,
+    this.hint,
+    this.keyboardType = TextInputType.text,
+    this.inputFormatters,
+  });
+
+  final String title;
+  final String label;
+  final String initialValue;
+  final String? hint;
+  final TextInputType keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? Function(String value) validator;
+  final AppLocalizations t;
+
+  @override
+  State<_ValuePromptDialog> createState() => _ValuePromptDialogState();
+}
+
+class _ValuePromptDialogState extends State<_ValuePromptDialog> {
+  late final TextEditingController _controller;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState?.validate() ?? false) {
+      Navigator.of(context).pop(_controller.text.trim());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: Form(
+        key: _formKey,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        child: TextFormField(
+          controller: _controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: widget.label,
+            helperText: widget.hint,
+          ),
+          keyboardType: widget.keyboardType,
+          inputFormatters: widget.inputFormatters,
+          validator: (raw) => widget.validator(raw?.trim() ?? ''),
+          onFieldSubmitted: (_) => _submit(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(widget.t.dialogCancel),
+        ),
+        FilledButton(onPressed: _submit, child: Text(widget.t.dialogConfirm)),
       ],
     );
   }
@@ -593,11 +773,15 @@ class _InfoRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
+    this.onEdit,
+    this.editLabel,
   });
 
   final IconData icon;
   final String label;
   final String value;
+  final VoidCallback? onEdit;
+  final String? editLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -637,6 +821,20 @@ class _InfoRow extends StatelessWidget {
               ],
             ),
           ),
+          if (onEdit != null) ...[
+            const SizedBox(width: 12),
+            TextButton.icon(
+              onPressed: onEdit,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: Text(editLabel ?? '编辑'),
+            ),
+          ],
         ],
       ),
     );
