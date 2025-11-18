@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../pos/viewmodels/pos_viewmodel.dart';
@@ -14,10 +15,10 @@ class EntryPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final now = ref.watch(_clockProvider).maybeWhen(
-          data: (value) => value,
-          orElse: DateTime.now,
-        );
+    final t = AppLocalizations.of(context);
+    final now = ref
+        .watch(_clockProvider)
+        .maybeWhen(data: (value) => value, orElse: DateTime.now);
     final timeText = _formatTime(now);
     final dateText = _formatDate(now);
 
@@ -28,10 +29,7 @@ class EntryPage extends ConsumerWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF0F172A),
-              Color(0xFF1E3A8A),
-            ],
+            colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
           ),
         ),
         child: SafeArea(
@@ -49,7 +47,7 @@ class EntryPage extends ConsumerWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '欢迎使用智能点餐系统',
+                            t.entryTitle,
                             style: theme.textTheme.headlineMedium?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
@@ -58,9 +56,9 @@ class EntryPage extends ConsumerWidget {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            '请选择点餐方式以开始新的订单',
+                            t.entrySubtitle,
                             style: theme.textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withOpacity(0.72),
+                              color: Colors.white.withValues(alpha: 0.72),
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -70,8 +68,8 @@ class EntryPage extends ConsumerWidget {
                               final isNarrow = constraints.maxWidth < 720;
                               final options = [
                                 _EntryOptionButton(
-                                  title: '店内堂食',
-                                  subtitle: '适用于店内用餐，自动匹配堂食菜单与价格',
+                                  title: t.entryDineInTitle,
+                                  subtitle: t.entryDineInSubtitle,
                                   icon: Icons.restaurant_menu_rounded,
                                   gradient: const LinearGradient(
                                     colors: [
@@ -82,8 +80,8 @@ class EntryPage extends ConsumerWidget {
                                   onTap: () => _startOrder(ref, 'dine_in'),
                                 ),
                                 _EntryOptionButton(
-                                  title: '外带打包',
-                                  subtitle: '快速处理外带订单，展示外带专属菜品与优惠',
+                                  title: t.entryTakeoutTitle,
+                                  subtitle: t.entryTakeoutSubtitle,
                                   icon: Icons.shopping_bag_rounded,
                                   gradient: const LinearGradient(
                                     colors: [
@@ -134,14 +132,15 @@ class EntryPage extends ConsumerWidget {
     String dateText,
   ) {
     final router = ref.read(appRouterProvider);
+    final t = AppLocalizations.of(context);
     return Row(
       children: [
         FilledButton.icon(
           onPressed: () => router.push('/pos/suspended'),
           icon: const Icon(Icons.assignment_returned_outlined),
-          label: const Text('取单'),
+          label: Text(t.entryPickup),
           style: FilledButton.styleFrom(
-            backgroundColor: Colors.white.withOpacity(0.12),
+            backgroundColor: Colors.white.withValues(alpha: 0.12),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
             shape: RoundedRectangleBorder(
@@ -176,8 +175,9 @@ class EntryPage extends ConsumerWidget {
         IconButton.filledTonal(
           onPressed: () => router.push('/settings'),
           icon: const Icon(Icons.settings_rounded),
+          tooltip: t.entrySettingsTooltip,
           style: IconButton.styleFrom(
-            backgroundColor: Colors.white.withOpacity(0.12),
+            backgroundColor: Colors.white.withValues(alpha: 0.12),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.all(14),
           ),
@@ -231,7 +231,7 @@ class _EntryOptionButton extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(icon, size: 28, color: Colors.white),
@@ -245,25 +245,25 @@ class _EntryOptionButton extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                subtitle,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withOpacity(0.82),
-                ),
-              ),
+              // Text(
+              //   subtitle,
+              //   style: theme.textTheme.bodyMedium?.copyWith(
+              //     color: Colors.white.withValues(alpha: 0.82),
+              //   ),
+              // ),
               const SizedBox(height: 20),
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
+                children: [
                   Text(
-                    '开始点餐',
-                    style: TextStyle(
+                    AppLocalizations.of(context).entryStartOrder,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded, color: Colors.white),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward_rounded, color: Colors.white),
                 ],
               ),
             ],

@@ -7,30 +7,6 @@ import '../../../domain/services/app_settings_service.dart';
 
 enum SettingsSection { businessInfo, systemSettings, machineInfo }
 
-extension SettingsSectionLabel on SettingsSection {
-	String get title {
-		switch (this) {
-			case SettingsSection.businessInfo:
-				return '营业信息';
-			case SettingsSection.systemSettings:
-				return '系统设置';
-			case SettingsSection.machineInfo:
-				return '机器信息';
-		}
-	}
-
-	String get subtitle {
-		switch (this) {
-			case SettingsSection.businessInfo:
-				return '店铺档案与对外展示信息';
-			case SettingsSection.systemSettings:
-				return '终端网络与打印配置';
-			case SettingsSection.machineInfo:
-				return '当前设备与运行环境';
-		}
-	}
-}
-
 class SettingsState {
 	const SettingsState({
 		this.selected = SettingsSection.businessInfo,

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../../../domain/settings/app_settings_models.dart';
 import '../viewmodels/settings_viewmodel.dart';
+import '../../../core/localization/locale_providers.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -25,6 +27,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final state = ref.watch(settingsViewModelProvider);
     final vm = ref.read(settingsViewModelProvider.notifier);
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -34,12 +37,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             _SettingsSidebar(
               selected: state.selected,
               onSelect: vm.select,
+              t: t,
             ),
             Expanded(
               child: Container(
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                ),
+                decoration: BoxDecoration(color: theme.colorScheme.surface),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -47,6 +49,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       section: state.selected,
                       loading: state.loading,
                       onRefresh: vm.refreshSettings,
+                      t: t,
                     ),
                     if (state.error != null)
                       Padding(
@@ -65,6 +68,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           key: ValueKey(state.selected),
                           state: state,
                           onRefresh: vm.refreshSettings,
+                          t: t,
                         ),
                       ),
                     ),
@@ -83,10 +87,12 @@ class _SettingsSidebar extends StatelessWidget {
   const _SettingsSidebar({
     required this.selected,
     required this.onSelect,
+    required this.t,
   });
 
   final SettingsSection selected;
   final void Function(SettingsSection) onSelect;
+  final AppLocalizations t;
 
   @override
   Widget build(BuildContext context) {
@@ -109,14 +115,14 @@ class _SettingsSidebar extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '应用设置',
+                  t.settingsShellTitle,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '管理终端信息与业务配置',
+                  t.settingsShellSubtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
@@ -139,7 +145,10 @@ class _SettingsSidebar extends StatelessWidget {
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       curve: Curves.easeInOut,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: active
                             ? theme.colorScheme.primary.withValues(alpha: 0.12)
@@ -153,7 +162,9 @@ class _SettingsSidebar extends StatelessWidget {
                             size: 20,
                             color: active
                                 ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                : theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.6,
+                                  ),
                           ),
                           const SizedBox(width: 14),
                           Expanded(
@@ -161,19 +172,22 @@ class _SettingsSidebar extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  section.title,
+                                  section.localizedTitle(t),
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: active
                                         ? theme.colorScheme.primary
                                         : theme.colorScheme.onSurface,
-                                    fontWeight: active ? FontWeight.w600 : FontWeight.w500,
+                                    fontWeight: active
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  section.subtitle,
+                                  section.localizedSubtitle(t),
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.6),
                                   ),
                                 ),
                               ],
@@ -204,11 +218,13 @@ class _SettingsHeader extends StatelessWidget {
     required this.section,
     required this.loading,
     required this.onRefresh,
+    required this.t,
   });
 
   final SettingsSection section;
   final bool loading;
   final Future<void> Function() onRefresh;
+  final AppLocalizations t;
 
   @override
   Widget build(BuildContext context) {
@@ -221,14 +237,14 @@ class _SettingsHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                section.title,
+                section.localizedTitle(t),
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 6),
               Text(
-                section.subtitle,
+                section.localizedSubtitle(t),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
@@ -237,7 +253,7 @@ class _SettingsHeader extends StatelessWidget {
           ),
           const Spacer(),
           Tooltip(
-            message: '刷新设置',
+            message: t.settingsRefreshTooltip,
             child: IconButton.filledTonal(
               icon: loading
                   ? SizedBox(
@@ -265,10 +281,12 @@ class _SettingsContent extends StatelessWidget {
     super.key,
     required this.state,
     required this.onRefresh,
+    required this.t,
   });
 
   final SettingsState state;
   final Future<void> Function() onRefresh;
+  final AppLocalizations t;
 
   @override
   Widget build(BuildContext context) {
@@ -276,7 +294,7 @@ class _SettingsContent extends StatelessWidget {
       case SettingsSection.businessInfo:
         return _BusinessInfoView(state: state, onRefresh: onRefresh);
       case SettingsSection.systemSettings:
-        return _SystemSettingsView(state: state, onRefresh: onRefresh);
+        return _SystemSettingsView(state: state, onRefresh: onRefresh, t: t);
       case SettingsSection.machineInfo:
         return _MachineInfoView(state: state, onRefresh: onRefresh);
     }
@@ -343,19 +361,60 @@ class _BusinessInfoView extends StatelessWidget {
   }
 }
 
-class _SystemSettingsView extends StatelessWidget {
-  const _SystemSettingsView({required this.state, required this.onRefresh});
+class _SystemSettingsView extends ConsumerWidget {
+  const _SystemSettingsView({
+    required this.state,
+    required this.onRefresh,
+    required this.t,
+  });
 
   final SettingsState state;
   final Future<void> Function() onRefresh;
+  final AppLocalizations t;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final pos = state.snapshot.posTerminal;
     final printers = state.snapshot.printers;
+    final selectedLocale = ref.watch(localeControllerProvider);
+    final controller = ref.read(localeControllerProvider.notifier);
+
     return _RefreshableScroll(
       onRefresh: onRefresh,
       children: [
+        _SectionCard(
+          title: t.settingsLanguageSectionTitle,
+          subtitle: t.settingsLanguageSectionSubtitle,
+          children: [
+            _LanguageOptionTile(
+              label: t.settingsLanguageSystem,
+              value: null,
+              groupValue: selectedLocale,
+              onSelect: (_) => controller.useSystemLocale(),
+            ),
+            const SizedBox(height: 8),
+            _LanguageOptionTile(
+              label: t.settingsLanguageChinese,
+              value: const Locale('zh'),
+              groupValue: selectedLocale,
+              onSelect: (_) => controller.update(const Locale('zh')),
+            ),
+            const SizedBox(height: 8),
+            _LanguageOptionTile(
+              label: t.settingsLanguageJapanese,
+              value: const Locale('ja'),
+              groupValue: selectedLocale,
+              onSelect: (_) => controller.update(const Locale('ja')),
+            ),
+            const SizedBox(height: 8),
+            _LanguageOptionTile(
+              label: t.settingsLanguageEnglish,
+              value: const Locale('en'),
+              groupValue: selectedLocale,
+              onSelect: (_) => controller.update(const Locale('en')),
+            ),
+          ],
+        ),
         _SectionCard(
           title: 'POS终端网络',
           subtitle: '确保终端与刷卡设备保持在同一网络',
@@ -376,9 +435,7 @@ class _SystemSettingsView extends StatelessWidget {
           title: '打印机配置',
           subtitle: '控制小票、标签及厨房打印',
           children: printers.isEmpty
-              ? const [
-                  _EmptyPlaceholder(message: '暂无打印机配置，可在后台新增'),
-                ]
+              ? const [_EmptyPlaceholder(message: '暂无打印机配置，可在后台新增')]
               : [
                   for (final printer in printers)
                     _PrinterTile(printer: printer),
@@ -399,7 +456,12 @@ class _MachineInfoView extends StatelessWidget {
   Widget build(BuildContext context) {
     final shop = state.shopInfo;
     final basic = state.snapshot.basic;
-    final languages = shop?.languages.map((e) => e.name).where((e) => e.isNotEmpty).toList() ?? const [];
+    final languages =
+        shop?.languages
+            .map((e) => e.name)
+            .where((e) => e.isNotEmpty)
+            .toList() ??
+        const [];
     final features = <_FeatureChipData>[
       _FeatureChipData('线上叫号', shop?.onlineCall ?? false),
       _FeatureChipData('税制', shop?.taxSystem ?? false),
@@ -446,10 +508,7 @@ class _MachineInfoView extends StatelessWidget {
               runSpacing: 10,
               children: [
                 for (final feature in features)
-                  _FeatureChip(
-                    label: feature.label,
-                    enabled: feature.enabled,
-                  ),
+                  _FeatureChip(label: feature.label, enabled: feature.enabled),
               ],
             ),
           ],
@@ -460,10 +519,7 @@ class _MachineInfoView extends StatelessWidget {
 }
 
 class _RefreshableScroll extends StatelessWidget {
-  const _RefreshableScroll({
-    required this.children,
-    required this.onRefresh,
-  });
+  const _RefreshableScroll({required this.children, required this.onRefresh});
 
   final List<Widget> children;
   final Future<void> Function() onRefresh;
@@ -475,11 +531,10 @@ class _RefreshableScroll extends StatelessWidget {
       displacement: 24,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(32, 0, 32, 40),
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-        children: [
-          const SizedBox(height: 8),
-          ...children,
-        ],
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        children: [const SizedBox(height: 8), ...children],
       ),
     );
   }
@@ -511,7 +566,9 @@ class _SectionCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
             if (subtitle != null) ...[
               const SizedBox(height: 6),
@@ -594,7 +651,9 @@ class _PrinterTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final statusColor = printer.isOn ? theme.colorScheme.primary : theme.colorScheme.error;
+    final statusColor = printer.isOn
+        ? theme.colorScheme.primary
+        : theme.colorScheme.error;
     final statusLabel = printer.isOn ? '已启用' : '未启用';
     final typeLabel = _printerType(printer.type);
 
@@ -621,15 +680,13 @@ class _PrinterTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   printer.name,
-                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               Chip(
-                avatar: Icon(
-                  Icons.circle,
-                  size: 12,
-                  color: statusColor,
-                ),
+                avatar: Icon(Icons.circle, size: 12, color: statusColor),
                 label: Text(statusLabel),
                 labelStyle: theme.textTheme.bodySmall?.copyWith(
                   color: statusColor,
@@ -648,9 +705,14 @@ class _PrinterTile extends StatelessWidget {
               if (printer.printIp?.isNotEmpty == true)
                 _Tag(icon: Icons.language, label: printer.printIp!),
               if (printer.printPort?.isNotEmpty == true)
-                _Tag(icon: Icons.settings_ethernet, label: '端口 ${printer.printPort}'),
-              if (printer.isDefault) _Tag(icon: Icons.star_rounded, label: '默认'),
-              if (printer.option) _Tag(icon: Icons.rule_folder_rounded, label: '附加选项'),
+                _Tag(
+                  icon: Icons.settings_ethernet,
+                  label: '端口 ${printer.printPort}',
+                ),
+              if (printer.isDefault)
+                _Tag(icon: Icons.star_rounded, label: '默认'),
+              if (printer.option)
+                _Tag(icon: Icons.rule_folder_rounded, label: '附加选项'),
             ],
           ),
         ],
@@ -708,9 +770,15 @@ class _FeatureChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = enabled ? theme.colorScheme.primary : theme.colorScheme.onSurface.withValues(alpha: 0.4);
+    final color = enabled
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurface.withValues(alpha: 0.4);
     return Chip(
-      avatar: Icon(enabled ? Icons.check_circle : Icons.remove_circle_outline, size: 18, color: color),
+      avatar: Icon(
+        enabled ? Icons.check_circle : Icons.remove_circle_outline,
+        size: 18,
+        color: color,
+      ),
       label: Text(label),
       labelStyle: theme.textTheme.bodySmall?.copyWith(
         color: color,
@@ -734,7 +802,10 @@ class _EmptyPlaceholder extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+          Icon(
+            Icons.info_outline,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -782,12 +853,76 @@ class _ErrorBanner extends StatelessWidget {
               icon: const Icon(Icons.close),
               color: theme.colorScheme.error,
               onPressed: onDismissed,
-              tooltip: '关闭',
+              tooltip: AppLocalizations.of(context).settingsErrorDismissTooltip,
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _LanguageOptionTile extends StatelessWidget {
+  const _LanguageOptionTile({
+    required this.label,
+    required this.value,
+    required this.groupValue,
+    required this.onSelect,
+  });
+
+  final String label;
+  final Locale? value;
+  final Locale? groupValue;
+  final void Function(Locale? locale) onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.08)),
+      ),
+      child: RadioListTile<Locale?>(
+        value: value,
+        groupValue: groupValue,
+        onChanged: onSelect,
+        dense: true,
+        title: Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      ),
+    );
+  }
+}
+
+extension SettingsSectionLocalization on SettingsSection {
+  String localizedTitle(AppLocalizations t) {
+    switch (this) {
+      case SettingsSection.businessInfo:
+        return t.settingsSectionBusinessTitle;
+      case SettingsSection.systemSettings:
+        return t.settingsSectionSystemTitle;
+      case SettingsSection.machineInfo:
+        return t.settingsSectionMachineTitle;
+    }
+  }
+
+  String localizedSubtitle(AppLocalizations t) {
+    switch (this) {
+      case SettingsSection.businessInfo:
+        return t.settingsSectionBusinessSubtitle;
+      case SettingsSection.systemSettings:
+        return t.settingsSectionSystemSubtitle;
+      case SettingsSection.machineInfo:
+        return t.settingsSectionMachineSubtitle;
+    }
   }
 }
 

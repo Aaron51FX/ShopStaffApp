@@ -1,0 +1,88 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Japanese (`ja`).
+class AppLocalizationsJa extends AppLocalizations {
+  AppLocalizationsJa([String locale = 'ja']) : super(locale);
+
+  @override
+  String get appTitle => 'ショップスタッフPOS';
+
+  @override
+  String get entryTitle => 'スマートオーダーへようこそ';
+
+  @override
+  String get entrySubtitle => '新しい注文を開始する方法を選択してください';
+
+  @override
+  String get entryDineInTitle => '店内飲食';
+
+  @override
+  String get entryDineInSubtitle => '店内利用に最適。店内メニューと価格を自動で適用します';
+
+  @override
+  String get entryTakeoutTitle => 'テイクアウト';
+
+  @override
+  String get entryTakeoutSubtitle => 'テイクアウト注文を迅速に処理し、専用メニューと特典を表示します';
+
+  @override
+  String get entryStartOrder => '注文を開始';
+
+  @override
+  String get entryPickup => '受取';
+
+  @override
+  String get entrySettingsTooltip => '設定を開く';
+
+  @override
+  String get settingsShellTitle => 'アプリ設定';
+
+  @override
+  String get settingsShellSubtitle => '端末情報と業務設定を管理';
+
+  @override
+  String get settingsRefreshTooltip => '設定を更新';
+
+  @override
+  String get settingsErrorDismissTooltip => '閉じる';
+
+  @override
+  String get settingsLanguageSectionTitle => '表示言語';
+
+  @override
+  String get settingsLanguageSectionSubtitle => '端末全体で使用する言語を選択してください';
+
+  @override
+  String get settingsLanguageSystem => 'システムに合わせる';
+
+  @override
+  String get settingsLanguageChinese => '中国語';
+
+  @override
+  String get settingsLanguageJapanese => '日本語';
+
+  @override
+  String get settingsLanguageEnglish => '英語';
+
+  @override
+  String get settingsSectionBusinessTitle => '営業情報';
+
+  @override
+  String get settingsSectionBusinessSubtitle => '店舗プロフィールと対外情報';
+
+  @override
+  String get settingsSectionSystemTitle => 'システム設定';
+
+  @override
+  String get settingsSectionSystemSubtitle => '端末ネットワークとプリンターの設定';
+
+  @override
+  String get settingsSectionMachineTitle => '機器情報';
+
+  @override
+  String get settingsSectionMachineSubtitle => '現在の端末と稼働環境';
+}
