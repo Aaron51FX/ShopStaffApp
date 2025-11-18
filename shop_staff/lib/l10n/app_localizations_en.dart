@@ -129,4 +129,43 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsNetworkEditInvalidPort =>
       'Enter a port between 1 and 65535';
+
+  @override
+  String get settingsPrinterReceiptTicket => 'Receipt';
+
+  @override
+  String get settingsPrinterReceiptLabel => 'Label';
+
+  @override
+  String get settingsPrinterLabelSizeTitle => 'Label size';
+
+  @override
+  String get settingsPrinterLabelSizeNone => 'Not set';
+
+  @override
+  String get settingsPrinterEditIpTitle => 'Edit printer IP';
+
+  @override
+  String get settingsPrinterEditIpLabel => 'Printer IP address';
+
+  @override
+  String get settingsPrinterEditPortTitle => 'Edit printer port';
+
+  @override
+  String get settingsPrinterEditPortLabel => 'Printer port';
+
+  @override
+  String get settingsPrinterIpTitle => 'Printer IP';
+
+  @override
+  String get settingsPrinterPortTitle => 'Printer port';
+
+  @override
+  String get settingsPrinterToggleContinuous => 'Continuous printing';
+
+  @override
+  String get settingsPrinterToggleOption => 'Print optional fields';
+
+  @override
+  String get settingsPrinterToggleDirection => 'Reverse printing';
 }

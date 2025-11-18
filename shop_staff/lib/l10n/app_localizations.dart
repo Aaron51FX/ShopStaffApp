@@ -327,6 +327,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a port between 1 and 65535'**
   String get settingsNetworkEditInvalidPort;
+
+  /// No description provided for @settingsPrinterReceiptTicket.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get settingsPrinterReceiptTicket;
+
+  /// No description provided for @settingsPrinterReceiptLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get settingsPrinterReceiptLabel;
+
+  /// No description provided for @settingsPrinterLabelSizeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Label size'**
+  String get settingsPrinterLabelSizeTitle;
+
+  /// No description provided for @settingsPrinterLabelSizeNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get settingsPrinterLabelSizeNone;
+
+  /// No description provided for @settingsPrinterEditIpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit printer IP'**
+  String get settingsPrinterEditIpTitle;
+
+  /// No description provided for @settingsPrinterEditIpLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer IP address'**
+  String get settingsPrinterEditIpLabel;
+
+  /// No description provided for @settingsPrinterEditPortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit printer port'**
+  String get settingsPrinterEditPortTitle;
+
+  /// No description provided for @settingsPrinterEditPortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer port'**
+  String get settingsPrinterEditPortLabel;
+
+  /// No description provided for @settingsPrinterIpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer IP'**
+  String get settingsPrinterIpTitle;
+
+  /// No description provided for @settingsPrinterPortTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Printer port'**
+  String get settingsPrinterPortTitle;
+
+  /// No description provided for @settingsPrinterToggleContinuous.
+  ///
+  /// In en, this message translates to:
+  /// **'Continuous printing'**
+  String get settingsPrinterToggleContinuous;
+
+  /// No description provided for @settingsPrinterToggleOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Print optional fields'**
+  String get settingsPrinterToggleOption;
+
+  /// No description provided for @settingsPrinterToggleDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Reverse printing'**
+  String get settingsPrinterToggleDirection;
 }
 
 class _AppLocalizationsDelegate

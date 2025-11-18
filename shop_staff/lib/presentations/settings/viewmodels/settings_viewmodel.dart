@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/shop_info_models.dart';
@@ -119,10 +120,65 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     }
   }
 
+  Future<void> savePrinter(PrinterSettings printer) async {
+    final previousSnapshot = state.snapshot;
+    final printers = previousSnapshot.printers;
+    final index = printers.indexWhere(
+      (element) =>
+          element.type == printer.type && element.receipt == printer.receipt,
+    );
+    if (index == -1) {
+      return;
+    }
+
+    final current = printers[index];
+    if (_printerEquals(current, printer)) {
+      return;
+    }
+
+    final updatedPrinters = [...printers];
+    updatedPrinters[index] = printer;
+
+    if (printer.type == 10 && printer.isOn) {
+      for (var i = 0; i < updatedPrinters.length; i++) {
+        if (i == index) continue;
+        final candidate = updatedPrinters[i];
+        if (candidate.type == 10 &&
+            candidate.receipt != printer.receipt &&
+            candidate.isOn) {
+          updatedPrinters[i] = candidate.copyWith(isOn: false);
+        }
+      }
+    }
+
+    final updatedSnapshot = AppSettingsSnapshot(
+      basic: previousSnapshot.basic,
+      posTerminal: previousSnapshot.posTerminal,
+      printers: updatedPrinters,
+    );
+
+    state = state.copyWith(snapshot: updatedSnapshot, clearError: true);
+    _updateSharedSnapshot(updatedSnapshot);
+
+    try {
+      await _appSettingsService.savePrinterSettings(updatedPrinters);
+    } catch (e) {
+      state = state.copyWith(
+        snapshot: previousSnapshot,
+        error: '保存打印机设置失败: $e',
+      );
+      _updateSharedSnapshot(previousSnapshot);
+    }
+  }
+
   void clearError() {
     if (state.error != null) {
       state = state.copyWith(clearError: true);
     }
+  }
+
+  bool _printerEquals(PrinterSettings a, PrinterSettings b) {
+    return mapEquals(a.toJson(), b.toJson());
   }
 }
 

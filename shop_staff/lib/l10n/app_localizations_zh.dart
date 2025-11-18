@@ -121,4 +121,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsNetworkEditInvalidPort => '请输入1到65535之间的端口号';
+
+  @override
+  String get settingsPrinterReceiptTicket => '小票';
+
+  @override
+  String get settingsPrinterReceiptLabel => '标签';
+
+  @override
+  String get settingsPrinterLabelSizeTitle => '标签尺寸';
+
+  @override
+  String get settingsPrinterLabelSizeNone => '未设置';
+
+  @override
+  String get settingsPrinterEditIpTitle => '编辑打印机IP';
+
+  @override
+  String get settingsPrinterEditIpLabel => '打印机IP地址';
+
+  @override
+  String get settingsPrinterEditPortTitle => '编辑打印机端口';
+
+  @override
+  String get settingsPrinterEditPortLabel => '打印机端口';
+
+  @override
+  String get settingsPrinterIpTitle => '打印机IP';
+
+  @override
+  String get settingsPrinterPortTitle => '打印机端口';
+
+  @override
+  String get settingsPrinterToggleContinuous => '连续打印';
+
+  @override
+  String get settingsPrinterToggleOption => '打印可选字段';
+
+  @override
+  String get settingsPrinterToggleDirection => '倒转打印';
 }

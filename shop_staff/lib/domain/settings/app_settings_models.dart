@@ -93,47 +93,47 @@ class PrinterSettings {
   const PrinterSettings({
     required this.name,
     required this.type,
-    this.receipt = 0,
-    this.labelWidth = 0,
-    this.continuous = 0,
+    this.receipt = true,
+    this.labelSize = '',
+    this.continuous = false,
     this.isOn = false,
-    this.isDefault = false,
+    this.isDefault = true,
     this.printIp,
     this.printPort,
     this.option = false,
-    this.direction = 0,
+    this.direction = true,
   });
 
   final String name;
   final int type;
-  final int receipt;
-  final int labelWidth;
-  final int continuous;
+  final bool receipt;
+  final String labelSize;
+  final bool continuous;
   final bool isOn;
   final bool isDefault;
   final String? printIp;
   final String? printPort;
   final bool option;
-  final int direction;
+  final bool direction;
 
   PrinterSettings copyWith({
     String? name,
     int? type,
-    int? receipt,
-    int? labelWidth,
-    int? continuous,
+    bool? receipt,
+    String? labelSize,
+    bool? continuous,
     bool? isOn,
     bool? isDefault,
     String? printIp,
     String? printPort,
     bool? option,
-    int? direction,
+    bool? direction,
   }) {
     return PrinterSettings(
       name: name ?? this.name,
       type: type ?? this.type,
       receipt: receipt ?? this.receipt,
-      labelWidth: labelWidth ?? this.labelWidth,
+      labelSize: labelSize ?? this.labelSize,
       continuous: continuous ?? this.continuous,
       isOn: isOn ?? this.isOn,
       isDefault: isDefault ?? this.isDefault,
@@ -149,7 +149,7 @@ class PrinterSettings {
       'name': name,
       'type': type,
       'receipt': receipt,
-      'labelWidth': labelWidth,
+      'labelSize': labelSize,
       'continuous': continuous,
       'isOn': isOn,
       'isDefault': isDefault,
@@ -164,15 +164,15 @@ class PrinterSettings {
     return PrinterSettings(
       name: json['name'] as String? ?? '',
       type: _readInt(json['type']) ?? 0,
-      receipt: _readInt(json['receipt']) ?? 0,
-      labelWidth: _readInt(json['labelWidth']) ?? 0,
-      continuous: _readInt(json['continuous']) ?? 0,
+      receipt: _readBool(json['receipt']) ?? true,
+      labelSize: json['labelSize'] as String? ?? '',
+      continuous: _readBool(json['continuous']) ?? false,
       isOn: _readBool(json['isOn']) ?? false,
       isDefault: _readBool(json['isDefault']) ?? false,
       printIp: json['printIp'] as String?,
       printPort: json['printPort']?.toString(),
       option: _readBool(json['option']) ?? false,
-      direction: _readInt(json['direction']) ?? 0,
+      direction: _readBool(json['direction']) ?? true,
     );
   }
 
@@ -181,54 +181,54 @@ class PrinterSettings {
       PrinterSettings(
         name: 'キッチン',
         type: 10,
-        receipt: 0,
-        labelWidth: 0,
-        continuous: 0,
+        receipt: true,
+        labelSize: '',
+        continuous: false,
         isOn: false,
         isDefault: true,
         printIp: '',
         printPort: '9100',
         option: true,
-        direction: 0,
+        direction: false,
       ),
       PrinterSettings(
         name: 'キッチン (ラベル)',
         type: 10,
-        receipt: 1,
-        labelWidth: 0,
-        continuous: 0,
+        receipt: false,
+        labelSize: '',
+        continuous: false,
         isOn: false,
         isDefault: false,
         printIp: '',
         printPort: '9100',
         option: true,
-        direction: 0,
+        direction: false,
       ),
       PrinterSettings(
         name: 'センター',
         type: 11,
-        receipt: 0,
-        labelWidth: 0,
-        continuous: 0,
+        receipt: true,
+        labelSize: '',
+        continuous: false,
         isOn: false,
         isDefault: false,
         printIp: '',
         printPort: '9100',
-        option: false,
-        direction: 0,
+        option: true,
+        direction: false,
       ),
       PrinterSettings(
         name: 'カウンター',
         type: 12,
-        receipt: 0,
-        labelWidth: 0,
-        continuous: 0,
+        receipt: true,
+        labelSize: '',
+        continuous: false,
         isOn: false,
         isDefault: false,
         printIp: '',
         printPort: '9100',
-        option: false,
-        direction: 0,
+        option: true,
+        direction: false,
       ),
     ];
   }

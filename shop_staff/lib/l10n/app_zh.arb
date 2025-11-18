@@ -37,5 +37,18 @@
   "settingsNetworkEditPortTitle": "编辑终端端口",
   "settingsNetworkEditPortLabel": "终端端口",
   "settingsNetworkEditPortHint": "留空可清除该端口",
-  "settingsNetworkEditInvalidPort": "请输入1到65535之间的端口号"
+  "settingsNetworkEditInvalidPort": "请输入1到65535之间的端口号",
+  "settingsPrinterReceiptTicket": "小票",
+  "settingsPrinterReceiptLabel": "标签",
+  "settingsPrinterLabelSizeTitle": "标签尺寸",
+  "settingsPrinterLabelSizeNone": "未设置",
+  "settingsPrinterEditIpTitle": "编辑打印机IP",
+  "settingsPrinterEditIpLabel": "打印机IP地址",
+  "settingsPrinterEditPortTitle": "编辑打印机端口",
+  "settingsPrinterEditPortLabel": "打印机端口",
+  "settingsPrinterIpTitle": "打印机IP",
+  "settingsPrinterPortTitle": "打印机端口",
+  "settingsPrinterToggleContinuous": "连续打印",
+  "settingsPrinterToggleOption": "打印可选字段",
+  "settingsPrinterToggleDirection": "倒转打印"
 }

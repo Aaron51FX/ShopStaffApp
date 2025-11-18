@@ -37,5 +37,18 @@
   "settingsNetworkEditPortTitle": "Edit terminal port",
   "settingsNetworkEditPortLabel": "Terminal port",
   "settingsNetworkEditPortHint": "Leave empty to clear the port",
-  "settingsNetworkEditInvalidPort": "Enter a port between 1 and 65535"
+  "settingsNetworkEditInvalidPort": "Enter a port between 1 and 65535",
+  "settingsPrinterReceiptTicket": "Receipt",
+  "settingsPrinterReceiptLabel": "Label",
+  "settingsPrinterLabelSizeTitle": "Label size",
+  "settingsPrinterLabelSizeNone": "Not set",
+  "settingsPrinterEditIpTitle": "Edit printer IP",
+  "settingsPrinterEditIpLabel": "Printer IP address",
+  "settingsPrinterEditPortTitle": "Edit printer port",
+  "settingsPrinterEditPortLabel": "Printer port",
+  "settingsPrinterIpTitle": "Printer IP",
+  "settingsPrinterPortTitle": "Printer port",
+  "settingsPrinterToggleContinuous": "Continuous printing",
+  "settingsPrinterToggleOption": "Print optional fields",
+  "settingsPrinterToggleDirection": "Reverse printing"
 }

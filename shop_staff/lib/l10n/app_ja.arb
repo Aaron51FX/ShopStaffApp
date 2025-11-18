@@ -37,5 +37,18 @@
   "settingsNetworkEditPortTitle": "端末ポートを編集",
   "settingsNetworkEditPortLabel": "端末ポート",
   "settingsNetworkEditPortHint": "空欄にすると値がクリアされます",
-  "settingsNetworkEditInvalidPort": "1～65535のポート番号を入力してください"
+  "settingsNetworkEditInvalidPort": "1～65535のポート番号を入力してください",
+  "settingsPrinterReceiptTicket": "レシート",
+  "settingsPrinterReceiptLabel": "ラベル",
+  "settingsPrinterLabelSizeTitle": "ラベルサイズ",
+  "settingsPrinterLabelSizeNone": "未設定",
+  "settingsPrinterEditIpTitle": "プリンターIPを編集",
+  "settingsPrinterEditIpLabel": "プリンターIPアドレス",
+  "settingsPrinterEditPortTitle": "プリンターポートを編集",
+  "settingsPrinterEditPortLabel": "プリンターポート",
+  "settingsPrinterIpTitle": "プリンターIP",
+  "settingsPrinterPortTitle": "プリンターポート",
+  "settingsPrinterToggleContinuous": "連続印刷",
+  "settingsPrinterToggleOption": "オプション項目を印刷",
+  "settingsPrinterToggleDirection": "逆向き印刷"
 }

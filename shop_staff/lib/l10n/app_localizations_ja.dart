@@ -121,4 +121,43 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsNetworkEditInvalidPort => '1～65535のポート番号を入力してください';
+
+  @override
+  String get settingsPrinterReceiptTicket => 'レシート';
+
+  @override
+  String get settingsPrinterReceiptLabel => 'ラベル';
+
+  @override
+  String get settingsPrinterLabelSizeTitle => 'ラベルサイズ';
+
+  @override
+  String get settingsPrinterLabelSizeNone => '未設定';
+
+  @override
+  String get settingsPrinterEditIpTitle => 'プリンターIPを編集';
+
+  @override
+  String get settingsPrinterEditIpLabel => 'プリンターIPアドレス';
+
+  @override
+  String get settingsPrinterEditPortTitle => 'プリンターポートを編集';
+
+  @override
+  String get settingsPrinterEditPortLabel => 'プリンターポート';
+
+  @override
+  String get settingsPrinterIpTitle => 'プリンターIP';
+
+  @override
+  String get settingsPrinterPortTitle => 'プリンターポート';
+
+  @override
+  String get settingsPrinterToggleContinuous => '連続印刷';
+
+  @override
+  String get settingsPrinterToggleOption => 'オプション項目を印刷';
+
+  @override
+  String get settingsPrinterToggleDirection => '逆向き印刷';
 }
