@@ -484,10 +484,7 @@ class _SystemSettingsView extends ConsumerWidget {
           subtitle: '控制小票、标签及厨房打印',
           children: printers.isEmpty
               ? const [_EmptyPlaceholder(message: '暂无打印机配置，可在后台新增')]
-              : [
-                  for (final printer in printers)
-                    _PrinterTile(printer: printer),
-                ],
+              : [_PrinterGrid(printers: printers)],
         ),
       ],
     );
@@ -853,6 +850,30 @@ const Map<String, String> _labelPrintSize = {
   '40x50': '300x375',
 };
 
+class _PrinterGrid extends StatelessWidget {
+  const _PrinterGrid({required this.printers});
+
+  final List<PrinterSettings> printers;
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: printers.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.76,
+      ),
+      itemBuilder: (context, index) {
+        return _PrinterTile(printer: printers[index]);
+      },
+    );
+  }
+}
+
 class _PrinterTile extends ConsumerWidget {
   const _PrinterTile({required this.printer});
 
@@ -932,7 +953,6 @@ class _PrinterTile extends ConsumerWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -1005,44 +1025,44 @@ class _PrinterTile extends ConsumerWidget {
             onTap: editPort,
           ),
           if (printer.receipt == false)
-          Padding(
-            padding: const EdgeInsets.only(top: 4, bottom: 12),
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: t.settingsPrinterLabelSizeTitle,
-                prefixIcon: Icon(
-                  Icons.view_week,
-                  color: theme.colorScheme.primary,
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 12),
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: t.settingsPrinterLabelSizeTitle,
+                  prefixIcon: Icon(
+                    Icons.view_week,
+                    color: theme.colorScheme.primary,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String?>(
-                  value: dropdownValue,
-                  isExpanded: true,
-                  items: [
-                    DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text(t.settingsPrinterLabelSizeNone),
-                    ),
-                    for (final entry in _labelPrintSize.entries)
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String?>(
+                    value: dropdownValue,
+                    isExpanded: true,
+                    items: [
                       DropdownMenuItem<String?>(
-                        value: entry.key,
-                        child: Text('${entry.key} (${entry.value})'),
+                        value: null,
+                        child: Text(t.settingsPrinterLabelSizeNone),
                       ),
-                    if (fallbackLabel != null && fallbackLabel.isNotEmpty)
-                      DropdownMenuItem<String?>(
-                        value: fallbackLabel,
-                        child: Text(fallbackLabel),
-                      ),
-                  ],
-                  onChanged: (value) => selectLabelSize(value),
+                      for (final entry in _labelPrintSize.entries)
+                        DropdownMenuItem<String?>(
+                          value: entry.key,
+                          child: Text('${entry.key} (${entry.value})'),
+                        ),
+                      if (fallbackLabel != null && fallbackLabel.isNotEmpty)
+                        DropdownMenuItem<String?>(
+                          value: fallbackLabel,
+                          child: Text(fallbackLabel),
+                        ),
+                    ],
+                    onChanged: (value) => selectLabelSize(value),
+                  ),
                 ),
               ),
             ),
-          ),
           if (printer.type != 11)
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
