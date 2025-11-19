@@ -60,7 +60,9 @@ class CashPaymentFlow implements PaymentFlow {
     unawaited(run());
 
     Future<void> cancel() async {
-      if (isFinished) return;
+      if (isFinished) {
+        return;
+      }
       try {
         await _cashMachine.cancelTransaction();
       } catch (e, stack) {

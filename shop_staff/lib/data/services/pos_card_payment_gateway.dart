@@ -16,6 +16,13 @@ class CardPaymentRequestData {
   bool get hasError => exceptionMessage != null && exceptionMessage!.isNotEmpty;
 }
 
+class CardCancelInstruction {
+  CardCancelInstruction({required this.payload, this.prompt});
+
+  final String payload;
+  final String? prompt;
+}
+
 class PosCardPaymentGateway {
   PosCardPaymentGateway(this._remote, {Logger? logger}) : _logger = logger ?? Logger('PosCardPaymentGateway');
 
@@ -105,21 +112,69 @@ class PosCardPaymentGateway {
     return base;
   }
 
-  //cancel function
-  Future<void> cancelPayment(PosPaymentRequest request) async {
-    // final payload = _buildRequestPayload(request);
-    // final resp = await _remote.cancelPosPayment(payload);
-    // if (resp is! Map<String, dynamic>) {
-    //   throw Exception('POS支付取消接口响应异常');
-    // }
-    // final code = resp['code'] as int?;
-    // if (code != 200) {
-    //   final msg = resp['msg'] ?? resp['message'] ?? 'POS支付取消接口异常($code)';
-    //   throw Exception(msg.toString());
-    // }
-    // final data = resp['data'];
-    // if (data is! bool || data != true) {
-    //   throw Exception('POS支付取消失败');
-    // }
+  Future<CardCancelInstruction> fetchCancelInstruction(PosPaymentRequest request) async {
+    final payload = _buildCancelPayload(request);
+    final resp = await _remote.cancelCreditCard(payload);
+    if (resp is! Map<String, dynamic>) {
+      throw Exception('POS取消接口响应异常');
+    }
+    final code = resp['code'] as int?;
+    final message = resp['msg'] ?? resp['message'];
+    if (code != 200) {
+      throw Exception(message?.toString() ?? 'POS取消接口异常($code)');
+    }
+    final data = resp['data'];
+    String? cancelPayload;
+    String? prompt;
+    if (data is String) {
+      cancelPayload = data;
+    } else if (data is Map<String, dynamic>) {
+      final candidates = [
+        data['cancelInfo'],
+        data['cancelData'],
+        data['payload'],
+        data['data'],
+      ];
+      for (final candidate in candidates) {
+        if (candidate is String && candidate.isNotEmpty) {
+          cancelPayload = candidate;
+          break;
+        }
+      }
+      final extraMessage = data['message'] ?? data['msg'];
+      if (extraMessage != null) {
+        prompt = extraMessage.toString();
+      }
+    }
+
+    prompt ??= message?.toString();
+
+    if (cancelPayload == null || cancelPayload.isEmpty) {
+      throw Exception('POS取消指令为空');
+    }
+
+    return CardCancelInstruction(
+      payload: cancelPayload,
+      prompt: prompt ?? 'POS终端取消完成',
+    );
+  }
+
+  Map<String, dynamic> _buildCancelPayload(PosPaymentRequest request) {
+    final map = request.customPayload ?? const {};
+
+    String readString(String key, {String? fallback}) {
+      final value = map[key];
+      if (value == null) return fallback ?? '';
+      if (value is String) return value;
+      if (value is num) return value.toString();
+      return fallback ?? '';
+    }
+
+    final machineCode = readString('machineCode', fallback: request.order.orderId);
+
+    return {
+      'machineCode': machineCode,
+      'orderId': request.order.orderId,
+    };
   }
 }

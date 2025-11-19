@@ -122,10 +122,19 @@ class CardPaymentFlow implements PaymentFlow {
     }
 
     Future<void> cancel() async {
-      if (isFinished) return;
+      if (isFinished) {
+        return;
+      }
       final activeId = posSessionId;
       if (activeId != null) {
-        await _posPaymentService.cancel(activeId);
+        try {
+          await _posPaymentService.cancel(activeId);
+        } catch (e, stack) {
+          _logger.severe('Failed to cancel card payment', e, stack);
+          controller.add(PaymentStatus(type: PaymentStatusType.failure, message: '信用卡支付取消失败: $e'));
+          unawaited(finish(PaymentResult.failure(message: e.toString())));
+          rethrow;
+        }
       } else {
         controller.add(const PaymentStatus(type: PaymentStatusType.cancelled, message: '操作员取消信用卡支付'));
         unawaited(finish(PaymentResult.cancelled(message: '操作员取消信用卡支付')));

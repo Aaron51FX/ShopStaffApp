@@ -18,12 +18,15 @@ class PaymentFlowPage extends ConsumerStatefulWidget {
 
 class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   late final provider = paymentFlowViewModelProvider(widget.args);
-  ProviderSubscription<PaymentFlowState>? _subscription;
+  ProviderSubscription<PaymentFlowState>? _stateSubscription;
+  ProviderSubscription<CancelDialogState>? _cancelSubscription;
+  ValueNotifier<CancelDialogState>? _cancelDialogNotifier;
+  bool _isCancelDialogVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _subscription = ref.listenManual<PaymentFlowState>(provider, (previous, next) {
+    _stateSubscription = ref.listenManual<PaymentFlowState>(provider, (previous, next) {
       if (previous?.result != next.result && next.result != null) {
         final result = next.result!;
         switch (result.status) {
@@ -31,7 +34,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
             SimpleToast.successGlobal(result.message ?? '支付成功');
             break;
           case PaymentStatusType.cancelled:
-            SimpleToast.errorGlobal(result.message ?? '支付已取消');
+            //SimpleToast.successGlobal(result.message ?? '支付已取消');
             break;
           case PaymentStatusType.failure:
           default:
@@ -40,12 +43,72 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         }
       }
     });
+    _cancelSubscription = ref.listenManual<CancelDialogState>(
+      provider.select((state) => state.cancelDialog),
+      (previous, next) {
+        if (!mounted) return;
+        if (previous?.status == next.status && previous?.message == next.message) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _handleCancelDialogChange(next);
+        });
+      },
+    );
   }
 
   @override
   void dispose() {
-    _subscription?.close();
+    _stateSubscription?.close();
+    _cancelSubscription?.close();
+    _cancelDialogNotifier?.dispose();
     super.dispose();
+  }
+
+  void _handleCancelDialogChange(CancelDialogState dialogState) {
+    if (!mounted) return;
+    if (dialogState.status == CancelDialogStatus.hidden) {
+      if (_isCancelDialogVisible) {
+        _isCancelDialogVisible = false;
+        final navigator = Navigator.of(context, rootNavigator: true);
+        if (navigator.canPop()) {
+          navigator.pop();
+        }
+      }
+      return;
+    }
+
+    if (_isCancelDialogVisible) {
+      _cancelDialogNotifier?.value = dialogState;
+      return;
+    }
+
+    _cancelDialogNotifier = ValueNotifier<CancelDialogState>(dialogState);
+    _isCancelDialogVisible = true;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return ValueListenableBuilder<CancelDialogState>(
+          valueListenable: _cancelDialogNotifier!,
+          builder: (context, state, _) {
+            return _CancelDialog(
+              state: state,
+              onClose: () {
+                ref.read(provider.notifier).goEntryPage();
+              },
+            );
+          },
+        );
+      },
+    ).whenComplete(() {
+      _isCancelDialogVisible = false;
+      _cancelDialogNotifier?.dispose();
+      _cancelDialogNotifier = null;
+      if (mounted) {
+        ref.read(provider.notifier).dismissCancelDialog();
+      }
+    });
   }
 
   @override
@@ -80,7 +143,10 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
             ],
           ),
         ),
-        bottomNavigationBar: _BottomActionBar(state: state, cancel: () => ref.read(provider.notifier).cancelPayment()),
+        bottomNavigationBar: _BottomActionBar(
+          state: state,
+          cancel: () => ref.read(provider.notifier).cancelPayment(),
+        ),
       ),
     );
   }
@@ -314,7 +380,7 @@ class _BottomActionBar extends StatelessWidget {
       return Padding(
         padding: EdgeInsets.fromLTRB(24, 12, 24, 12 + padding.bottom),
         child: ElevatedButton.icon(
-          onPressed: () => context.go('/pos'),
+          onPressed: () => context.go('/entry'),
           icon: Icon(isSuccess ? Icons.check_circle_outline : Icons.arrow_back),
           label: Text(label),
         ),
@@ -332,5 +398,56 @@ class _BottomActionBar extends StatelessWidget {
         style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
       ),
     );
+  }
+}
+
+class _CancelDialog extends StatelessWidget {
+  const _CancelDialog({required this.state, required this.onClose});
+
+  final CancelDialogState state;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (state.status) {
+      case CancelDialogStatus.loading:
+        return AlertDialog(
+          title: const Text('正在取消'),
+          content: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
+              const SizedBox(width: 16),
+              Expanded(child: Text(state.message ?? '正在向终端发送取消指令…')),
+            ],
+          ),
+        );
+      case CancelDialogStatus.success:
+      case CancelDialogStatus.failure:
+        final isSuccess = state.status == CancelDialogStatus.success;
+        final icon = isSuccess ? Icons.check_circle_rounded : Icons.error_outline;
+        final color = isSuccess ? Colors.green : Colors.redAccent;
+        final title = isSuccess ? '取消成功' : '取消失败';
+        final message = state.message ?? (isSuccess ? '支付已取消' : '取消失败，请稍后重试');
+        return AlertDialog(
+          title: Text(title),
+          content: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 32),
+              const SizedBox(width: 12),
+              Expanded(child: Text(message)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: onClose,
+              child: Text(isSuccess ? '完成' : '确定'),
+            ),
+          ],
+        );
+      case CancelDialogStatus.hidden:
+        return const SizedBox.shrink();
+    }
   }
 }

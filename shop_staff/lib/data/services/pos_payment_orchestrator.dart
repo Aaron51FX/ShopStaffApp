@@ -113,8 +113,15 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
   @override
   Future<void> cancel(String sessionId) async {
     final entry = _sessions[sessionId];
-    if (entry == null) return;
-    await entry.run.cancel();
+    if (entry == null) {
+      throw StateError('支付会话不存在');
+    }
+    try {
+      await entry.run.cancel();
+    } catch (e, stack) {
+      _logger.warning('取消支付流程失败', e, stack);
+      rethrow;
+    }
   }
 
   String _generateSessionId() {

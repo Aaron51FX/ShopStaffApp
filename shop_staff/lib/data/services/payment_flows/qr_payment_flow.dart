@@ -54,8 +54,14 @@ class QrPaymentFlow implements PaymentFlow {
     }
 
     Future<void> cancel() async {
-      if (isFinished) return;
-      await _scannerService.cancelScan();
+      if (isFinished) {
+        return;
+      }
+      try {
+        await _scannerService.cancelScan();
+      } catch (e, stack) {
+        _logger.warning('Failed to cancel QR scan', e, stack);
+      }
       controller.add(const PaymentStatus(type: PaymentStatusType.cancelled, message: '操作员取消二维码支付'));
       await finish(PaymentResult.cancelled(message: '操作员取消二维码支付'));
     }

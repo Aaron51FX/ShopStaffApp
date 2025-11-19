@@ -69,6 +69,7 @@ class PosPaymentServiceImpl implements PosPaymentService {
       request: request,
       cardGateway: _shouldUseCardGateway(request) ? _cardGateway : null,
       initialCardRequest: cardRequest,
+      initialCancelData: payload.cancelData,
     );
     _sessions[sessionId] = entry;
 
@@ -100,17 +101,43 @@ class PosPaymentServiceImpl implements PosPaymentService {
   Future<void> cancel(String sessionId) async {
     final entry = _sessions[sessionId];
     if (entry == null) {
-      return;
+      throw StateError('支付会话不存在或已结束');
     }
     if (entry.isCompleted) {
       return;
     }
-    if (!entry.controller.isClosed) {
-      entry.controller.add(
-        const PosPaymentStatus(type: PosPaymentStatusType.cancelled, message: '操作员取消交易'),
-      );
+
+    void emit(PosPaymentStatus status) {
+      if (entry.isCompleted) return;
+      if (!entry.controller.isClosed) {
+        entry.controller.add(status);
+      }
     }
-    await _finishSession(sessionId);
+
+    emit(const PosPaymentStatus(type: PosPaymentStatusType.processing, message: '正在取消POS交易…'));
+
+    try {
+      if (entry.supportsCard && entry.cardGateway != null) {
+        final instruction = await entry.ensureCancelInstruction(_logger);
+        final payload = instruction.payload;
+        if (payload.isEmpty) {
+          throw StateError('POS取消指令为空');
+        }
+
+        await entry.manager.write(PosAction.cancel, payload);
+        // final successMessage = instruction.prompt ?? 'POS终端取消完成';
+        // emit(PosPaymentStatus(type: PosPaymentStatusType.cancelled, message: successMessage));
+        // await _finishSession(sessionId);
+      } else {
+        emit(const PosPaymentStatus(type: PosPaymentStatusType.cancelled, message: '操作员取消交易'));
+        await _finishSession(sessionId);
+      }
+    } catch (e, stack) {
+      _logger.severe('POS取消失败', e, stack);
+      emit(PosPaymentStatus(type: PosPaymentStatusType.failure, message: 'POS取消失败: $e'));
+      await _finishSession(sessionId);
+      throw StateError('POS取消失败: $e');
+    }
   }
 
   Future<void> _runSession(String sessionId) async {
@@ -235,7 +262,11 @@ class _PosSessionEntry {
     required this.request,
     this.cardGateway,
     CardPaymentRequestData? initialCardRequest,
-  }) : cardRequest = initialCardRequest;
+    String? initialCancelData,
+  })  : cardRequest = initialCardRequest,
+        cancelInstruction = (initialCancelData != null && initialCancelData.isNotEmpty)
+            ? CardCancelInstruction(payload: initialCancelData)
+            : null;
 
   final StreamController<PosPaymentStatus> controller;
   final LegacyPosSocketManager manager;
@@ -243,6 +274,7 @@ class _PosSessionEntry {
   final PosPaymentRequest request;
   final PosCardPaymentGateway? cardGateway;
   CardPaymentRequestData? cardRequest;
+  CardCancelInstruction? cancelInstruction;
   bool isCompleted = false;
 
   bool get supportsCard => cardGateway != null;
@@ -263,6 +295,24 @@ class _PosSessionEntry {
       return cardRequest;
     } catch (e, stack) {
       logger.severe('Retry create card payment request failed', e, stack);
+      rethrow;
+    }
+  }
+
+  Future<CardCancelInstruction> ensureCancelInstruction(Logger logger) async {
+    if (!supportsCard || cardGateway == null) {
+      throw StateError('当前POS会话不支持取消指令');
+    }
+    final existing = cancelInstruction;
+    if (existing != null && existing.payload.isNotEmpty) {
+      return existing;
+    }
+    try {
+      final instruction = await cardGateway!.fetchCancelInstruction(request);
+      cancelInstruction = instruction;
+      return instruction;
+    } catch (e, stack) {
+      logger.severe('获取POS取消指令失败', e, stack);
       rethrow;
     }
   }

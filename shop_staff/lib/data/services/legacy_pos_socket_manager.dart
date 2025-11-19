@@ -25,6 +25,10 @@ class LegacyPosSocketManager {
   final Duration _flushTimeout = const Duration(seconds: 15);
   final Duration _responseTimeout = const Duration(seconds: 30);
 
+  Function(String e)? _onError;
+  Function(int mode)? _onLoading;
+  Function? _onDone;
+
   Future<void> dispose() async {
     await closePos();
   }
@@ -37,11 +41,11 @@ class LegacyPosSocketManager {
     _socketNumberTimes = 0;
   }
 
-  void _startResponseTimer(void Function(String) onError) {
+  void _startResponseTimer() {
     _responseTimer?.cancel();
     _responseTimer = Timer(_responseTimeout, () {
       _responseTimer = null;
-      onError('POS response timeout');
+      _onError?.call('POS response timeout');
     });
   }
 
@@ -57,24 +61,61 @@ class LegacyPosSocketManager {
     _isConnected = false;
   }
 
-  Future<void> write(PosAction action, String payload, {required void Function(String) onError}) async {
-  _posAction = action;
+  Future write(PosAction action, String writeData,
+      {Function? backTask}) async {
+    _posAction = action;
+    switch (action) {
+      case PosAction.connect:
+      // TODO: Handle this case.
+        break;
+      case PosAction.writePay:
+        _socketNumberTimes = 0;
+        break;
+      case PosAction.cancel:
+        _socketNumberTimes = 0;
+        if (_isConnected == false) {
+          Logger('').info('_isConnected = false onDone = $_onDone');
+          if (_onDone == null) {
+            resetState();
+            backTask?.call();
+          } else {
+            _onDone?.call(action);
+            _onDone = null;
+          }
+        } else {
+          _onLoading?.call(0);
+        }
+
+        break;
+      case PosAction.close:
+        _socketNumberTimes = 0;
+        break;
+      case PosAction.none:
+      // TODO: Handle this case.
+        break;
+    }
+
+    //_socket?.write(writeData);
+    await _posWriteData(writeData);
+  }
+  // {required void Function(String) onError}
+  Future<void> _posWriteData(String payload) async {
     final s = _socket;
     if (s == null || !_isConnected) {
-      onError('POS disconnected');
+      _onError?.call('POS disconnected');
       return;
     }
     try {
       s.write(payload);
       await s.flush().timeout(_flushTimeout);
     } on TimeoutException {
-      onError('POS write timeout');
+      _onError?.call('POS write timeout');
       return;
     } catch (e) {
-      onError(e.toString());
+      _onError?.call(e.toString());
       return;
     }
-    _startResponseTimer(onError);
+    _startResponseTimer();
   }
 
   Future<void> payConnectSocket(
@@ -105,7 +146,7 @@ class LegacyPosSocketManager {
       _logger.fine('Socket already connected, writing questData');
       if (questData.isNotEmpty) {
         _posAction = PosAction.writePay;
-        await write(PosAction.writePay, questData, onError: onError);
+        await write(PosAction.writePay, questData);
       }
       if (payment != '2') {
         Future<void>.delayed(const Duration(milliseconds: 1300), onLoadingEnd);
@@ -160,7 +201,7 @@ class LegacyPosSocketManager {
 
       if (questData.isNotEmpty) {
         _posAction = PosAction.writePay;
-        await write(PosAction.writePay, questData, onError: onError);
+        await write(PosAction.writePay, questData);
       }
 
       const paymentMethod = ['3', '4', '5', '6', '7', '8', '9', '10'];

@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/core/dialog/dialog_service.dart';
+import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/services/payment_orchestrator.dart';
 
 import '../../../data/providers.dart';
 import '../../../domain/entities/order_submission_result.dart';
-import 'package:shop_staff/domain/payments/payment_models.dart'
-    show PaymentChannel;
 
 class PaymentFlowPageArgs {
   const PaymentFlowPageArgs({
@@ -29,6 +29,33 @@ class PaymentFlowPageArgs {
   final Map<String, dynamic>? metadata;
 }
 
+enum CancelDialogStatus { hidden, loading, success, failure }
+
+class CancelDialogState {
+  const CancelDialogState._(this.status, this.message);
+
+  final CancelDialogStatus status;
+  final String? message;
+
+  bool get isVisible => status != CancelDialogStatus.hidden;
+  bool get isTerminal =>
+      status == CancelDialogStatus.success || status == CancelDialogStatus.failure;
+
+  const CancelDialogState.hidden() : this._(CancelDialogStatus.hidden, null);
+
+  factory CancelDialogState.loading(String? message) {
+    return CancelDialogState._(CancelDialogStatus.loading, message);
+  }
+
+  factory CancelDialogState.success(String? message) {
+    return CancelDialogState._(CancelDialogStatus.success, message);
+  }
+
+  factory CancelDialogState.failure(String? message) {
+    return CancelDialogState._(CancelDialogStatus.failure, message);
+  }
+}
+
 class PaymentFlowState {
   const PaymentFlowState({
     this.sessionId,
@@ -38,6 +65,7 @@ class PaymentFlowState {
     this.error,
     this.isCancelling = false,
     this.hasStarted = false,
+    this.cancelDialog = const CancelDialogState.hidden(),
   });
 
   final String? sessionId;
@@ -47,6 +75,7 @@ class PaymentFlowState {
   final String? error;
   final bool isCancelling;
   final bool hasStarted;
+  final CancelDialogState cancelDialog;
 
   bool get isFinished => result != null || (currentStatus?.isTerminal ?? false);
   bool get canExit => error != null || isFinished;
@@ -59,6 +88,7 @@ class PaymentFlowState {
     String? error,
     bool? isCancelling,
     bool? hasStarted,
+    CancelDialogState? cancelDialog,
   }) {
     return PaymentFlowState(
       sessionId: sessionId ?? this.sessionId,
@@ -68,6 +98,7 @@ class PaymentFlowState {
       error: error,
       isCancelling: isCancelling ?? this.isCancelling,
       hasStarted: hasStarted ?? this.hasStarted,
+      cancelDialog: cancelDialog ?? this.cancelDialog,
     );
   }
 }
@@ -127,11 +158,15 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
         hasStarted: true,
       );
 
-      _statusSubscription = _orchestrator.watch(session.sessionId).listen((
-        status,
-      ) {
-        final timeline = List<PaymentStatus>.from(state.timeline)..add(status);
-        state = state.copyWith(currentStatus: status, timeline: timeline);
+      _statusSubscription = _orchestrator.watch(session.sessionId).listen((status) {
+        final previous = state;
+        final timeline = List<PaymentStatus>.from(previous.timeline)..add(status);
+        final dialogUpdate = _cancelDialogStateForStatus(status, previous.cancelDialog);
+        state = previous.copyWith(
+          currentStatus: status,
+          timeline: timeline,
+          cancelDialog: dialogUpdate ?? previous.cancelDialog,
+        );
       }, onError: (error, stack) => _handleError(error, stack));
 
       _resultFuture = _orchestrator.result(session.sessionId);
@@ -152,7 +187,8 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
 
   Map<String, dynamic>? _prepareChannelConfig() {
     final raw = _args.channelConfig;
-    if (raw == null) {
+    final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
+    if (posInfo == null || posInfo.posIp == null || posInfo.posPort == null || raw == null) {
       if (_args.channelGroup == PaymentChannels.card) {
         throw StateError('缺少POS终端配置，无法执行信用卡支付');
       }
@@ -167,17 +203,21 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     config.putIfAbsent('machineCode', () => _args.metadata?['machineCode']);
 
     if (_args.channelGroup == PaymentChannels.card) {
-      final ip = '172.50.10.28'; //config['posIp'] ?? config['ip'];
-      final portRaw = 9999; //config['posPort'] ?? config['port'];
-      if (ip == null || ip.toString().isEmpty) {
+      final ipSource = posInfo.posIp;
+      final ip = ipSource?.toString();
+      if (ip == null || ip.isEmpty) {
         throw StateError('POS终端 IP 未配置');
       }
-      if (portRaw == null || portRaw.toString().isEmpty) {
-        throw StateError('POS终端端口未配置');
+
+      final portSource = posInfo.posPort;
+      int? port;
+      if (portSource is int) {
+        port = portSource;
+      } else if (portSource is String) {
+        port = int.tryParse(portSource ?? '');
       }
-      final port = portRaw is int ? portRaw : int.tryParse(portRaw.toString());
       if (port == null) {
-        throw StateError('POS终端端口格式错误: $portRaw');
+        throw StateError('POS终端端口未配置或格式错误');
       }
       config['posIp'] = ip.toString();
       config['posPort'] = port;
@@ -188,26 +228,99 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     return config;
   }
 
-  Future<void> cancelPayment() async {
+  void cancelPayment() async {
+    final ok = await _ref
+        .read(dialogControllerProvider.notifier)
+        .confirm(title: '注意', message: '确认要取消支付吗？', destructive: true);
+    if (ok) {
+      _cancelPayment();
+    }
+  }
+
+
+  Future<void> _cancelPayment() async {
     final id = state.sessionId;
     if (id == null || state.isCancelling || state.isFinished) return;
-    state = state.copyWith(isCancelling: true);
+    state = state.copyWith(
+      isCancelling: true,
+      cancelDialog: CancelDialogState.loading(_cancelLoadingMessage()),
+    );
     try {
       await _orchestrator.cancel(id);
     } catch (e, stack) {
-      _handleError(e, stack);
+      _logger.warning('Cancel payment failed', e, stack);
+      state = state.copyWith(
+        cancelDialog: CancelDialogState.failure('取消失败: $e'),
+      );
     } finally {
       state = state.copyWith(isCancelling: false);
     }
+  }
+
+  void dismissCancelDialog() {
+    if (state.cancelDialog.status != CancelDialogStatus.hidden) {
+      state = state.copyWith(cancelDialog: const CancelDialogState.hidden());
+    }
+  }
+
+  String _cancelLoadingMessage() {
+    switch (_args.channelGroup) {
+      case PaymentChannels.card:
+        return '正在取消信用卡支付…';
+      case PaymentChannels.cash:
+        return '正在取消现金支付…';
+      default:
+        return '正在取消支付…';
+    }
+  }
+
+  String _defaultCancelSuccessMessage() {
+    switch (_args.channelGroup) {
+      case PaymentChannels.card:
+        return 'POS终端已取消交易';
+      case PaymentChannels.cash:
+        return '现金支付已取消';
+      default:
+        return '支付已取消';
+    }
+  }
+
+  CancelDialogState? _cancelDialogStateForStatus(
+    PaymentStatus status,
+    CancelDialogState currentDialog,
+  ) {
+    if (currentDialog.status != CancelDialogStatus.loading) {
+      return null;
+    }
+    if (status.type == PaymentStatusType.cancelled) {
+      final message = (status.message != null && status.message!.trim().isNotEmpty)
+          ? status.message
+          : _defaultCancelSuccessMessage();
+      return CancelDialogState.success(message);
+    }
+    if (status.type == PaymentStatusType.failure) {
+      final fallback = '取消失败，请稍后重试';
+      final message = (status.message != null && status.message!.trim().isNotEmpty)
+          ? status.message
+          : fallback;
+      return CancelDialogState.failure(message);
+    }
+    return null;
   }
 
   void _handleError(Object error, StackTrace stack) {
     _logger.severe('Payment flow error', error, stack);
     final message = error.toString();
     if (state.error != message) {
-      state = state.copyWith(error: message);
+      final dialogNeedsUpdate = state.cancelDialog.status == CancelDialogStatus.loading;
+      final nextDialog = dialogNeedsUpdate ? CancelDialogState.failure(message) : state.cancelDialog;
+      state = state.copyWith(error: message, cancelDialog: nextDialog);
       SimpleToast.errorGlobal(message);
     }
+  }
+
+  void goEntryPage() {
+    _ref.read(appRouterProvider).go('/entry');
   }
 
   @override
