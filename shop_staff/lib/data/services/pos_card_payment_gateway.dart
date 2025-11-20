@@ -7,11 +7,13 @@ class CardPaymentRequestData {
     required this.requestInfo,
     required this.reportPayload,
     this.exceptionMessage,
+    required this.data,
   });
 
   final String? requestInfo;
   final Map<String, dynamic>? reportPayload;
   final String? exceptionMessage;
+  final Map<String, dynamic> data;
 
   bool get hasError => exceptionMessage != null && exceptionMessage!.isNotEmpty;
 }
@@ -51,6 +53,7 @@ class PosCardPaymentGateway {
       requestInfo: requestInfo,
       reportPayload: reportPayload,
       exceptionMessage: exceptionMessage,
+      data: data,
     );
   }
 

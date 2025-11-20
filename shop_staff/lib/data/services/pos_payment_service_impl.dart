@@ -125,9 +125,6 @@ class PosPaymentServiceImpl implements PosPaymentService {
         }
 
         await entry.manager.write(PosAction.cancel, payload);
-        // final successMessage = instruction.prompt ?? 'POS终端取消完成';
-        // emit(PosPaymentStatus(type: PosPaymentStatusType.cancelled, message: successMessage));
-        // await _finishSession(sessionId);
       } else {
         emit(const PosPaymentStatus(type: PosPaymentStatusType.cancelled, message: '操作员取消交易'));
         await _finishSession(sessionId);
@@ -208,9 +205,11 @@ class PosPaymentServiceImpl implements PosPaymentService {
     final controller = entry.controller;
     try {
       if (entry.supportsCard && entry.cardGateway != null) {
-        final cardData = await entry.ensureCardRequest(_logger);
-        final reportPayload = cardData?.reportPayload;
-        if (!entry.isCompleted && !controller.isClosed && reportPayload != null && reportPayload.isNotEmpty) {
+        final cardRequest = _sessions[sessionId]?.cardRequest ??
+            await entry.ensureCardRequest(_logger);
+        final reportPayload = cardRequest?.data;
+        // final reportPayload = cardData?.reportPayload;
+        if (cardRequest == null && reportPayload != null) {
           controller.add(const PosPaymentStatus(type: PosPaymentStatusType.processing, message: '上报支付结果'));
           await entry.cardGateway!.reportPayment(reportPayload: reportPayload, paymentInfo: data);
         }
