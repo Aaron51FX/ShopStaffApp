@@ -83,8 +83,18 @@ final cashMachineClientProvider = Provider<CashMachineClient>((ref) {
   return StubCashMachineClient(logger: Logger('CashMachineClientStub'));
 });
 
+final dialogDrivenQrScannerProvider = ChangeNotifierProvider<DialogDrivenQrScannerService>((ref) {
+  final service = DialogDrivenQrScannerService(logger: Logger('QrScannerService'));
+  ref.onDispose(service.dispose);
+  return service;
+});
+
 final qrScannerServiceProvider = Provider<QrScannerService>((ref) {
-  return StubQrScannerService(logger: Logger('QrScannerServiceStub'));
+  return ref.watch(dialogDrivenQrScannerProvider);
+});
+
+final qrScanUiStateProvider = Provider<QrScanUiState>((ref) {
+  return ref.watch(dialogDrivenQrScannerProvider).state;
 });
 
 final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
@@ -123,6 +133,8 @@ final qrPaymentFlowProvider = Provider<QrPaymentFlow>((ref) {
   return QrPaymentFlow(
     scannerService: ref.watch(qrScannerServiceProvider),
     backendGateway: ref.watch(paymentBackendGatewayProvider),
+    posPaymentService: ref.watch(posPaymentServiceProvider),
+    cardGateway: ref.watch(posCardPaymentGatewayProvider),
     logger: Logger('QrPaymentFlow'),
   );
 });

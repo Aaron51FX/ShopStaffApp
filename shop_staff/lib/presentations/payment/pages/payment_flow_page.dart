@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/data/providers.dart';
+import 'package:shop_staff/data/services/payment_channel_support.dart';
 
 import '../viewmodels/payment_flow_viewmodel.dart';
 
@@ -22,6 +24,9 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   ProviderSubscription<CancelDialogState>? _cancelSubscription;
   ValueNotifier<CancelDialogState>? _cancelDialogNotifier;
   bool _isCancelDialogVisible = false;
+  ProviderSubscription<QrScanUiState>? _qrScanSubscription;
+  ValueNotifier<QrScanUiState>? _qrDialogNotifier;
+  bool _isQrDialogVisible = false;
 
   @override
   void initState() {
@@ -54,6 +59,27 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         });
       },
     );
+
+    _qrScanSubscription = ref.listenManual<QrScanUiState>(
+      qrScanUiStateProvider,
+      (previous, next) {
+        if (!mounted) return;
+        if (widget.args.channelGroup != PaymentChannels.qr) return;
+        if (previous == next) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _handleQrDialogChange(next);
+        });
+      },
+    );
+
+    if (widget.args.channelGroup == PaymentChannels.qr) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final current = ref.read(qrScanUiStateProvider);
+        _handleQrDialogChange(current);
+      });
+    }
   }
 
   @override
@@ -61,6 +87,8 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
     _stateSubscription?.close();
     _cancelSubscription?.close();
     _cancelDialogNotifier?.dispose();
+    _qrScanSubscription?.close();
+    _qrDialogNotifier?.dispose();
     super.dispose();
   }
 
@@ -108,6 +136,50 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
       if (mounted) {
         ref.read(provider.notifier).dismissCancelDialog();
       }
+    });
+  }
+
+  void _handleQrDialogChange(QrScanUiState dialogState) {
+    if (!mounted) return;
+    if (widget.args.channelGroup != PaymentChannels.qr) return;
+    if (dialogState.status == QrScanDialogStatus.hidden) {
+      if (_isQrDialogVisible) {
+        _isQrDialogVisible = false;
+        final navigator = Navigator.of(context, rootNavigator: true);
+        if (navigator.canPop()) {
+          navigator.pop();
+        }
+      }
+      return;
+    }
+
+    if (_isQrDialogVisible) {
+      _qrDialogNotifier?.value = dialogState;
+      return;
+    }
+
+    _qrDialogNotifier = ValueNotifier<QrScanUiState>(dialogState);
+    _isQrDialogVisible = true;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return ValueListenableBuilder<QrScanUiState>(
+          valueListenable: _qrDialogNotifier!,
+          builder: (context, state, _) {
+            return _QrScanDialog(
+              state: state,
+              onSubmitted: (value) => ref.read(dialogDrivenQrScannerProvider).submitCode(value),
+              onCancel: () => ref.read(dialogDrivenQrScannerProvider).cancelScan(),
+            );
+          },
+        );
+      },
+    ).whenComplete(() {
+      _isQrDialogVisible = false;
+      _qrDialogNotifier?.dispose();
+      _qrDialogNotifier = null;
     });
   }
 
@@ -449,5 +521,108 @@ class _CancelDialog extends StatelessWidget {
       case CancelDialogStatus.hidden:
         return const SizedBox.shrink();
     }
+  }
+}
+
+class _QrScanDialog extends StatefulWidget {
+  const _QrScanDialog({required this.state, required this.onSubmitted, required this.onCancel});
+
+  final QrScanUiState state;
+  final ValueChanged<String> onSubmitted;
+  final VoidCallback onCancel;
+
+  @override
+  State<_QrScanDialog> createState() => _QrScanDialogState();
+}
+
+class _QrScanDialogState extends State<_QrScanDialog> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+    _focusNode = _ScanHardwareFocusNode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant _QrScanDialog oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.state.status == QrScanDialogStatus.waiting && oldWidget.state.status != QrScanDialogStatus.waiting) {
+      _controller.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
+    }
+  }
+
+  void _handleSubmit(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      setState(() {});
+      return;
+    }
+    widget.onSubmitted(trimmed);
+    _controller.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isError = widget.state.status == QrScanDialogStatus.error;
+    final message = widget.state.message ?? (isError ? '扫码失败，请重试' : '请使用扫码枪对准提示区域');
+    return AlertDialog(
+      title: const Text('扫码支付'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            message,
+            style: TextStyle(color: isError ? Colors.redAccent : Colors.black87),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            showCursor: false,
+            controller: _controller,
+            focusNode: _focusNode,
+            decoration: const InputDecoration(
+              hintText: '请扫码',
+              border: InputBorder.none,
+              isDense: true,
+            ),
+            style: const TextStyle(fontSize: 24),
+            obscureText: false,
+            onSubmitted: _handleSubmit,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: widget.onCancel,
+          child: const Text('取消'),
+        ),
+      ],
+    );
+  }
+}
+
+class _ScanHardwareFocusNode extends FocusNode {
+  @override
+  bool consumeKeyboardToken() {
+    // Prevent the soft keyboard while keeping hardware scanner input active.
+    return false;
   }
 }

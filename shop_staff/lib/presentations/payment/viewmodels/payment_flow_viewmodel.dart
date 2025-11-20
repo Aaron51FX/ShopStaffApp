@@ -187,45 +187,47 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
 
   Map<String, dynamic>? _prepareChannelConfig() {
     final raw = _args.channelConfig;
-    final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
-    if (posInfo == null || posInfo.posIp == null || posInfo.posPort == null || raw == null) {
-      if (_args.channelGroup == PaymentChannels.card) {
-        throw StateError('缺少POS终端配置，无法执行信用卡支付');
-      }
-      return null;
-    }
-
     final config = <String, dynamic>{};
-    raw.forEach((key, value) {
-      if (value != null) config[key] = value;
-    });
+    if (raw != null) {
+      raw.forEach((key, value) {
+        if (value != null) config[key] = value;
+      });
+    }
 
     config.putIfAbsent('machineCode', () => _args.metadata?['machineCode']);
 
-    if (_args.channelGroup == PaymentChannels.card) {
-      final ipSource = posInfo.posIp;
-      final ip = ipSource?.toString();
-      if (ip == null || ip.isEmpty) {
-        throw StateError('POS终端 IP 未配置');
+    final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
+    final needsPos = _args.channelGroup == PaymentChannels.card || _args.channelGroup == PaymentChannels.qr;
+    if (needsPos) {
+      final ip = posInfo?.posIp?.toString();
+      final dynamic portRaw = posInfo?.posPort;
+      int? port;
+      if (portRaw is int) {
+        port = portRaw;
+      } else if (portRaw is String) {
+        port = int.tryParse(portRaw);
       }
 
-      final portSource = posInfo.posPort;
-      int? port;
-      if (portSource is int) {
-        port = portSource;
-      } else if (portSource is String) {
-        port = int.tryParse(portSource ?? '');
+      if (_args.channelGroup == PaymentChannels.card) {
+        if (ip == null || ip.isEmpty) {
+          throw StateError('POS终端 IP 未配置');
+        }
+        if (port == null) {
+          throw StateError('POS终端端口未配置或格式错误');
+        }
       }
-      if (port == null) {
-        throw StateError('POS终端端口未配置或格式错误');
+
+      if (ip != null && ip.isNotEmpty) {
+        config['posIp'] = ip;
       }
-      config['posIp'] = ip.toString();
-      config['posPort'] = port;
+      if (port != null) {
+        config['posPort'] = port;
+      }
       config['paymentCode'] = (config['paymentCode'] ?? '3').toString();
       config.putIfAbsent('authCode', () => '0000000088888888');
     }
 
-    return config;
+    return config.isEmpty ? null : config;
   }
 
   void cancelPayment() async {

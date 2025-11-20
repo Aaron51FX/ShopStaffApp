@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 
@@ -29,6 +30,109 @@ class CashMachineReceipt {
 abstract class QrScannerService {
   Future<String> acquireCode(PaymentContext context);
   Future<void> cancelScan();
+}
+
+enum QrScanDialogStatus { hidden, waiting, error }
+
+class QrScanUiState {
+  const QrScanUiState._(this.status, this.message);
+
+  final QrScanDialogStatus status;
+  final String? message;
+
+  const QrScanUiState.hidden() : this._(QrScanDialogStatus.hidden, null);
+
+  factory QrScanUiState.waiting({String? message}) {
+    return QrScanUiState._(QrScanDialogStatus.waiting, message);
+  }
+
+  factory QrScanUiState.error(String message) {
+    return QrScanUiState._(QrScanDialogStatus.error, message);
+  }
+
+  bool get isVisible => status != QrScanDialogStatus.hidden;
+
+  @override
+  bool operator ==(Object other) {
+    return other is QrScanUiState && other.status == status && other.message == message;
+  }
+
+  @override
+  int get hashCode => Object.hash(status, message);
+}
+
+class DialogDrivenQrScannerService extends ChangeNotifier implements QrScannerService {
+  DialogDrivenQrScannerService({Logger? logger}) : _logger = logger ?? Logger('DialogDrivenQrScannerService');
+
+  final Logger _logger;
+  Completer<String>? _pending;
+  QrScanUiState _state = const QrScanUiState.hidden();
+
+  QrScanUiState get state => _state;
+
+  @override
+  Future<String> acquireCode(PaymentContext context) {
+    if (_pending != null && !_pending!.isCompleted) {
+      throw StateError('已有扫码任务正在进行');
+    }
+    final completer = Completer<String>();
+    _pending = completer;
+    _logger.info('等待扫码，订单 ${context.order.orderId}');
+    _setState(QrScanUiState.waiting(message: '请扫码'));
+    return completer.future;
+  }
+
+  void submitCode(String code) {
+    final trimmed = code.trim();
+    if (trimmed.isEmpty) {
+      _setState(QrScanUiState.error('扫码结果为空，请重试'));
+      return;
+    }
+    _logger.info('收到扫码数据，长度 ${trimmed.length}');
+    final completer = _pending;
+    if (completer != null && !completer.isCompleted) {
+      completer.complete(trimmed);
+    }
+    _completeScan();
+  }
+
+  void showError(String message) {
+    _setState(QrScanUiState.error(message));
+  }
+
+  void resetPrompt({String? message}) {
+    _setState(QrScanUiState.waiting(message: message ?? '请扫码'));
+  }
+
+  void _completeScan() {
+    _pending = null;
+    _setState(const QrScanUiState.hidden());
+  }
+
+  void _setState(QrScanUiState next) {
+    if (_state == next) return;
+    _state = next;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> cancelScan() async {
+    if (_pending != null && !_pending!.isCompleted) {
+      _logger.info('取消扫码');
+      _pending!.completeError(StateError('扫码已取消'));
+    }
+    _pending = null;
+    _setState(const QrScanUiState.hidden());
+  }
+
+  @override
+  void dispose() {
+    if (_pending != null && !_pending!.isCompleted) {
+      _pending!.completeError(StateError('扫码服务已释放'));
+    }
+    _pending = null;
+    super.dispose();
+  }
 }
 
 /// Default stubbed implementations used until real integrations are provided.

@@ -576,6 +576,8 @@ class PosViewModel extends StateNotifier<PosState> {
       //pos setting from settings
       final String ip = posInfo?.posIp ?? '';
       final int portString = posInfo?.posPort ?? 0;
+      config['posIp'] = ip;
+      config['posPort'] = portString;
 
       if (ip.isEmpty) {
         throw StateError('未配置POS终端IP');

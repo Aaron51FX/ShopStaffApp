@@ -7,6 +7,7 @@ import 'package:shop_staff/domain/services/pos_payment_service.dart';
 
 import 'legacy_pos_socket_manager.dart';
 import 'pos_card_payment_gateway.dart';
+import 'pos_payment_constants.dart';
 
 class PosPaymentServiceImpl implements PosPaymentService {
   PosPaymentServiceImpl({
@@ -32,6 +33,10 @@ class PosPaymentServiceImpl implements PosPaymentService {
 
     var payload = LegacyPosPaymentPayload.fromRequest(request);
     CardPaymentRequestData? cardRequest;
+    final prefetched = request.customPayload?[prefetchedCardRequestKey];
+    if (prefetched is CardPaymentRequestData) {
+      cardRequest = prefetched;
+    }
 
     if (_shouldUseCardGateway(request)) {
       final gateway = _cardGateway;
@@ -41,7 +46,7 @@ class PosPaymentServiceImpl implements PosPaymentService {
       }
       pendingStatuses.add(const PosPaymentStatus(type: PosPaymentStatusType.processing, message: '获取POS支付数据'));
       try {
-        cardRequest = await gateway.createPaymentRequest(request);
+        cardRequest ??= await gateway.createPaymentRequest(request);
         if (cardRequest.hasError) {
           final msg = cardRequest.exceptionMessage ?? 'POS支付数据异常';
           await controller.close();
