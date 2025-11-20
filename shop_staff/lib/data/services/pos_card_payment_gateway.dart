@@ -7,9 +7,11 @@ class CardPaymentRequestData {
     required this.requestInfo,
     required this.reportPayload,
     this.exceptionMessage,
+    required this.success,
     required this.data,
   });
 
+  final bool success;
   final String? requestInfo;
   final Map<String, dynamic>? reportPayload;
   final String? exceptionMessage;
@@ -43,6 +45,7 @@ class PosCardPaymentGateway {
       throw Exception(msg.toString());
     }
     final data = resp['data'];
+    final success = resp['success'];
     if (data is! Map<String, dynamic>) {
       throw Exception('POS支付接口缺少数据');
     }
@@ -53,6 +56,7 @@ class PosCardPaymentGateway {
       requestInfo: requestInfo,
       reportPayload: reportPayload,
       exceptionMessage: exceptionMessage,
+      success: success == 'success' || success == true,
       data: data,
     );
   }

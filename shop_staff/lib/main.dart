@@ -20,21 +20,21 @@ Future<void> main() async {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
-  if (!kIsWeb &&
-      (defaultTargetPlatform == TargetPlatform.windows ||
-          defaultTargetPlatform == TargetPlatform.linux ||
-          defaultTargetPlatform == TargetPlatform.macOS)) {
-    await windowManager.ensureInitialized();
-    const options = WindowOptions(
-      fullScreen: true,
-      titleBarStyle: TitleBarStyle.hidden,
-    );
-    await windowManager.waitUntilReadyToShow(options, () async {
-      await windowManager.setFullScreen(true);
-      await windowManager.show();
-      await windowManager.focus();
-    });
-  }
+  // if (!kIsWeb &&
+  //     (defaultTargetPlatform == TargetPlatform.windows ||
+  //         defaultTargetPlatform == TargetPlatform.linux ||
+  //         defaultTargetPlatform == TargetPlatform.macOS)) {
+  //   await windowManager.ensureInitialized();
+  //   const options = WindowOptions(
+  //     fullScreen: true,
+  //     titleBarStyle: TitleBarStyle.hidden,
+  //   );
+  //   await windowManager.waitUntilReadyToShow(options, () async {
+  //     await windowManager.setFullScreen(true);
+  //     await windowManager.show();
+  //     await windowManager.focus();
+  //   });
+  // }
 
   await Hive.initFlutter();
   runApp(const ProviderScope(child: ShopStaffApp()));

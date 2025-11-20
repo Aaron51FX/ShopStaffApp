@@ -55,7 +55,7 @@ class QrPaymentFlow implements PaymentFlow {
         final request = _buildPosRequest(context, code);
         final cardData = await _cardGateway.createPaymentRequest(request);
 
-        if (cardData.hasError) {
+        if (cardData.hasError && !cardData.success) {
           final message = cardData.exceptionMessage ?? '二维码支付失败';
           controller.add(PaymentStatus(type: PaymentStatusType.failure, message: message));
           await finish(PaymentResult.failure(message: message));
