@@ -41,11 +41,11 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
             //   onPressed: vm.navToSuspendedOrder,
             //   icon: const Icon(Icons.history_sharp),
             // ),
-            // IconButton(
-            //   tooltip: '退出',
-            //   onPressed: vm.logout,
-            //   icon: const Icon(Icons.exit_to_app),
-            // ),
+            IconButton(
+              tooltip: '退出',
+              onPressed: vm.logout,
+              icon: const Icon(Icons.exit_to_app),
+            ),
           ],
         ),
       ),

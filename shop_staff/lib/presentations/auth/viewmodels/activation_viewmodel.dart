@@ -41,7 +41,7 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
 
   Future<void> mockScan() async {
     // TODO integrate real QR scanner for machine code
-    machineCodeController.text = 'X3V9YPJABVZGAELIZ9';
+    machineCodeController.text = '3vYrTAYeWZrW4nzwEY';
   }
 
   Future<void> submit(BuildContext context) async {

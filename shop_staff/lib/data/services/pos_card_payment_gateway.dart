@@ -56,7 +56,7 @@ class PosCardPaymentGateway {
       requestInfo: requestInfo,
       reportPayload: reportPayload,
       exceptionMessage: exceptionMessage,
-      success: success == 'success' || success == true,
+      success: success == 'success' || code == 200,
       data: data,
     );
   }

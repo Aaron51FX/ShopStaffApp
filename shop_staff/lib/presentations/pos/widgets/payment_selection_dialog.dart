@@ -133,7 +133,7 @@ Future<void> showPaymentSelectionDialog({
                                         ? null
                                         : () {
                                             Navigator.of(ctx).pop();
-                                            onSelected('qr', 'qr', '二维码支付');
+                                            onSelected('qr', '', '二维码支付');
                                           },
                                     child: _VendorWrap(
                                       vendors: qrVendors,
