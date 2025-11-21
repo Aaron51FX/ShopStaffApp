@@ -67,18 +67,24 @@ class DialogDrivenQrScannerService extends ChangeNotifier implements QrScannerSe
   final Logger _logger;
   Completer<String>? _pending;
   QrScanUiState _state = const QrScanUiState.hidden();
+  QrScanUiState? _deferredState;
+  bool _deferredStateScheduled = false;
 
   QrScanUiState get state => _state;
 
   @override
   Future<String> acquireCode(PaymentContext context) {
     if (_pending != null && !_pending!.isCompleted) {
-      throw StateError('已有扫码任务正在进行');
+      _logger.warning('检测到未完成的扫码任务，自动重置');
+      _pending!.completeError(StateError('扫码任务被新的请求重置'));
+      _pending = null;
+      _setStateDeferred(const QrScanUiState.hidden());
     }
     final completer = Completer<String>();
     _pending = completer;
     _logger.info('等待扫码，订单 ${context.order.orderId}');
-    _setState(QrScanUiState.waiting(message: '请扫码'));
+    debugPrint('等待扫码，订单 ${context.order.orderId}');
+    _setStateDeferred(QrScanUiState.waiting(message: '请扫码'));
     return completer.future;
   }
 
@@ -110,9 +116,29 @@ class DialogDrivenQrScannerService extends ChangeNotifier implements QrScannerSe
   }
 
   void _setState(QrScanUiState next) {
+    _cancelDeferredState();
     if (_state == next) return;
     _state = next;
     notifyListeners();
+  }
+
+  void _setStateDeferred(QrScanUiState next) {
+    if (_state == next) return;
+    _deferredState = next;
+    if (_deferredStateScheduled) return;
+    _deferredStateScheduled = true;
+    Future.microtask(() {
+      _deferredStateScheduled = false;
+      final target = _deferredState;
+      _deferredState = null;
+      if (target != null) {
+        _setState(target);
+      }
+    });
+  }
+
+  void _cancelDeferredState() {
+    _deferredState = null;
   }
 
   @override
@@ -180,29 +206,29 @@ class StubPaymentBackendGateway implements PaymentBackendGateway {
   }
 }
 
-class StubQrScannerService implements QrScannerService {
-  StubQrScannerService({Logger? logger}) : _logger = logger ?? Logger('StubQrScannerService');
+// class StubQrScannerService implements QrScannerService {
+//   StubQrScannerService({Logger? logger}) : _logger = logger ?? Logger('StubQrScannerService');
 
-  final Logger _logger;
-  bool _isScanning = false;
+//   final Logger _logger;
+//   bool _isScanning = false;
 
-  @override
-  Future<String> acquireCode(PaymentContext context) async {
-    _isScanning = true;
-    _logger.info('Simulating QR scan for order ${context.order.orderId}');
-    await Future<void>.delayed(const Duration(seconds: 1));
-    if (!_isScanning) {
-      throw StateError('QR scan cancelled');
-    }
-    _isScanning = false;
-    return 'SIMULATED_QR_${context.order.orderId}';
-  }
+//   @override
+//   Future<String> acquireCode(PaymentContext context) async {
+//     _isScanning = true;
+//     _logger.info('Simulating QR scan for order ${context.order.orderId}');
+//     await Future<void>.delayed(const Duration(seconds: 1));
+//     if (!_isScanning) {
+//       throw StateError('QR scan cancelled');
+//     }
+//     _isScanning = false;
+//     return 'SIMULATED_QR_${context.order.orderId}';
+//   }
 
-  @override
-  Future<void> cancelScan() async {
-    if (_isScanning) {
-      _logger.info('Cancelling simulated QR scan');
-    }
-    _isScanning = false;
-  }
-}
+//   @override
+//   Future<void> cancelScan() async {
+//     if (_isScanning) {
+//       _logger.info('Cancelling simulated QR scan');
+//     }
+//     _isScanning = false;
+//   }
+// }
