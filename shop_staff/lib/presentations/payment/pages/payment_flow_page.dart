@@ -209,7 +209,11 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
             children: [
               _OrderSummary(args: args),
               const SizedBox(height: 16),
-              _StatusHero(state: state, args: args),
+              _StatusHero(
+                state: state,
+                args: args,
+                onRetry: () => ref.read(provider.notifier).retryPayment(),
+              ),
               const SizedBox(height: 24),
               Expanded(child: _StatusTimeline(state: state)),
             ],
@@ -273,10 +277,11 @@ class _OrderSummary extends StatelessWidget {
 }
 
 class _StatusHero extends StatelessWidget {
-  const _StatusHero({required this.state, required this.args});
+  const _StatusHero({required this.state, required this.args, this.onRetry});
 
   final PaymentFlowState state;
   final PaymentFlowPageArgs args;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -289,6 +294,7 @@ class _StatusHero extends StatelessWidget {
         : current?.message ?? _defaultMessage(args.channelGroup, current?.type);
     final icon = hasError ? Icons.error_rounded : _iconForStatus(current?.type, effectiveResult);
     final color = hasError ? Colors.redAccent : _colorForStatus(theme, current?.type, effectiveResult);
+    final showRetry = _shouldShowRetry(state) && onRetry != null;
 
     return Container(
       width: double.infinity,
@@ -298,25 +304,40 @@ class _StatusHero extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: color.withOpacity(0.2)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: color, size: 32),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Text(
-                  message,
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: color),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: color, size: 32),
+                    const SizedBox(width: 12),
+                    Flexible(
+                      child: Text(
+                        message,
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: color),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                if (!hasError)
+                  Text(_instructionFor(args.channelGroup), style: const TextStyle(color: Colors.black54)),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          if (!hasError)
-            Text(_instructionFor(args.channelGroup), style: const TextStyle(color: Colors.black54)),
+          if (showRetry) ...[
+            const SizedBox(width: 12),
+            TextButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 50),
+              label: const Text('重试', style: TextStyle(fontSize: 16)),
+            ),
+          ],
         ],
       ),
     );
@@ -385,6 +406,17 @@ class _StatusHero extends StatelessWidget {
       default:
         return '请按照屏幕或终端提示完成支付。';
     }
+  }
+
+  static bool _shouldShowRetry(PaymentFlowState state) {
+    if (state.isCancelling) return false;
+    if (state.error != null) return true;
+    final result = state.result?.status;
+    if (result == PaymentStatusType.failure || result == PaymentStatusType.cancelled) {
+      return true;
+    }
+    final currentType = state.currentStatus?.type;
+    return currentType == PaymentStatusType.failure || currentType == PaymentStatusType.cancelled;
   }
 }
 

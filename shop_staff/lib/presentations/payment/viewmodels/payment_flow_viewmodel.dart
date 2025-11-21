@@ -121,6 +121,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
 
   StreamSubscription<PaymentStatus>? _statusSubscription;
   Future<PaymentResult>? _resultFuture;
+  bool _isRestarting = false;
 
   PaymentOrchestrator get _orchestrator =>
       _ref.read(paymentOrchestratorProvider);
@@ -182,6 +183,18 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
           });
     } catch (e, stack) {
       _handleError(e, stack);
+    }
+  }
+
+  Future<void> retryPayment() async {
+    if (_isRestarting || state.isCancelling) return;
+    _isRestarting = true;
+    try {
+      await _teardownActiveSession(releaseQrScanner: true);
+      state = const PaymentFlowState();
+      await _start();
+    } finally {
+      _isRestarting = false;
     }
   }
 
@@ -325,21 +338,34 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     _ref.read(appRouterProvider).go('/entry');
   }
 
+  Future<void> _teardownActiveSession({bool releaseQrScanner = false}) async {
+    await _statusSubscription?.cancel();
+    _statusSubscription = null;
+    final sessionId = state.sessionId;
+    final shouldReleaseScanner = releaseQrScanner && _args.channelGroup == PaymentChannels.qr;
+
+    if (sessionId != null && !state.isFinished) {
+      try {
+        await _orchestrator.cancel(sessionId);
+      } catch (error, stack) {
+        _logger.fine('Teardown cancel failed: $error', error, stack);
+      }
+    }
+
+    if (shouldReleaseScanner) {
+      try {
+        await _ref.read(dialogDrivenQrScannerProvider).cancelScan();
+      } catch (error, stack) {
+        _logger.fine('Scanner reset failed: $error', error, stack);
+      }
+    }
+
+    _resultFuture = null;
+  }
+
   @override
   void dispose() {
-    _statusSubscription?.cancel();
-    final sessionId = state.sessionId;
-    if (sessionId != null && !state.isFinished) {
-      // Ensure any in-flight scan task is torn down when the page leaves.
-      unawaited(
-        _orchestrator.cancel(sessionId).catchError((error, stack) {
-          _logger.fine('Auto-cancel payment session failed: $error', error, stack);
-        }),
-      );
-    } else if (_args.channelGroup == PaymentChannels.qr) {
-      // Fallback: release scanner state if the flow never reached the orchestrator.
-      unawaited(_ref.read(dialogDrivenQrScannerProvider).cancelScan());
-    }
+    unawaited(_teardownActiveSession(releaseQrScanner: true));
     super.dispose();
   }
 }
