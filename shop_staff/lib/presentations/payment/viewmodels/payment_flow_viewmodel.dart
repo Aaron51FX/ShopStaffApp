@@ -328,6 +328,18 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   @override
   void dispose() {
     _statusSubscription?.cancel();
+    final sessionId = state.sessionId;
+    if (sessionId != null && !state.isFinished) {
+      // Ensure any in-flight scan task is torn down when the page leaves.
+      unawaited(
+        _orchestrator.cancel(sessionId).catchError((error, stack) {
+          _logger.fine('Auto-cancel payment session failed: $error', error, stack);
+        }),
+      );
+    } else if (_args.channelGroup == PaymentChannels.qr) {
+      // Fallback: release scanner state if the flow never reached the orchestrator.
+      unawaited(_ref.read(dialogDrivenQrScannerProvider).cancelScan());
+    }
     super.dispose();
   }
 }
