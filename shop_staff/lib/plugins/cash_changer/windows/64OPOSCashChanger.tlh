@@ -1,0 +1,632 @@
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.37.32825.0 (af632c86).
+//
+// C:\Users\Administrator\64ocx\64OPOSCashChanger.tlh
+//
+// C++ source equivalent of type library 64OPOSCashChanger.ocx
+// compiler-generated file - DO NOT EDIT!
+
+#pragma once
+#pragma pack(push, 8)
+
+#include <comdef.h>
+
+namespace OposCashChanger_CCO {
+
+//
+// Forward references and typedefs
+//
+
+struct __declspec(uuid("ccb90030-b81e-11d2-ab74-0040054c3719"))
+/* LIBID */ __OposCashChanger_CCO;
+struct __declspec(uuid("ccb90033-b81e-11d2-ab74-0040054c3719"))
+/* dispinterface */ _IOPOSCashChangerEvents;
+struct /* coclass */ OPOSCashChanger;
+struct __declspec(uuid("ccb95031-b81e-11d2-ab74-0040054c3719"))
+/* dual interface */ IOPOSCashChanger;
+struct __declspec(uuid("ccb94031-b81e-11d2-ab74-0040054c3719"))
+/* dual interface */ IOPOSCashChanger_1_11;
+struct __declspec(uuid("ccb93031-b81e-11d2-ab74-0040054c3719"))
+/* dual interface */ IOPOSCashChanger_1_9;
+struct __declspec(uuid("ccb92031-b81e-11d2-ab74-0040054c3719"))
+/* dual interface */ IOPOSCashChanger_1_8;
+struct __declspec(uuid("ccb91031-b81e-11d2-ab74-0040054c3719"))
+/* dual interface */ IOPOSCashChanger_1_5;
+
+//
+// Smart pointer typedef declarations
+//
+
+_COM_SMARTPTR_TYPEDEF(_IOPOSCashChangerEvents, __uuidof(_IOPOSCashChangerEvents));
+_COM_SMARTPTR_TYPEDEF(IOPOSCashChanger_1_5, __uuidof(IOPOSCashChanger_1_5));
+_COM_SMARTPTR_TYPEDEF(IOPOSCashChanger_1_8, __uuidof(IOPOSCashChanger_1_8));
+_COM_SMARTPTR_TYPEDEF(IOPOSCashChanger_1_9, __uuidof(IOPOSCashChanger_1_9));
+_COM_SMARTPTR_TYPEDEF(IOPOSCashChanger_1_11, __uuidof(IOPOSCashChanger_1_11));
+_COM_SMARTPTR_TYPEDEF(IOPOSCashChanger, __uuidof(IOPOSCashChanger));
+
+//
+// Type library items
+//
+
+struct __declspec(uuid("ccb90033-b81e-11d2-ab74-0040054c3719"))
+_IOPOSCashChangerEvents : IDispatch
+{
+    //
+    // Wrapper methods for error-handling
+    //
+
+    // Methods:
+    HRESULT DataEvent (
+        long Status );
+    HRESULT DirectIOEvent (
+        long EventNumber,
+        long * pData,
+        BSTR * pString );
+    HRESULT StatusUpdateEvent (
+        long Data );
+};
+
+struct __declspec(uuid("ccb90032-b81e-11d2-ab74-0040054c3719"))
+OPOSCashChanger;
+    // [ default ] interface IOPOSCashChanger
+    // interface IOPOSCashChanger_1_11
+    // interface IOPOSCashChanger_1_9
+    // interface IOPOSCashChanger_1_8
+    // interface IOPOSCashChanger_1_5
+    // [ default, source ] dispinterface _IOPOSCashChangerEvents
+
+struct __declspec(uuid("ccb91031-b81e-11d2-ab74-0040054c3719"))
+IOPOSCashChanger_1_5 : IDispatch
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetCapPauseDeposit))
+    VARIANT_BOOL CapPauseDeposit;
+    __declspec(property(get=GetCapRepayDeposit))
+    VARIANT_BOOL CapRepayDeposit;
+    __declspec(property(get=GetDepositAmount))
+    long DepositAmount;
+    __declspec(property(get=GetDepositCashList))
+    _bstr_t DepositCashList;
+    __declspec(property(get=GetDepositCodeList))
+    _bstr_t DepositCodeList;
+    __declspec(property(get=GetDepositCounts))
+    _bstr_t DepositCounts;
+    __declspec(property(get=GetDepositStatus))
+    long DepositStatus;
+    __declspec(property(get=GetBinaryConversion,put=PutBinaryConversion))
+    long BinaryConversion;
+    __declspec(property(get=GetCapPowerReporting))
+    long CapPowerReporting;
+    __declspec(property(get=GetCheckHealthText))
+    _bstr_t CheckHealthText;
+    __declspec(property(get=GetClaimed))
+    VARIANT_BOOL Claimed;
+    __declspec(property(get=GetDataCount))
+    long DataCount;
+    __declspec(property(get=GetDataEventEnabled,put=PutDataEventEnabled))
+    VARIANT_BOOL DataEventEnabled;
+    __declspec(property(get=GetDeviceEnabled,put=PutDeviceEnabled))
+    VARIANT_BOOL DeviceEnabled;
+    __declspec(property(get=GetFreezeEvents,put=PutFreezeEvents))
+    VARIANT_BOOL FreezeEvents;
+    __declspec(property(get=GetPowerNotify,put=PutPowerNotify))
+    long PowerNotify;
+    __declspec(property(get=GetPowerState))
+    long PowerState;
+    __declspec(property(get=GetResultCode))
+    long ResultCode;
+    __declspec(property(get=GetResultCodeExtended))
+    long ResultCodeExtended;
+    __declspec(property(get=GetState))
+    long State;
+    __declspec(property(get=GetControlObjectDescription))
+    _bstr_t ControlObjectDescription;
+    __declspec(property(get=GetControlObjectVersion))
+    long ControlObjectVersion;
+    __declspec(property(get=GetServiceObjectDescription))
+    _bstr_t ServiceObjectDescription;
+    __declspec(property(get=GetServiceObjectVersion))
+    long ServiceObjectVersion;
+    __declspec(property(get=GetDeviceDescription))
+    _bstr_t DeviceDescription;
+    __declspec(property(get=GetDeviceName))
+    _bstr_t DeviceName;
+    __declspec(property(get=GetOpenResult))
+    long OpenResult;
+    __declspec(property(get=GetAsyncMode,put=PutAsyncMode))
+    VARIANT_BOOL AsyncMode;
+    __declspec(property(get=GetAsyncResultCode))
+    long AsyncResultCode;
+    __declspec(property(get=GetAsyncResultCodeExtended))
+    long AsyncResultCodeExtended;
+    __declspec(property(get=GetCapDiscrepancy))
+    VARIANT_BOOL CapDiscrepancy;
+    __declspec(property(get=GetCapEmptySensor))
+    VARIANT_BOOL CapEmptySensor;
+    __declspec(property(get=GetCapFullSensor))
+    VARIANT_BOOL CapFullSensor;
+    __declspec(property(get=GetCapNearEmptySensor))
+    VARIANT_BOOL CapNearEmptySensor;
+    __declspec(property(get=GetCapNearFullSensor))
+    VARIANT_BOOL CapNearFullSensor;
+    __declspec(property(get=GetCurrencyCashList))
+    _bstr_t CurrencyCashList;
+    __declspec(property(get=GetCurrencyCode,put=PutCurrencyCode))
+    _bstr_t CurrencyCode;
+    __declspec(property(get=GetCurrencyCodeList))
+    _bstr_t CurrencyCodeList;
+    __declspec(property(get=GetCurrentExit,put=PutCurrentExit))
+    long CurrentExit;
+    __declspec(property(get=GetDeviceExits))
+    long DeviceExits;
+    __declspec(property(get=GetDeviceStatus))
+    long DeviceStatus;
+    __declspec(property(get=GetExitCashList))
+    _bstr_t ExitCashList;
+    __declspec(property(get=GetFullStatus))
+    long FullStatus;
+    __declspec(property(get=GetCapDeposit))
+    VARIANT_BOOL CapDeposit;
+    __declspec(property(get=GetCapDepositDataEvent))
+    VARIANT_BOOL CapDepositDataEvent;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    HRESULT SOData (
+        long Status );
+    HRESULT SODirectIO (
+        long EventNumber,
+        long * pData,
+        BSTR * pString );
+    HRESULT SOErrorDummy (
+        long ResultCode,
+        long ResultCodeExtended,
+        long ErrorLocus,
+        long * pErrorResponse );
+    HRESULT SOOutputCompleteDummy (
+        long OutputID );
+    HRESULT SOStatusUpdate (
+        long Data );
+    long SOProcessID ( );
+    long GetOpenResult ( );
+    long GetBinaryConversion ( );
+    void PutBinaryConversion (
+        long pBinaryConversion );
+    _bstr_t GetCheckHealthText ( );
+    VARIANT_BOOL GetClaimed ( );
+    VARIANT_BOOL GetDeviceEnabled ( );
+    void PutDeviceEnabled (
+        VARIANT_BOOL pDeviceEnabled );
+    VARIANT_BOOL GetFreezeEvents ( );
+    void PutFreezeEvents (
+        VARIANT_BOOL pFreezeEvents );
+    long GetResultCode ( );
+    long GetResultCodeExtended ( );
+    long GetState ( );
+    _bstr_t GetControlObjectDescription ( );
+    long GetControlObjectVersion ( );
+    _bstr_t GetServiceObjectDescription ( );
+    long GetServiceObjectVersion ( );
+    _bstr_t GetDeviceDescription ( );
+    _bstr_t GetDeviceName ( );
+    long CheckHealth (
+        long Level );
+    long ClaimDevice (
+        long Timeout );
+    long Close ( );
+    long DirectIO (
+        long Command,
+        long * pData,
+        BSTR * pString );
+    long Open (
+        _bstr_t DeviceName );
+    long ReleaseDevice ( );
+    VARIANT_BOOL GetAsyncMode ( );
+    void PutAsyncMode (
+        VARIANT_BOOL pAsyncMode );
+    long GetAsyncResultCode ( );
+    long GetAsyncResultCodeExtended ( );
+    VARIANT_BOOL GetCapDiscrepancy ( );
+    VARIANT_BOOL GetCapEmptySensor ( );
+    VARIANT_BOOL GetCapFullSensor ( );
+    VARIANT_BOOL GetCapNearEmptySensor ( );
+    VARIANT_BOOL GetCapNearFullSensor ( );
+    _bstr_t GetCurrencyCashList ( );
+    _bstr_t GetCurrencyCode ( );
+    void PutCurrencyCode (
+        _bstr_t pCurrencyCode );
+    _bstr_t GetCurrencyCodeList ( );
+    long GetCurrentExit ( );
+    void PutCurrentExit (
+        long pCurrentExit );
+    long GetDeviceExits ( );
+    long GetDeviceStatus ( );
+    _bstr_t GetExitCashList ( );
+    long GetFullStatus ( );
+    long DispenseCash (
+        _bstr_t CashCounts );
+    long DispenseChange (
+        long Amount );
+    long ReadCashCounts (
+        BSTR * pCashCounts,
+        VARIANT_BOOL * pDiscrepancy );
+    long GetCapPowerReporting ( );
+    long GetPowerNotify ( );
+    void PutPowerNotify (
+        long pPowerNotify );
+    long GetPowerState ( );
+    long GetDataCount ( );
+    VARIANT_BOOL GetDataEventEnabled ( );
+    void PutDataEventEnabled (
+        VARIANT_BOOL pDataEventEnabled );
+    long ClearInput ( );
+    VARIANT_BOOL GetCapDeposit ( );
+    VARIANT_BOOL GetCapDepositDataEvent ( );
+    VARIANT_BOOL GetCapPauseDeposit ( );
+    VARIANT_BOOL GetCapRepayDeposit ( );
+    long GetDepositAmount ( );
+    _bstr_t GetDepositCashList ( );
+    _bstr_t GetDepositCodeList ( );
+    _bstr_t GetDepositCounts ( );
+    long GetDepositStatus ( );
+    long BeginDeposit ( );
+    long EndDeposit (
+        long Success );
+    long FixDeposit ( );
+    long PauseDeposit (
+        long Control );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall raw_SOData (
+        /*[in]*/ long Status ) = 0;
+      virtual HRESULT __stdcall raw_SODirectIO (
+        /*[in]*/ long EventNumber,
+        /*[in,out]*/ long * pData,
+        /*[in,out]*/ BSTR * pString ) = 0;
+      virtual HRESULT __stdcall raw_SOErrorDummy (
+        /*[in]*/ long ResultCode,
+        /*[in]*/ long ResultCodeExtended,
+        /*[in]*/ long ErrorLocus,
+        /*[in,out]*/ long * pErrorResponse ) = 0;
+      virtual HRESULT __stdcall raw_SOOutputCompleteDummy (
+        /*[in]*/ long OutputID ) = 0;
+      virtual HRESULT __stdcall raw_SOStatusUpdate (
+        /*[in]*/ long Data ) = 0;
+      virtual HRESULT __stdcall raw_SOProcessID (
+        /*[out,retval]*/ long * pProcessID ) = 0;
+      virtual HRESULT __stdcall get_OpenResult (
+        /*[out,retval]*/ long * pOpenResult ) = 0;
+      virtual HRESULT __stdcall get_BinaryConversion (
+        /*[out,retval]*/ long * pBinaryConversion ) = 0;
+      virtual HRESULT __stdcall put_BinaryConversion (
+        /*[in]*/ long pBinaryConversion ) = 0;
+      virtual HRESULT __stdcall get_CheckHealthText (
+        /*[out,retval]*/ BSTR * pCheckHealthText ) = 0;
+      virtual HRESULT __stdcall get_Claimed (
+        /*[out,retval]*/ VARIANT_BOOL * pClaimed ) = 0;
+      virtual HRESULT __stdcall get_DeviceEnabled (
+        /*[out,retval]*/ VARIANT_BOOL * pDeviceEnabled ) = 0;
+      virtual HRESULT __stdcall put_DeviceEnabled (
+        /*[in]*/ VARIANT_BOOL pDeviceEnabled ) = 0;
+      virtual HRESULT __stdcall get_FreezeEvents (
+        /*[out,retval]*/ VARIANT_BOOL * pFreezeEvents ) = 0;
+      virtual HRESULT __stdcall put_FreezeEvents (
+        /*[in]*/ VARIANT_BOOL pFreezeEvents ) = 0;
+      virtual HRESULT __stdcall get_ResultCode (
+        /*[out,retval]*/ long * pResultCode ) = 0;
+      virtual HRESULT __stdcall get_ResultCodeExtended (
+        /*[out,retval]*/ long * pResultCodeExtended ) = 0;
+      virtual HRESULT __stdcall get_State (
+        /*[out,retval]*/ long * pState ) = 0;
+      virtual HRESULT __stdcall get_ControlObjectDescription (
+        /*[out,retval]*/ BSTR * pControlObjectDescription ) = 0;
+      virtual HRESULT __stdcall get_ControlObjectVersion (
+        /*[out,retval]*/ long * pControlObjectVersion ) = 0;
+      virtual HRESULT __stdcall get_ServiceObjectDescription (
+        /*[out,retval]*/ BSTR * pServiceObjectDescription ) = 0;
+      virtual HRESULT __stdcall get_ServiceObjectVersion (
+        /*[out,retval]*/ long * pServiceObjectVersion ) = 0;
+      virtual HRESULT __stdcall get_DeviceDescription (
+        /*[out,retval]*/ BSTR * pDeviceDescription ) = 0;
+      virtual HRESULT __stdcall get_DeviceName (
+        /*[out,retval]*/ BSTR * pDeviceName ) = 0;
+      virtual HRESULT __stdcall raw_CheckHealth (
+        /*[in]*/ long Level,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_ClaimDevice (
+        /*[in]*/ long Timeout,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_Close (
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_DirectIO (
+        /*[in]*/ long Command,
+        /*[in,out]*/ long * pData,
+        /*[in,out]*/ BSTR * pString,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_Open (
+        /*[in]*/ BSTR DeviceName,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_ReleaseDevice (
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall get_AsyncMode (
+        /*[out,retval]*/ VARIANT_BOOL * pAsyncMode ) = 0;
+      virtual HRESULT __stdcall put_AsyncMode (
+        /*[in]*/ VARIANT_BOOL pAsyncMode ) = 0;
+      virtual HRESULT __stdcall get_AsyncResultCode (
+        /*[out,retval]*/ long * pAsyncResultCode ) = 0;
+      virtual HRESULT __stdcall get_AsyncResultCodeExtended (
+        /*[out,retval]*/ long * pAsyncResultCodeExtended ) = 0;
+      virtual HRESULT __stdcall get_CapDiscrepancy (
+        /*[out,retval]*/ VARIANT_BOOL * pCapDiscrepancy ) = 0;
+      virtual HRESULT __stdcall get_CapEmptySensor (
+        /*[out,retval]*/ VARIANT_BOOL * pCapEmptySensor ) = 0;
+      virtual HRESULT __stdcall get_CapFullSensor (
+        /*[out,retval]*/ VARIANT_BOOL * pCapFullSensor ) = 0;
+      virtual HRESULT __stdcall get_CapNearEmptySensor (
+        /*[out,retval]*/ VARIANT_BOOL * pCapNearEmptySensor ) = 0;
+      virtual HRESULT __stdcall get_CapNearFullSensor (
+        /*[out,retval]*/ VARIANT_BOOL * pCapNearFullSensor ) = 0;
+      virtual HRESULT __stdcall get_CurrencyCashList (
+        /*[out,retval]*/ BSTR * pCurrencyCashList ) = 0;
+      virtual HRESULT __stdcall get_CurrencyCode (
+        /*[out,retval]*/ BSTR * pCurrencyCode ) = 0;
+      virtual HRESULT __stdcall put_CurrencyCode (
+        /*[in]*/ BSTR pCurrencyCode ) = 0;
+      virtual HRESULT __stdcall get_CurrencyCodeList (
+        /*[out,retval]*/ BSTR * pCurrencyCodeList ) = 0;
+      virtual HRESULT __stdcall get_CurrentExit (
+        /*[out,retval]*/ long * pCurrentExit ) = 0;
+      virtual HRESULT __stdcall put_CurrentExit (
+        /*[in]*/ long pCurrentExit ) = 0;
+      virtual HRESULT __stdcall get_DeviceExits (
+        /*[out,retval]*/ long * pDeviceExits ) = 0;
+      virtual HRESULT __stdcall get_DeviceStatus (
+        /*[out,retval]*/ long * pDeviceStatus ) = 0;
+      virtual HRESULT __stdcall get_ExitCashList (
+        /*[out,retval]*/ BSTR * pExitCashList ) = 0;
+      virtual HRESULT __stdcall get_FullStatus (
+        /*[out,retval]*/ long * pFullStatus ) = 0;
+      virtual HRESULT __stdcall raw_DispenseCash (
+        /*[in]*/ BSTR CashCounts,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_DispenseChange (
+        /*[in]*/ long Amount,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_ReadCashCounts (
+        /*[out]*/ BSTR * pCashCounts,
+        /*[out]*/ VARIANT_BOOL * pDiscrepancy,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall get_CapPowerReporting (
+        /*[out,retval]*/ long * pCapPowerReporting ) = 0;
+      virtual HRESULT __stdcall get_PowerNotify (
+        /*[out,retval]*/ long * pPowerNotify ) = 0;
+      virtual HRESULT __stdcall put_PowerNotify (
+        /*[in]*/ long pPowerNotify ) = 0;
+      virtual HRESULT __stdcall get_PowerState (
+        /*[out,retval]*/ long * pPowerState ) = 0;
+      virtual HRESULT __stdcall get_DataCount (
+        /*[out,retval]*/ long * pDataCount ) = 0;
+      virtual HRESULT __stdcall get_DataEventEnabled (
+        /*[out,retval]*/ VARIANT_BOOL * pDataEventEnabled ) = 0;
+      virtual HRESULT __stdcall put_DataEventEnabled (
+        /*[in]*/ VARIANT_BOOL pDataEventEnabled ) = 0;
+      virtual HRESULT __stdcall raw_ClearInput (
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall get_CapDeposit (
+        /*[out,retval]*/ VARIANT_BOOL * pCapDeposit ) = 0;
+      virtual HRESULT __stdcall get_CapDepositDataEvent (
+        /*[out,retval]*/ VARIANT_BOOL * pCapDepositDataEvent ) = 0;
+      virtual HRESULT __stdcall get_CapPauseDeposit (
+        /*[out,retval]*/ VARIANT_BOOL * pCapPauseDeposit ) = 0;
+      virtual HRESULT __stdcall get_CapRepayDeposit (
+        /*[out,retval]*/ VARIANT_BOOL * pCapRepayDeposit ) = 0;
+      virtual HRESULT __stdcall get_DepositAmount (
+        /*[out,retval]*/ long * pDepositAmount ) = 0;
+      virtual HRESULT __stdcall get_DepositCashList (
+        /*[out,retval]*/ BSTR * pDepositCashList ) = 0;
+      virtual HRESULT __stdcall get_DepositCodeList (
+        /*[out,retval]*/ BSTR * pDepositCodeList ) = 0;
+      virtual HRESULT __stdcall get_DepositCounts (
+        /*[out,retval]*/ BSTR * pDepositCounts ) = 0;
+      virtual HRESULT __stdcall get_DepositStatus (
+        /*[out,retval]*/ long * pDepositStatus ) = 0;
+      virtual HRESULT __stdcall raw_BeginDeposit (
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_EndDeposit (
+        /*[in]*/ long Success,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_FixDeposit (
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_PauseDeposit (
+        /*[in]*/ long Control,
+        /*[out,retval]*/ long * pRC ) = 0;
+};
+
+struct __declspec(uuid("ccb92031-b81e-11d2-ab74-0040054c3719"))
+IOPOSCashChanger_1_8 : IOPOSCashChanger_1_5
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetCapStatisticsReporting))
+    VARIANT_BOOL CapStatisticsReporting;
+    __declspec(property(get=GetCapUpdateStatistics))
+    VARIANT_BOOL CapUpdateStatistics;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    VARIANT_BOOL GetCapStatisticsReporting ( );
+    VARIANT_BOOL GetCapUpdateStatistics ( );
+    long ResetStatistics (
+        _bstr_t StatisticsBuffer );
+    long RetrieveStatistics (
+        BSTR * pStatisticsBuffer );
+    long UpdateStatistics (
+        _bstr_t StatisticsBuffer );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall get_CapStatisticsReporting (
+        /*[out,retval]*/ VARIANT_BOOL * pCapStatisticsReporting ) = 0;
+      virtual HRESULT __stdcall get_CapUpdateStatistics (
+        /*[out,retval]*/ VARIANT_BOOL * pCapUpdateStatistics ) = 0;
+      virtual HRESULT __stdcall raw_ResetStatistics (
+        /*[in]*/ BSTR StatisticsBuffer,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_RetrieveStatistics (
+        /*[in,out]*/ BSTR * pStatisticsBuffer,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_UpdateStatistics (
+        /*[in]*/ BSTR StatisticsBuffer,
+        /*[out,retval]*/ long * pRC ) = 0;
+};
+
+struct __declspec(uuid("ccb93031-b81e-11d2-ab74-0040054c3719"))
+IOPOSCashChanger_1_9 : IOPOSCashChanger_1_8
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetCapCompareFirmwareVersion))
+    VARIANT_BOOL CapCompareFirmwareVersion;
+    __declspec(property(get=GetCapUpdateFirmware))
+    VARIANT_BOOL CapUpdateFirmware;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    VARIANT_BOOL GetCapCompareFirmwareVersion ( );
+    VARIANT_BOOL GetCapUpdateFirmware ( );
+    long CompareFirmwareVersion (
+        _bstr_t FirmwareFileName,
+        long * pResult );
+    long UpdateFirmware (
+        _bstr_t FirmwareFileName );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall get_CapCompareFirmwareVersion (
+        /*[out,retval]*/ VARIANT_BOOL * pCapCompareFirmwareVersion ) = 0;
+      virtual HRESULT __stdcall get_CapUpdateFirmware (
+        /*[out,retval]*/ VARIANT_BOOL * pCapUpdateFirmware ) = 0;
+      virtual HRESULT __stdcall raw_CompareFirmwareVersion (
+        /*[in]*/ BSTR FirmwareFileName,
+        /*[out]*/ long * pResult,
+        /*[out,retval]*/ long * pRC ) = 0;
+      virtual HRESULT __stdcall raw_UpdateFirmware (
+        /*[in]*/ BSTR FirmwareFileName,
+        /*[out,retval]*/ long * pRC ) = 0;
+};
+
+struct __declspec(uuid("ccb94031-b81e-11d2-ab74-0040054c3719"))
+IOPOSCashChanger_1_11 : IOPOSCashChanger_1_9
+{
+    //
+    // Property data
+    //
+
+    __declspec(property(get=GetCapJamSensor))
+    VARIANT_BOOL CapJamSensor;
+    __declspec(property(get=GetCapRealTimeData))
+    VARIANT_BOOL CapRealTimeData;
+    __declspec(property(get=GetCurrentService,put=PutCurrentService))
+    long CurrentService;
+    __declspec(property(get=GetRealTimeDataEnabled,put=PutRealTimeDataEnabled))
+    VARIANT_BOOL RealTimeDataEnabled;
+    __declspec(property(get=GetServiceCount))
+    long ServiceCount;
+    __declspec(property(get=GetServiceIndex))
+    long ServiceIndex;
+
+    //
+    // Wrapper methods for error-handling
+    //
+
+    VARIANT_BOOL GetCapJamSensor ( );
+    VARIANT_BOOL GetCapRealTimeData ( );
+    long GetCurrentService ( );
+    void PutCurrentService (
+        long pCurrentService );
+    VARIANT_BOOL GetRealTimeDataEnabled ( );
+    void PutRealTimeDataEnabled (
+        VARIANT_BOOL pRealTimeDataEnabled );
+    long GetServiceCount ( );
+    long GetServiceIndex ( );
+    long AdjustCashCounts (
+        _bstr_t CashCounts );
+
+    //
+    // Raw methods provided by interface
+    //
+
+      virtual HRESULT __stdcall get_CapJamSensor (
+        /*[out,retval]*/ VARIANT_BOOL * pCapJamSensor ) = 0;
+      virtual HRESULT __stdcall get_CapRealTimeData (
+        /*[out,retval]*/ VARIANT_BOOL * pCapRealTimeData ) = 0;
+      virtual HRESULT __stdcall get_CurrentService (
+        /*[out,retval]*/ long * pCurrentService ) = 0;
+      virtual HRESULT __stdcall put_CurrentService (
+        /*[in]*/ long pCurrentService ) = 0;
+      virtual HRESULT __stdcall get_RealTimeDataEnabled (
+        /*[out,retval]*/ VARIANT_BOOL * pRealTimeDataEnabled ) = 0;
+      virtual HRESULT __stdcall put_RealTimeDataEnabled (
+        /*[in]*/ VARIANT_BOOL pRealTimeDataEnabled ) = 0;
+      virtual HRESULT __stdcall get_ServiceCount (
+        /*[out,retval]*/ long * pServiceCount ) = 0;
+      virtual HRESULT __stdcall get_ServiceIndex (
+        /*[out,retval]*/ long * pServiceIndex ) = 0;
+      virtual HRESULT __stdcall raw_AdjustCashCounts (
+        /*[in]*/ BSTR CashCounts,
+        /*[out,retval]*/ long * pRC ) = 0;
+};
+
+struct __declspec(uuid("ccb95031-b81e-11d2-ab74-0040054c3719"))
+IOPOSCashChanger : IOPOSCashChanger_1_11
+{};
+
+//
+// Named GUID constants initializations
+//
+
+extern "C" const GUID __declspec(selectany) LIBID_OposCashChanger_CCO =
+    {0xccb90030,0xb81e,0x11d2,{0xab,0x74,0x00,0x40,0x05,0x4c,0x37,0x19}};
+extern "C" const GUID __declspec(selectany) DIID__IOPOSCashChangerEvents =
+    {0xccb90033,0xb81e,0x11d2,{0xab,0x74,0x00,0x40,0x05,0x4c,0x37,0x19}};
+extern "C" const GUID __declspec(selectany) CLSID_OPOSCashChanger =
+    {0xccb90032,0xb81e,0x11d2,{0xab,0x74,0x00,0x40,0x05,0x4c,0x37,0x19}};
+extern "C" const GUID __declspec(selectany) IID_IOPOSCashChanger_1_5 =
+    {0xccb91031,0xb81e,0x11d2,{0xab,0x74,0x00,0x40,0x05,0x4c,0x37,0x19}};
+extern "C" const GUID __declspec(selectany) IID_IOPOSCashChanger_1_8 =
+    {0xccb92031,0xb81e,0x11d2,{0xab,0x74,0x00,0x40,0x05,0x4c,0x37,0x19}};
+extern "C" const GUID __declspec(selectany) IID_IOPOSCashChanger_1_9 =
+    {0xccb93031,0xb81e,0x11d2,{0xab,0x74,0x00,0x40,0x05,0x4c,0x37,0x19}};
+extern "C" const GUID __declspec(selectany) IID_IOPOSCashChanger_1_11 =
+    {0xccb94031,0xb81e,0x11d2,{0xab,0x74,0x00,0x40,0x05,0x4c,0x37,0x19}};
+extern "C" const GUID __declspec(selectany) IID_IOPOSCashChanger =
+    {0xccb95031,0xb81e,0x11d2,{0xab,0x74,0x00,0x40,0x05,0x4c,0x37,0x19}};
+
+//
+// Wrapper method implementations
+//
+
+#include "64OPOSCashChanger.tli"
+
+} // namespace OposCashChanger_CCO
+
+#pragma pack(pop)

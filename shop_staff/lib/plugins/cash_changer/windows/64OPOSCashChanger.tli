@@ -1,0 +1,671 @@
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.37.32825.0 (af632c86).
+//
+// C:\Users\Administrator\64ocx\64OPOSCashChanger.tli
+//
+// Wrapper implementations for type library 64OPOSCashChanger.ocx
+// compiler-generated file - DO NOT EDIT!
+
+#pragma once
+
+//
+// dispinterface _IOPOSCashChangerEvents wrapper method implementations
+//
+
+inline HRESULT _IOPOSCashChangerEvents::DataEvent ( long Status ) {
+    printf("IOPOSCashChangerEvents DataEvent\n");
+    return _com_dispatch_method(this, 0x1, DISPATCH_METHOD, VT_EMPTY, NULL, 
+        L"\x0003", Status);
+}
+
+inline HRESULT _IOPOSCashChangerEvents::DirectIOEvent ( long EventNumber, long * pData, BSTR * pString ) {
+    printf("IOPOSCashChangerEvents DirectIOEvent\n");
+    return _com_dispatch_method(this, 0x2, DISPATCH_METHOD, VT_EMPTY, NULL, 
+        L"\x0003\x4003\x4008", EventNumber, pData, pString);
+}
+
+inline HRESULT _IOPOSCashChangerEvents::StatusUpdateEvent ( long Data ) {
+    printf("IOPOSCashChangerEvents StatusUpdateEvent\n");
+    return _com_dispatch_method(this, 0x5, DISPATCH_METHOD, VT_EMPTY, NULL, 
+        L"\x0003", Data);
+}
+
+//
+// interface IOPOSCashChanger_1_5 wrapper method implementations
+//
+
+inline HRESULT IOPOSCashChanger_1_5::SOData ( long Status ) {
+    printf("IOPOSCashChanger_1_5 SOData\n");
+    printf("Status: %d\n", Status);
+    HRESULT _hr = raw_SOData(Status);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IOPOSCashChanger_1_5::SODirectIO ( long EventNumber, long * pData, BSTR * pString ) {
+    printf("IOPOSCashChanger_1_5 SODirectIO\n");
+    printf("EventNumber: %d\n", EventNumber);
+    printf("pData: %d\n", *pData);
+    printf("pString: %ls\n", *pString);
+    HRESULT _hr = raw_SODirectIO(EventNumber, pData, pString);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IOPOSCashChanger_1_5::SOErrorDummy ( long ResultCode, long ResultCodeExtended, long ErrorLocus, long * pErrorResponse ) {
+    HRESULT _hr = raw_SOErrorDummy(ResultCode, ResultCodeExtended, ErrorLocus, pErrorResponse);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IOPOSCashChanger_1_5::SOOutputCompleteDummy ( long OutputID ) {
+    HRESULT _hr = raw_SOOutputCompleteDummy(OutputID);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline HRESULT IOPOSCashChanger_1_5::SOStatusUpdate ( long Data ) {
+    printf("IOPOSCashChanger_1_5 SOStatusUpdate\n");
+    printf("Data: %d\n", Data);
+    HRESULT _hr = raw_SOStatusUpdate(Data);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _hr;
+}
+
+inline long IOPOSCashChanger_1_5::SOProcessID ( ) {
+    long _result = 0;
+    HRESULT _hr = raw_SOProcessID(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetOpenResult ( ) {
+    long _result = 0;
+    HRESULT _hr = get_OpenResult(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetBinaryConversion ( ) {
+    long _result = 0;
+    HRESULT _hr = get_BinaryConversion(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IOPOSCashChanger_1_5::PutBinaryConversion ( long pBinaryConversion ) {
+    HRESULT _hr = put_BinaryConversion(pBinaryConversion);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetCheckHealthText ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_CheckHealthText(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetClaimed ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_Claimed(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetDeviceEnabled ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_DeviceEnabled(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IOPOSCashChanger_1_5::PutDeviceEnabled ( VARIANT_BOOL pDeviceEnabled ) {
+    HRESULT _hr = put_DeviceEnabled(pDeviceEnabled);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetFreezeEvents ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_FreezeEvents(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IOPOSCashChanger_1_5::PutFreezeEvents ( VARIANT_BOOL pFreezeEvents ) {
+    HRESULT _hr = put_FreezeEvents(pFreezeEvents);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline long IOPOSCashChanger_1_5::GetResultCode ( ) {
+    long _result = 0;
+    HRESULT _hr = get_ResultCode(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetResultCodeExtended ( ) {
+    long _result = 0;
+    HRESULT _hr = get_ResultCodeExtended(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetState ( ) {
+    long _result = 0;
+    HRESULT _hr = get_State(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetControlObjectDescription ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_ControlObjectDescription(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline long IOPOSCashChanger_1_5::GetControlObjectVersion ( ) {
+    long _result = 0;
+    HRESULT _hr = get_ControlObjectVersion(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetServiceObjectDescription ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_ServiceObjectDescription(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline long IOPOSCashChanger_1_5::GetServiceObjectVersion ( ) {
+    long _result = 0;
+    HRESULT _hr = get_ServiceObjectVersion(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetDeviceDescription ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_DeviceDescription(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetDeviceName ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_DeviceName(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline long IOPOSCashChanger_1_5::CheckHealth ( long Level ) {
+    long _result = 0;
+    HRESULT _hr = raw_CheckHealth(Level, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::ClaimDevice ( long Timeout ) {
+    long _result = 0;
+    HRESULT _hr = raw_ClaimDevice(Timeout, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::Close ( ) {
+    long _result = 0;
+    HRESULT _hr = raw_Close(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::DirectIO ( long Command, long * pData, BSTR * pString ) {
+    printf("IOPOSCashChanger_1_5 DirectIO\n");
+    printf("Command: %d\n", Command);
+    printf("pData: %d\n", *pData);
+    printf("pString: %ls\n", *pString);
+    long _result = 0;
+    HRESULT _hr = raw_DirectIO(Command, pData, pString, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::Open ( _bstr_t DeviceName ) {
+    printf("IOPOSCashChanger_1_5 Open\n");
+    long _result = 0;
+    HRESULT _hr = raw_Open(DeviceName, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::ReleaseDevice ( ) {
+    long _result = 0;
+    HRESULT _hr = raw_ReleaseDevice(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetAsyncMode ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_AsyncMode(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IOPOSCashChanger_1_5::PutAsyncMode ( VARIANT_BOOL pAsyncMode ) {
+    HRESULT _hr = put_AsyncMode(pAsyncMode);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline long IOPOSCashChanger_1_5::GetAsyncResultCode ( ) {
+    long _result = 0;
+    HRESULT _hr = get_AsyncResultCode(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetAsyncResultCodeExtended ( ) {
+    long _result = 0;
+    HRESULT _hr = get_AsyncResultCodeExtended(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetCapDiscrepancy ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapDiscrepancy(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetCapEmptySensor ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapEmptySensor(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetCapFullSensor ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapFullSensor(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetCapNearEmptySensor ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapNearEmptySensor(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetCapNearFullSensor ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapNearFullSensor(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetCurrencyCashList ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_CurrencyCashList(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetCurrencyCode ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_CurrencyCode(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline void IOPOSCashChanger_1_5::PutCurrencyCode ( _bstr_t pCurrencyCode ) {
+    HRESULT _hr = put_CurrencyCode(pCurrencyCode);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetCurrencyCodeList ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_CurrencyCodeList(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline long IOPOSCashChanger_1_5::GetCurrentExit ( ) {
+    long _result = 0;
+    HRESULT _hr = get_CurrentExit(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IOPOSCashChanger_1_5::PutCurrentExit ( long pCurrentExit ) {
+    HRESULT _hr = put_CurrentExit(pCurrentExit);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline long IOPOSCashChanger_1_5::GetDeviceExits ( ) {
+    long _result = 0;
+    HRESULT _hr = get_DeviceExits(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetDeviceStatus ( ) {
+    long _result = 0;
+    HRESULT _hr = get_DeviceStatus(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetExitCashList ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_ExitCashList(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline long IOPOSCashChanger_1_5::GetFullStatus ( ) {
+    long _result = 0;
+    HRESULT _hr = get_FullStatus(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::DispenseCash ( _bstr_t CashCounts ) {
+    long _result = 0;
+    HRESULT _hr = raw_DispenseCash(CashCounts, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::DispenseChange ( long Amount ) {
+    long _result = 0;
+    HRESULT _hr = raw_DispenseChange(Amount, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::ReadCashCounts ( BSTR * pCashCounts, VARIANT_BOOL * pDiscrepancy ) {
+    long _result = 0;
+    HRESULT _hr = raw_ReadCashCounts(pCashCounts, pDiscrepancy, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetCapPowerReporting ( ) {
+    long _result = 0;
+    HRESULT _hr = get_CapPowerReporting(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetPowerNotify ( ) {
+    long _result = 0;
+    HRESULT _hr = get_PowerNotify(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IOPOSCashChanger_1_5::PutPowerNotify ( long pPowerNotify ) {
+    HRESULT _hr = put_PowerNotify(pPowerNotify);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline long IOPOSCashChanger_1_5::GetPowerState ( ) {
+    long _result = 0;
+    HRESULT _hr = get_PowerState(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetDataCount ( ) {
+    long _result = 0;
+    HRESULT _hr = get_DataCount(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetDataEventEnabled ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_DataEventEnabled(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IOPOSCashChanger_1_5::PutDataEventEnabled ( VARIANT_BOOL pDataEventEnabled ) {
+    HRESULT _hr = put_DataEventEnabled(pDataEventEnabled);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline long IOPOSCashChanger_1_5::ClearInput ( ) {
+    long _result = 0;
+    HRESULT _hr = raw_ClearInput(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetCapDeposit ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapDeposit(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetCapDepositDataEvent ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapDepositDataEvent(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetCapPauseDeposit ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapPauseDeposit(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_5::GetCapRepayDeposit ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapRepayDeposit(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::GetDepositAmount ( ) {
+    long _result = 0;
+    HRESULT _hr = get_DepositAmount(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetDepositCashList ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_DepositCashList(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetDepositCodeList ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_DepositCodeList(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline _bstr_t IOPOSCashChanger_1_5::GetDepositCounts ( ) {
+    BSTR _result = 0;
+    HRESULT _hr = get_DepositCounts(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _bstr_t(_result, false);
+}
+
+inline long IOPOSCashChanger_1_5::GetDepositStatus ( ) {
+    long _result = 0;
+    HRESULT _hr = get_DepositStatus(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::BeginDeposit ( ) {
+    long _result = 0;
+    HRESULT _hr = raw_BeginDeposit(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::EndDeposit ( long Success ) {
+    long _result = 0;
+    HRESULT _hr = raw_EndDeposit(Success, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::FixDeposit ( ) {
+    long _result = 0;
+    HRESULT _hr = raw_FixDeposit(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_5::PauseDeposit ( long Control ) {
+    long _result = 0;
+    HRESULT _hr = raw_PauseDeposit(Control, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+//
+// interface IOPOSCashChanger_1_8 wrapper method implementations
+//
+
+inline VARIANT_BOOL IOPOSCashChanger_1_8::GetCapStatisticsReporting ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapStatisticsReporting(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_8::GetCapUpdateStatistics ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapUpdateStatistics(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_8::ResetStatistics ( _bstr_t StatisticsBuffer ) {
+    long _result = 0;
+    HRESULT _hr = raw_ResetStatistics(StatisticsBuffer, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_8::RetrieveStatistics ( BSTR * pStatisticsBuffer ) {
+    long _result = 0;
+    HRESULT _hr = raw_RetrieveStatistics(pStatisticsBuffer, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_8::UpdateStatistics ( _bstr_t StatisticsBuffer ) {
+    long _result = 0;
+    HRESULT _hr = raw_UpdateStatistics(StatisticsBuffer, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+//
+// interface IOPOSCashChanger_1_9 wrapper method implementations
+//
+
+inline VARIANT_BOOL IOPOSCashChanger_1_9::GetCapCompareFirmwareVersion ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapCompareFirmwareVersion(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_9::GetCapUpdateFirmware ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapUpdateFirmware(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_9::CompareFirmwareVersion ( _bstr_t FirmwareFileName, long * pResult ) {
+    long _result = 0;
+    HRESULT _hr = raw_CompareFirmwareVersion(FirmwareFileName, pResult, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_9::UpdateFirmware ( _bstr_t FirmwareFileName ) {
+    long _result = 0;
+    HRESULT _hr = raw_UpdateFirmware(FirmwareFileName, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+//
+// interface IOPOSCashChanger_1_11 wrapper method implementations
+//
+
+inline VARIANT_BOOL IOPOSCashChanger_1_11::GetCapJamSensor ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapJamSensor(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_11::GetCapRealTimeData ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_CapRealTimeData(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_11::GetCurrentService ( ) {
+    long _result = 0;
+    HRESULT _hr = get_CurrentService(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IOPOSCashChanger_1_11::PutCurrentService ( long pCurrentService ) {
+    HRESULT _hr = put_CurrentService(pCurrentService);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline VARIANT_BOOL IOPOSCashChanger_1_11::GetRealTimeDataEnabled ( ) {
+    VARIANT_BOOL _result = 0;
+    HRESULT _hr = get_RealTimeDataEnabled(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline void IOPOSCashChanger_1_11::PutRealTimeDataEnabled ( VARIANT_BOOL pRealTimeDataEnabled ) {
+    HRESULT _hr = put_RealTimeDataEnabled(pRealTimeDataEnabled);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+}
+
+inline long IOPOSCashChanger_1_11::GetServiceCount ( ) {
+    long _result = 0;
+    HRESULT _hr = get_ServiceCount(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_11::GetServiceIndex ( ) {
+    long _result = 0;
+    HRESULT _hr = get_ServiceIndex(&_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
+
+inline long IOPOSCashChanger_1_11::AdjustCashCounts ( _bstr_t CashCounts ) {
+    long _result = 0;
+    HRESULT _hr = raw_AdjustCashCounts(CashCounts, &_result);
+    if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
+    return _result;
+}
