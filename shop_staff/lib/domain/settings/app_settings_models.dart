@@ -8,6 +8,7 @@ class BasicSettings {
     this.machineCode,
     this.contactNumber,
     this.address,
+    this.cashMachineEnabled,
   });
 
   final String? shopName;
@@ -15,6 +16,7 @@ class BasicSettings {
   final String? machineCode;
   final String? contactNumber;
   final String? address;
+  final bool? cashMachineEnabled;
 
   BasicSettings copyWith({
     String? shopName,
@@ -22,6 +24,7 @@ class BasicSettings {
     String? machineCode,
     String? contactNumber,
     String? address,
+    bool? cashMachineEnabled,
   }) {
     return BasicSettings(
       shopName: shopName ?? this.shopName,
@@ -29,6 +32,7 @@ class BasicSettings {
       machineCode: machineCode ?? this.machineCode,
       contactNumber: contactNumber ?? this.contactNumber,
       address: address ?? this.address,
+      cashMachineEnabled: cashMachineEnabled ?? this.cashMachineEnabled,
     );
   }
 
@@ -39,6 +43,7 @@ class BasicSettings {
       'machineCode': machineCode,
       'contactNumber': contactNumber,
       'address': address,
+      'cashMachineEnabled': cashMachineEnabled,
     }..removeWhere((key, value) => value == null);
   }
 
@@ -49,6 +54,7 @@ class BasicSettings {
       machineCode: json['machineCode'] as String?,
       contactNumber: json['contactNumber'] as String?,
       address: json['address'] as String?,
+      cashMachineEnabled: _readBool(json['cashMachineEnabled']) ?? false,
     );
   }
 }

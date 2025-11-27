@@ -4,16 +4,32 @@ import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../../../core/router/app_router.dart';
 import '../../pos/viewmodels/pos_viewmodel.dart';
+import '../viewmodels/entry_viewmodels.dart';
+import '../../cash_machine/widgets/cash_machine_check_dialog.dart';
 
 final _clockProvider = StreamProvider<DateTime>((ref) {
   return Stream.periodic(const Duration(seconds: 1), (_) => DateTime.now());
 });
 
-class EntryPage extends ConsumerWidget {
+class EntryPage extends ConsumerStatefulWidget {
   const EntryPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EntryPage> createState() => _EntryPageState();
+}
+
+class _EntryPageState extends ConsumerState<EntryPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(cashMachineCheckControllerProvider.notifier).maybePromptOnEntry();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
     final now = ref
@@ -22,9 +38,10 @@ class EntryPage extends ConsumerWidget {
     final timeText = _formatTime(now);
     final dateText = _formatDate(now);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
+    return CashMachineDialogPortal(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -122,7 +139,9 @@ class EntryPage extends ConsumerWidget {
           ),
         ),
       ),
-    );
+        ),
+      );
+    
   }
 
   Widget _buildTopBar(

@@ -6,6 +6,8 @@ import 'package:shop_staff/l10n/app_localizations.dart';
 import '../../../domain/settings/app_settings_models.dart';
 import '../viewmodels/settings_viewmodel.dart';
 import '../../../core/localization/locale_providers.dart';
+import '../../cash_machine/widgets/cash_machine_check_dialog.dart';
+import '../../entry/viewmodels/entry_viewmodels.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -30,10 +32,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.colorScheme.surface,
-      body: SafeArea(
-        child: Row(
+    return CashMachineDialogPortal(
+      child: Scaffold(
+        backgroundColor: theme.colorScheme.surface,
+        body: SafeArea(
+          child: Row(
           children: [
             _SettingsSidebar(
               selected: state.selected,
@@ -80,7 +83,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -380,6 +383,8 @@ class _SystemSettingsView extends ConsumerWidget {
     final selectedLocale = ref.watch(localeControllerProvider);
     final controller = ref.read(localeControllerProvider.notifier);
     final vm = ref.read(settingsViewModelProvider.notifier);
+    final cashCheckState = ref.watch(cashMachineCheckControllerProvider);
+    final cashCheckController = ref.read(cashMachineCheckControllerProvider.notifier);
 
     return _RefreshableScroll(
       onRefresh: onRefresh,
@@ -476,6 +481,54 @@ class _SystemSettingsView extends ConsumerWidget {
                   PosTerminalSettings(posIp: pos.posIp, posPort: newPort),
                 );
               },
+            ),
+          ],
+        ),
+        _SectionCard(
+          title: '现金支付',
+          subtitle: '检测现金机以启用或验证现金支付能力',
+          children: [
+            _InfoRow(
+              icon: Icons.payments_rounded,
+              label: '当前状态',
+              value: cashCheckState.isSupported
+                  ? (cashCheckState.isEnabled ? '已启用' : '未启用')
+                  : '未授权或不支持现金支付',
+            ),
+            if (cashCheckState.lastError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                '最近一次检测失败: ${cashCheckState.lastError}',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Colors.redAccent),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                FilledButton.icon(
+                  onPressed: (!cashCheckState.isSupported || cashCheckState.isChecking)
+                      ? null
+                      : () => cashCheckController.start(auto: false),
+                  icon: cashCheckState.isChecking
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.fact_check_rounded),
+                  label: Text(cashCheckState.isChecking ? '检测中…' : '立即检测'),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: cashCheckState.isChecking
+                      ? null
+                      : () => cashCheckController.skip(),
+                  child: const Text('跳过本次'),
+                ),
+              ],
             ),
           ],
         ),

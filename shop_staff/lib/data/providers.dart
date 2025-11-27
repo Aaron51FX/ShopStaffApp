@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/data/repositories_impl/activation_repository_impl.dart';
 import 'package:logging/logging.dart';
+import 'package:shop_staff/data/services/cash_machine_service_impl.dart';
 import 'package:shop_staff/domain/repositories/activation_repository.dart';
+import 'package:shop_staff/domain/services/cash_machine_service.dart';
 import '../core/network/app_environment.dart';
 import '../core/network/dio_client.dart';
 import '../core/storage/key_value_store.dart';
@@ -100,6 +102,11 @@ final qrScanUiStateProvider = Provider<QrScanUiState>((ref) {
 final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
   final store = ref.watch(keyValueStoreProvider);
   return KeyValueAppSettingsService(store, logger: Logger('AppSettingsService'));
+});
+
+final cashMachineServiceProvider = Provider<CashMachineService>((ref) {
+  final logger = Logger('CashMachine');
+  return CashMachineServiceImpl(logger);
 });
 
 const _appVersion = '1.0.0';
