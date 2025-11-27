@@ -41,8 +41,8 @@ class MethodChannelCashChanger extends CashChangerPlatform {
   }
 
   @override
-  Future<int?> closeCashChanger() async {
-    final result = await methodChannel.invokeMethod<int>('closeCashChanger');
+  Future<Map?> closeCashChanger() async {
+    final result = await methodChannel.invokeMethod<Map>('closeCashChanger');
     return result;
   }
 
@@ -59,21 +59,21 @@ class MethodChannelCashChanger extends CashChangerPlatform {
   }
 
   @override
-  Future<int?> depositAmount() async {
-    final result = await methodChannel.invokeMethod<int>('depositAmount');
+  Future<Map?> depositAmount() async {
+    final result = await methodChannel.invokeMethod<Map>('depositAmount');
     return result;
   }
 
   @override
-  Future<int?> fixDeposit() async {
-    final result = await methodChannel.invokeMethod<int>('fixDeposit');
+  Future<Map?> fixDeposit() async {
+    final result = await methodChannel.invokeMethod<Map>('fixDeposit');
     return result;
   }
 
   @override
-  Future<int?> endDeposit(int status) async {
+  Future<Map?> endDeposit(int status) async {
     final result =
-        await methodChannel.invokeMethod<int>('endDeposit', <String, dynamic>{
+        await methodChannel.invokeMethod<Map>('endDeposit', <String, dynamic>{
       'end_deposit': status,
     });
     return result;
@@ -93,29 +93,29 @@ class MethodChannelCashChanger extends CashChangerPlatform {
   }
 
   @override
-  Future<int?> depositRepay() async {
-    final result = await methodChannel.invokeMethod<int>('depositRepay');
+  Future<Map?> depositRepay() async {
+    final result = await methodChannel.invokeMethod<Map>('depositRepay');
     return result;
   }
 
   @override
-  Future<int?> checkChangerStatus() async {
-    final result = await methodChannel.invokeMethod<int>('checkChangerStatus');
+  Future<Map?> checkChangerStatus() async {
+    final result = await methodChannel.invokeMethod<Map>('checkChangerStatus');
     return result;
   }
 
   @override
-  Future<String?> changerDIStatus(int pData) async {
+  Future<Map?> changerDIStatus(int pData) async {
     final result = await methodChannel
-        .invokeMethod<String>('changer_di_status', <String, dynamic>{
+        .invokeMethod<Map>('changer_di_status', <String, dynamic>{
       'pData': pData,
     });
     return result;
   }
 
   @override
-  Future<int?> startSupply() async {
-    final result = await methodChannel.invokeMethod<int>('startSupply');
+  Future<Map?> startSupply() async {
+    final result = await methodChannel.invokeMethod<Map>('startSupply');
     return result;
   }
 
@@ -129,35 +129,35 @@ class MethodChannelCashChanger extends CashChangerPlatform {
   }
 
   @override
-  Future<int?> countClear() async {
-    final result = await methodChannel.invokeMethod<int>('countClear');
+  Future<Map?> countClear() async {
+    final result = await methodChannel.invokeMethod<Map>('countClear');
     return result;
   }
 
   //dispenseCashOutside
-  Future<int?> dispenseCashOutside(String cashInfo) async {
-    final result = await methodChannel.invokeMethod<int>('dispenseCashOutside',
+  Future<Map?> dispenseCashOutside(String cashInfo) async {
+    final result = await methodChannel.invokeMethod<Map>('dispenseCashOutside',
         <String, dynamic>{'cashInfo': cashInfo});
     return result;
   }
 
   //dispenseChangeOutside
-  Future<int?> dispenseChangeOutside(int count) async {
-    final result = await methodChannel.invokeMethod<int>('dispenseChangeOutside',
+  Future<Map?> dispenseChangeOutside(int count) async {
+    final result = await methodChannel.invokeMethod<Map>('dispenseChangeOutside',
         <String, dynamic>{'count': count});
     return result;
   }
 
 
   //beginCashReturn
-  Future<int?> beginCashReturn() async {
-    final result = await methodChannel.invokeMethod<int>('beginCashReturn');
+  Future<Map?> beginCashReturn() async {
+    final result = await methodChannel.invokeMethod<Map>('beginCashReturn');
     return result;
   }
 
   //BEGINDEPOSITOUTSIDE
-  Future<int?> beginDepositOutside() async {
-    final result = await methodChannel.invokeMethod<int>('beginDepositOutside');
+  Future<Map?> beginDepositOutside() async {
+    final result = await methodChannel.invokeMethod<Map>('beginDepositOutside');
     return result;
   }
 
@@ -173,8 +173,8 @@ class MethodChannelCashChanger extends CashChangerPlatform {
   }
 
   @override
-  Future<int?> collectAll({int bill = 1, int coin = 1}) async {
-    final result = await methodChannel.invokeMethod<int>('collectAll',
+  Future<Map?> collectAll({int bill = 1, int coin = 1}) async {
+    final result = await methodChannel.invokeMethod<Map>('collectAll',
         <String, dynamic>{'Bill': bill, 'Coin': coin});
     return result;
   }

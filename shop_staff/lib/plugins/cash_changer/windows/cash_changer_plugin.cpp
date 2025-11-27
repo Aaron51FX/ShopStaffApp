@@ -166,36 +166,29 @@ void CashChangerPlugin::DirectIOMethod(unique_ptr<flutter::MethodResult<flutter:
     cerr << "DirectIOMethod" << Command << "start 。。" << endl;
     long lngRet = pCashChanger->DirectIO(Command, &pData, &pString);
     cerr << "DirectIOMethod" << Command << " end 。。 " << lngRet << endl;
-    if (lngRet == OposSuccess) {
-        result->Success(flutter::EncodableValue(OposSuccess));
-    } else {
-
-        if (lngRet == OposEExtended) {
-            switch (pCashChanger->ResultCodeExtended) {
-                case OPOS_ECHAN_OVERDISPENSE:
-                    result->Success(flutter::EncodableValue(OPOS_ECHAN_OVERDISPENSE));
-                    cerr << "OPOS_ECHAN_OVERDISPENSE" << endl;
-                    //pCashChanger->EndDeposit(ChanDepositrepay);
-                    break;
-                case OPOS_ECHAN_OVER:
-                    result->Success(flutter::EncodableValue(OPOS_ECHAN_OVER));
-                    cerr << "OPOS_ECHAN_OVER" << endl;
-                    //pCashChanger->EndDeposit(ChanDepositrepay);
-                    break;
-                case OPOS_ECHAN_SETERROR:
-                case OPOS_ECHAN_ERROR:
-                case OPOS_ECHAN_BUSY:
-                    result->Success(flutter::EncodableValue(pCashChanger->ResultCodeExtended));
-                    cerr << "OPOS_ECHAN_SETERROR" << endl;
-                    break;
-                default:
-                    result->Success(flutter::EncodableValue(pCashChanger->ResultCodeExtended));
-
-            }
-        } else {
-            result->Success(flutter::EncodableValue(lngRet));
+    long responseCode = lngRet;
+    string message = (lngRet == OposSuccess) ? "success" : "failured";
+    if (lngRet == OposEExtended) {
+        responseCode = pCashChanger->ResultCodeExtended;
+        switch (pCashChanger->ResultCodeExtended) {
+            case OPOS_ECHAN_OVERDISPENSE:
+                cerr << "OPOS_ECHAN_OVERDISPENSE" << endl;
+                break;
+            case OPOS_ECHAN_OVER:
+                cerr << "OPOS_ECHAN_OVER" << endl;
+                break;
+            case OPOS_ECHAN_SETERROR:
+            case OPOS_ECHAN_ERROR:
+            case OPOS_ECHAN_BUSY:
+                cerr << "OPOS_ECHAN_SETERROR" << endl;
+                break;
+            default:
+                break;
         }
     }
+    ReturnMapValue(move(result), flutter::EncodableValue(responseCode),
+                   flutter::EncodableValue(pData),
+                   flutter::EncodableValue(message));
     //SysFreeString(pString);
 }
 
@@ -275,13 +268,19 @@ void CashChangerPlugin::HandleMethodCall(
     cerr << "claimDevice called 。。" << endl;
 
     if (pCashChanger == nullptr) {
-        result->Error("Cash Changer not initialized");
+                ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                                             flutter::EncodableValue(0),
+                                             flutter::EncodableValue("Cash Changer not initialized"));
+                return;
     }
 
     long lngRet = pCashChanger->ClaimDevice(10000);
     cerr << "ClaimDevice result 。。 " << lngRet << endl;
 
-    result->Success(flutter::EncodableValue(lngRet));
+        ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                                     flutter::EncodableValue(0),
+                                     flutter::EncodableValue(lngRet == OposSuccess ? "success"
+                                                                                                                             : "failured"));
     
     return;
   }
@@ -290,8 +289,10 @@ void CashChangerPlugin::HandleMethodCall(
     cerr << "closeCashChanger called 。。" << endl;
 
         if (pCashChanger == NULL) {
-        // 如果 pCashChanger 为空，直接返回
-        return;
+                ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                                             flutter::EncodableValue(0),
+                                             flutter::EncodableValue("Cash Changer not initialized"));
+                return;
     }
 
     // 禁用设备
@@ -305,11 +306,14 @@ void CashChangerPlugin::HandleMethodCall(
     lngRet = pCashChanger->Close();
 
     if (lngRet == OposSuccess) {
-        result->Success(flutter::EncodableValue(lngRet));
+        ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("success"));
     } else {
         cerr << "关闭设备失败，错误码：" << lngRet << endl;
-        //result->Error("CLOSE_FAILURE", "关闭设备失败");
-        result->Success(flutter::EncodableValue(lngRet));
+        ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("关闭设备失败"));
     }
 
     return;
@@ -379,8 +383,10 @@ void CashChangerPlugin::HandleMethodCall(
     cerr << "startDeposit called 。。" << endl;
 
     if (pCashChanger == nullptr) {
-        result->Error("Cash Changer not initialized");
-        ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("Cash Changer not initialized"));
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("Cash Changer not initialized"));
+        return;
     }
     pCashChanger->DataEventEnabled = VARIANT_TRUE;
     long lngRet = pCashChanger->BeginDeposit();
@@ -425,7 +431,10 @@ void CashChangerPlugin::HandleMethodCall(
     cerr << "DepositAmount called 。。" << endl;
 
     if (pCashChanger == nullptr) {
-        result->Error("Cash Changer not initialized");
+                ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                                             flutter::EncodableValue(0),
+                                             flutter::EncodableValue("Cash Changer not initialized"));
+                return;
     }
 
     long logAmount;
@@ -438,11 +447,13 @@ void CashChangerPlugin::HandleMethodCall(
     if (lngRet == OposSuccess) {           
         // 获取入金金额
         logAmount = pCashChanger->DepositAmount;
-        result->Success(flutter::EncodableValue(logAmount));
+        ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                       flutter::EncodableValue(logAmount),
+                       flutter::EncodableValue("success"));
     } else {
-        result->Success(flutter::EncodableValue(-1));
-        //result->Error(flutter::EncodableValue("Cash Changer FixDeposit Error"));
-        //result->Success(flutter::EncodableValue("Error in ending deposit counting: " + to_string(lngRet)));
+        ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("FixDeposit failed"));
     }
 
     return;
@@ -453,89 +464,109 @@ void CashChangerPlugin::HandleMethodCall(
     cerr << "fixDeposit called 。。" << endl;
 
     if (pCashChanger == nullptr) {
-        result->Error("Cash Changer not initialized");
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("Cash Changer not initialized"));
+        return;
     }
 
     long lngRet = pCashChanger->FixDeposit();
     cout << "fixDeposit result: " << lngRet << endl;
-    if (lngRet == OposSuccess) {           
-        // 获取入金金额
-        result->Success(flutter::EncodableValue(lngRet));
-    } else {
-        result->Success(flutter::EncodableValue(lngRet));
-    }
+    ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                   flutter::EncodableValue(0),
+                   flutter::EncodableValue(lngRet == OposSuccess ? "success"
+                                                               : "failured"));
 
     return;
   }
    
-  // 设置结束入金
-  if(method_call.method_name().compare("endDeposit") == 0) {
+    // 设置结束入金
+    if(method_call.method_name().compare("endDeposit") == 0) {
 
-    cerr << "endDeposit called 。。" << endl;
+        cerr << "endDeposit called 。。" << endl;
 
-    if (pCashChanger == nullptr) {
-        result->Error("Cash Changer not initialized");
-    }
-    auto arguments = method_call.arguments();
-    if (!arguments) {
-        cerr << "endDeposit param error 。。1" << endl;
-        return;
-    }
+        if (pCashChanger == nullptr) {
+                ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                                             flutter::EncodableValue(0),
+                                             flutter::EncodableValue("Cash Changer not initialized"));
+                return;
+        }
+        auto arguments = method_call.arguments();
+        if (!arguments) {
+                cerr << "endDeposit param error 。。1" << endl;
+                ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                                             flutter::EncodableValue(0),
+                                             flutter::EncodableValue("endDeposit param error 1"));
+                return;
+        }
     
-    int intSuc = 0;
-    const auto *mapValue = get_if<flutter::EncodableMap>(arguments);
-    auto it = mapValue->find(flutter::EncodableValue("end_deposit"));
-    if (it == mapValue->end()) {
-        cerr << "endDeposit param error 。。2" << endl;
+        int intSuc = 0;
+        const auto *mapValue = get_if<flutter::EncodableMap>(arguments);
+        auto it = mapValue->find(flutter::EncodableValue("end_deposit"));
+        if (it == mapValue->end()) {
+                cerr << "endDeposit param error 。。2" << endl;
+                ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                                             flutter::EncodableValue(0),
+                                             flutter::EncodableValue("endDeposit param error 2"));
+                return;
+        }
+
+        intSuc = get<int>(it->second);
+        cerr << "endDeposit param 。。" << intSuc << endl;
+        long lngRet = pCashChanger->EndDeposit(intSuc);
+        cerr << "EndDeposit result 。。 " << lngRet << endl;
+        if (lngRet == OposSuccess) {
+
+            ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                                         flutter::EncodableValue(intSuc),
+                                         flutter::EncodableValue("success"));
+
+        } else {
+                cerr << "EndDeposit error .. ResultCodeExtended " << pCashChanger->ResultCodeExtended << endl;
+            long errorCode = (pCashChanger->ResultCodeExtended == OPOS_ECHAN_DEPOSIT)
+                                                     ? OPOS_ECHAN_DEPOSIT
+                                                     : pCashChanger->ResultCodeExtended;
+            ReturnMapValue(move(result), flutter::EncodableValue(errorCode),
+                                         flutter::EncodableValue(intSuc),
+                                         flutter::EncodableValue("failured"));
+        }
         return;
     }
-
-    intSuc = get<int>(it->second);
-    cerr << "endDeposit param 。。" << intSuc << endl;
-    long lngRet = pCashChanger->EndDeposit(intSuc);
-    cerr << "EndDeposit result 。。 " << lngRet << endl;
-    if (lngRet == OposSuccess) {
-
-      result->Success(flutter::EncodableValue(lngRet));
-
-    } else {
-        cerr << "EndDeposit error .. ResultCodeExtended " << pCashChanger->ResultCodeExtended << endl;
-      if (pCashChanger->ResultCodeExtended == OPOS_ECHAN_DEPOSIT) {
-        result->Success(flutter::EncodableValue(OPOS_ECHAN_DEPOSIT));
-      } else {
-        result->Success(flutter::EncodableValue(pCashChanger->ResultCodeExtended));
-      }
-    }
-    return;
-  }
     
   // 出钞找钱
   if (method_call.method_name().compare("dispenseChange") == 0) {
     cerr << "dispenseChange called 。。" << endl;
 
     if (pCashChanger == nullptr) {
-        //result->Error("Cash Changer not initialized");
-        ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("Cash Changer not initialized"));
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("Cash Changer not initialized"));
+        return;
     }
 
     auto arguments = method_call.arguments();
     if (!arguments) {
         cerr << "dispenseChange param error 。。1" << endl;
-        ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("param error"));
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("dispenseChange param error 1"));
         return;
     }
     const auto *mapValue = get_if<flutter::EncodableMap>(arguments);
     if (!mapValue) {
         cerr << "dispenseChange param error 。。2" << endl;
-        ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("param error"));
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("dispenseChange param error 2"));
         return;
     }
 
-    // Accessing a value in the map
     auto it = mapValue->find(flutter::EncodableValue("dispense"));
     if (it == mapValue->end()) {
         cerr << "dispenseChange param error 。。3" << endl;
-        ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("param error"));
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("dispenseChange param error 3"));
         return;
     }
 
@@ -544,17 +575,18 @@ void CashChangerPlugin::HandleMethodCall(
     long lngRet = pCashChanger->DispenseChange(lngChange);
     cerr << "DispenseChange result 。。 " << lngRet << endl;
     if (lngRet == OposSuccess) {
-        // 成功出钞
-        //result->Success(flutter::EncodableValue(lngRet));
-        ReturnMapValue(move(result), flutter::EncodableValue(lngRet), flutter::EncodableValue(lngChange), flutter::EncodableValue("success"));
+        ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                       flutter::EncodableValue(lngChange),
+                       flutter::EncodableValue("success"));
+    } else if (lngRet == OposEExtended) {
+        ReturnMapValue(move(result),
+                       flutter::EncodableValue(pCashChanger->ResultCodeExtended),
+                       flutter::EncodableValue(lngChange),
+                       flutter::EncodableValue("failured"));
     } else {
-
-        if (lngRet == OposEExtended) {
-            ReturnMapValue(move(result), flutter::EncodableValue(pCashChanger->ResultCodeExtended), flutter::EncodableValue(lngChange), flutter::EncodableValue("failured"));
-        } else {
-            //result->Success(flutter::EncodableValue(lngRet));
-            ReturnMapValue(move(result), flutter::EncodableValue(lngRet), flutter::EncodableValue(lngChange), flutter::EncodableValue("failured"));
-        }
+        ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                       flutter::EncodableValue(lngChange),
+                       flutter::EncodableValue("failured"));
     }
     
     return;
@@ -565,22 +597,26 @@ void CashChangerPlugin::HandleMethodCall(
     cerr << "depositRepay called .." << endl;
 
     if (pCashChanger == nullptr) {
-        result->Error("Cash Changer not initialized");
+                ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                                             flutter::EncodableValue(0),
+                                             flutter::EncodableValue("Cash Changer not initialized"));
+                return;
     }
 
     long lngRet = pCashChanger->EndDeposit(ChanDepositrepay);
     cerr << "depositRepay result 。。 " << lngRet << endl;
     if (lngRet == OposSuccess) {
-
-      result->Success(flutter::EncodableValue(lngRet));
-
+            ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                                         flutter::EncodableValue(0),
+                                         flutter::EncodableValue("success"));
     } else {
       cerr << "depositRepay error .." << pCashChanger->ResultCodeExtended << endl;
-      if (pCashChanger->ResultCodeExtended == OPOS_ECHAN_DEPOSIT) {
-        result->Success(flutter::EncodableValue(OPOS_ECHAN_DEPOSIT));
-      } else {
-        result->Success(flutter::EncodableValue(pCashChanger->ResultCodeExtended));
-      }
+            long resultCode = (pCashChanger->ResultCodeExtended == OPOS_ECHAN_DEPOSIT)
+                                                        ? OPOS_ECHAN_DEPOSIT
+                                                        : pCashChanger->ResultCodeExtended;
+            ReturnMapValue(move(result), flutter::EncodableValue(resultCode),
+                                         flutter::EncodableValue(0),
+                                         flutter::EncodableValue("failured"));
     }
     return;
   }
@@ -591,22 +627,26 @@ void CashChangerPlugin::HandleMethodCall(
     cerr << "errorRestore called 。。" << endl;
 
     if (pCashChanger == nullptr) {
-        result->Error("Cash Changer not initialized");
+                ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                                             flutter::EncodableValue(0),
+                                             flutter::EncodableValue("Cash Changer not initialized"));
+                return;
     }
 
     long lngRet = pCashChanger->ClearInput();
 
-    if (lngRet == OposSuccess) {
-
-      result->Success(flutter::EncodableValue(lngRet));
-
-    } else {
-      if (pCashChanger->ResultCodeExtended == OPOS_ECHAN_DEPOSIT) {
-        result->Success(flutter::EncodableValue(OPOS_ECHAN_DEPOSIT));
-      } else {
-        result->Success(flutter::EncodableValue(pCashChanger->ResultCodeExtended));
-      }
-    }
+        if (lngRet == OposSuccess) {
+            ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                                         flutter::EncodableValue(0),
+                                         flutter::EncodableValue("success"));
+        } else {
+            long code = (pCashChanger->ResultCodeExtended == OPOS_ECHAN_DEPOSIT)
+                                            ? OPOS_ECHAN_DEPOSIT
+                                            : pCashChanger->ResultCodeExtended;
+            ReturnMapValue(move(result), flutter::EncodableValue(code),
+                                         flutter::EncodableValue(0),
+                                         flutter::EncodableValue("failured"));
+        }
     return;
   }
     
@@ -615,95 +655,92 @@ void CashChangerPlugin::HandleMethodCall(
     cerr << "collectAll called 。。" << endl;
 
     if (pCashChanger == nullptr) {
-        result->Error("Cash Changer not initialized");
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("Cash Changer not initialized"));
+        return;
     }
 
-    int lngRet;
     long lngData = 0;
     bool blnBill = false;
     bool blnCoin = false;
 
-    //int lngChange = 0;
     auto arguments = method_call.arguments();
     if (!arguments) {
-        cerr << "endDeposit param error 。。1" << endl;
+        cerr << "collectAll param error 。。1" << endl;
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("collectAll param error 1"));
         return;
     }
     const auto *mapValue = get_if<flutter::EncodableMap>(arguments);
-    // Accessing a value in the map
-    auto it = mapValue->find(flutter::EncodableValue("Bill"));
-    if (it != mapValue->end()) {
-        auto intValue = get_if<int>(&it->second);
-        if (intValue != nullptr) {
-            blnBill = *intValue == 1 ? true : false;
-        } else {
-            cerr << "checkErrorCode param error 。。2" << endl;
-            return;
-        }
-        
-    } else {
-        cerr << "endDeposit param error 。。2" << endl;
+    if (!mapValue) {
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("collectAll param error 2"));
         return;
     }
 
-    auto it1 = mapValue->find(flutter::EncodableValue("Coin"));
-    if (it1 != mapValue->end()) {
-        lngData = get<int>(it1->second) == 1 ? true : false;
-        auto intValue = get_if<int>(&it->second);
-        if (intValue != nullptr) {
-            blnCoin = *intValue == 1 ? true : false;
+    auto billIt = mapValue->find(flutter::EncodableValue("Bill"));
+    if (billIt != mapValue->end()) {
+        if (const auto *intValue = get_if<int>(&billIt->second)) {
+            blnBill = *intValue == 1;
         } else {
-            cerr << "checkErrorCode param error 。。2" << endl;
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("collectAll param error 3"));
             return;
         }
     } else {
-        cerr << "endDeposit param error 。。3" << endl;
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("collectAll param error 2"));
         return;
     }
 
-    if (blnBill != NULL && blnBill) {
-        lngData = lngData | 0x3;
+    auto coinIt = mapValue->find(flutter::EncodableValue("Coin"));
+    if (coinIt != mapValue->end()) {
+        if (const auto *intValue = get_if<int>(&coinIt->second)) {
+            blnCoin = *intValue == 1;
+        } else {
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("collectAll param error 4"));
+            return;
+        }
+    } else {
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("collectAll param error 3"));
+        return;
     }
-    if (blnCoin != NULL && blnCoin) {
-        lngData = lngData | 0x70000;
+
+    if (blnBill) {
+        lngData |= 0x3;
     }
+    if (blnCoin) {
+        lngData |= 0x70000;
+    }
+
     BSTR bstr = SysAllocString(L"");
-    //gfncOposLog("DirectIO CHAN_DI_COLLECT", true, "", "ClassName", "", "");
-    lngRet = pCashChanger->DirectIO(CHAN_DI_COLLECT, &lngData, &bstr);
-    //gfncOposLog("DirectIO CHAN_DI_COLLECT", false, "結果コード：" + to_string(lngRet), "ClassName", "", "");
-    //SysFreeString(bstr);
-    switch (pCashChanger->ResultCode) {
-        case OposSuccess:
-  
-            result->Success(flutter::EncodableValue(OposSuccess));
-            break;
-        case OposEExtended:
-            switch (pCashChanger->ResultCodeExtended) {
-                case OPOS_ECHAN_OVERDISPENSE:
-                    //modFunc.menmErrStatus = GE_CASHCHANGER_ERROR_NOCHANGE;
-                    result->Success(flutter::EncodableValue(OPOS_ECHAN_OVERDISPENSE));
-                    break;
-                case OPOS_ECHAN_OVER:
-                    //modFunc.menmErrStatus = GE_CASHCHANGER_ERROR_OVER;
-                    result->Success(flutter::EncodableValue(OPOS_ECHAN_OVER));
-                    break;
-                case OPOS_ECHAN_SETERROR:
-                case OPOS_ECHAN_ERROR:
-                case OPOS_ECHAN_BUSY:
-                    //modFunc.menmErrStatus = GE_CASHCHANGER_ERROR_CHANGER;
-                    result->Success(flutter::EncodableValue(pCashChanger->ResultCode));
+    long lngRet = pCashChanger->DirectIO(CHAN_DI_COLLECT, &lngData, &bstr);
+    cerr << "DirectIO CHAN_DI_COLLECT end 。。 " << lngRet << endl;
+    SysFreeString(bstr);
 
-                    break;
-                default:
-                    result->Success(flutter::EncodableValue(pCashChanger->ResultCode));
-                    //modFunc.menmErrStatus = GE_CASHCHANGER_ERROR_ELSE;
-
-            }
-            break;
-        default:
-            result->Success(flutter::EncodableValue(pCashChanger->ResultCode));
-            //modFunc.menmErrStatus = GE_CASHCHANGER_ERROR_ELSE;
+    long responseCode = pCashChanger->ResultCode;
+    string message = "success";
+    if (responseCode == OposSuccess) {
+        message = "success";
+    } else if (responseCode == OposEExtended) {
+        responseCode = pCashChanger->ResultCodeExtended;
+        message = "failured";
+    } else {
+        message = "failured";
     }
+
+    ReturnMapValue(move(result), flutter::EncodableValue(responseCode),
+                   flutter::EncodableValue(lngData),
+                   flutter::EncodableValue(message));
     return;
   }
 
@@ -712,18 +749,18 @@ void CashChangerPlugin::HandleMethodCall(
 
     if (pCashChanger == nullptr) {
         cerr << "Cash Changer not initialized" << endl;
-        result->Success(flutter::EncodableValue(-1));
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("Cash Changer not initialized"));
         return;
-        //result->Error("Cash Changer not initialized");
     }
 
     long lngRet = pCashChanger->CheckHealth(OposChInternal);
     cerr << "CheckHealth end 。。 " << lngRet << endl;
-    if (lngRet == OposSuccess) {
-        result->Success(flutter::EncodableValue(OposSuccess));
-    } else {
-        result->Success(flutter::EncodableValue(lngRet));
-    }
+    ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                   flutter::EncodableValue(0),
+                   flutter::EncodableValue(lngRet == OposSuccess ? "success"
+                                                               : "failured"));
 
     return;
   }
@@ -735,7 +772,9 @@ void CashChangerPlugin::HandleMethodCall(
     cerr << "changer_di_status called 。。" << endl;
 
     if (pCashChanger == nullptr) {
-        result->Error("Cash Changer not initialized");
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("Cash Changer not initialized"));
         return;
     }
 
@@ -744,11 +783,17 @@ void CashChangerPlugin::HandleMethodCall(
     auto arguments = method_call.arguments();
     if (!arguments) {
         cerr << "changer_di_status param error 。。1" << endl;
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("changer_di_status param error 1"));
         return;
     }
     const auto *mapValue = get_if<flutter::EncodableMap>(arguments);
     if (!mapValue) {
         cerr << "changer_di_status param error 。。2" << endl;
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("changer_di_status param error 2"));
         return;
     }
     // Accessing a value in the map
@@ -757,13 +802,18 @@ void CashChangerPlugin::HandleMethodCall(
         lngData = get<int>(it->second);
     } else {
         cerr << "changer_di_status param error 。。2" << endl;
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("changer_di_status param error 3"));
         return;
     }
 
     BSTR strTemp = SysAllocString(L"");
     if (!strTemp) {
         cerr << "Failed to allocate BSTR" << endl;
-        result->Error("Memory allocation failed");
+        ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("Memory allocation failed"));
         return;
     }
     long lngRet = pCashChanger->DirectIO(CHAN_DI_STATUSREAD, &lngData, &strTemp);
@@ -776,13 +826,14 @@ void CashChangerPlugin::HandleMethodCall(
         string str = (const char*)bstrCashCounts;
         cerr << "str : " << str << endl;
 
-        result->Success(flutter::EncodableValue(str));
-        //打印result 是否有值
-        cerr << "result : " << result << endl;
+        ReturnMapValue(move(result), flutter::EncodableValue(OposSuccess),
+                       flutter::EncodableValue(str),
+                       flutter::EncodableValue("success"));
     } else {
-        //result->Success(flutter::EncodableValue(lngRet));
         cerr << "DirectIO CHAN_DI_STATUSREAD error .." << lngRet << endl;
-        result->Error("Cash Changer Status no response");
+        ReturnMapValue(move(result), flutter::EncodableValue(lngRet),
+                       flutter::EncodableValue(0),
+                       flutter::EncodableValue("Cash Changer Status no response"));
     }
     //SysFreeString(strTemp);
     
@@ -794,7 +845,9 @@ void CashChangerPlugin::HandleMethodCall(
         cerr << "startSupply called 。。" << endl;
     
         if (pCashChanger == nullptr) {
-            result->Error("Cash Changer not initialized");
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("Cash Changer not initialized"));
             return;
         }
         cerr << "DirectIO CHAN_DI_SUPPLY start 。。 " << endl;
@@ -811,7 +864,6 @@ void CashChangerPlugin::HandleMethodCall(
         cerr << "getSupplyCounts called 。。" << endl;
     
         if (pCashChanger == nullptr) {
-            result->Error("Cash Changer not initialized");
             ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("Cash Changer not initialized"));
             return;
         }
@@ -873,14 +925,18 @@ void CashChangerPlugin::HandleMethodCall(
         cerr << "countClear called 。。" << endl;
     
         if (pCashChanger == nullptr) {
-            result->Error("Cash Changer not initialized");
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("Cash Changer not initialized"));
             return;
         }
         long lngData = 0;
         BSTR strTemp = SysAllocString(L"");
         if (!strTemp) {
             cerr << "Failed to allocate BSTR" << endl;
-            result->Error("Memory allocation failed");
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("Memory allocation failed"));
             return;
         }
         DirectIOMethod(move(result), CHAN_DI_COUNTCLR, lngData, strTemp);
@@ -894,14 +950,18 @@ void CashChangerPlugin::HandleMethodCall(
         cerr << "reset called 。。" << endl;
     
         if (pCashChanger == nullptr) {
-            result->Error("Cash Changer not initialized");
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("Cash Changer not initialized"));
             return;
         }
         long lngData = 0;
         BSTR strTemp = SysAllocString(L"");
         if (!strTemp) {
             cerr << "Failed to allocate BSTR" << endl;
-            result->Error("Memory allocation failed");
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("Memory allocation failed"));
             return;
         }
         DirectIOMethod(move(result), CHAN_DI_RESET, lngData, strTemp);
@@ -915,7 +975,9 @@ void CashChangerPlugin::HandleMethodCall(
         cerr << "beginDepositOutside called 。。" << endl;
     
         if (pCashChanger == nullptr) {
-            result->Error("Cash Changer not initialized");
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("Cash Changer not initialized"));
             return;
         }
         long lngData = 0;
@@ -932,17 +994,18 @@ void CashChangerPlugin::HandleMethodCall(
         cerr << "dispenseCashOutside called 。。" << endl;
     
         if (pCashChanger == nullptr) {
-            //result->Error("Cash Changer not initialized");
-            //ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("Cash Changer not initialized"));
-            result->Success(flutter::EncodableValue(-1));
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("Cash Changer not initialized"));
+            return;
         }
         BSTR cashInfo = SysAllocString(L"");
         long lngData = 0;
         auto arguments = method_call.arguments();
         if (!arguments) {
-            //cerr << "dispenseCashOutside param error 。。1" << endl;
-            //ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("param error"));
-            result->Success(flutter::EncodableValue(-1));
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("dispenseCashOutside param error 1"));
             return;
         }
         const auto *mapValue = get_if<flutter::EncodableMap>(arguments);
@@ -954,8 +1017,9 @@ void CashChangerPlugin::HandleMethodCall(
             cashInfo = bstr;
         } else {
             cerr << "dispenseCashOutside param error 。。2" << endl;
-            //ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("param error"));
-            result->Success(flutter::EncodableValue(-1));
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("dispenseCashOutside param error 2"));
             return;
         }
         
@@ -970,17 +1034,18 @@ void CashChangerPlugin::HandleMethodCall(
         cerr << "dispenseChangeOutside called 。。" << endl;
     
         if (pCashChanger == nullptr) {
-            //result->Error("Cash Changer not initialized");
-            //ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("Cash Changer not initialized"));
-            result->Success(flutter::EncodableValue(-1));
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("Cash Changer not initialized"));
+            return;
         }
         BSTR cashInfo = SysAllocString(L"");
         long lngData = 0;
         auto arguments = method_call.arguments();
         if (!arguments) {
-            //cerr << "dispenseChangeOutside param error 。。1" << endl;
-            //ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("param error"));
-            result->Success(flutter::EncodableValue(-1));
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("dispenseChangeOutside param error 1"));
             return;
         }
         const auto *mapValue = get_if<flutter::EncodableMap>(arguments);
@@ -990,8 +1055,9 @@ void CashChangerPlugin::HandleMethodCall(
             cerr << "count : " << lngData << endl;
         } else {
             cerr << "dispenseChangeOutside param error 。。2" << endl;
-            //ReturnMapValue(move(result), flutter::EncodableValue(-1), flutter::EncodableValue(0), flutter::EncodableValue("param error"));
-            result->Success(flutter::EncodableValue(-1));
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("dispenseChangeOutside param error 2"));
             return;
         }
         
@@ -1007,7 +1073,9 @@ void CashChangerPlugin::HandleMethodCall(
         cerr << "beginCashReturn called 。。" << endl;
     
         if (pCashChanger == nullptr) {
-            result->Error("Cash Changer not initialized");
+            ReturnMapValue(move(result), flutter::EncodableValue(-1),
+                           flutter::EncodableValue(0),
+                           flutter::EncodableValue("Cash Changer not initialized"));
             return;
         }
         BSTR strTemp = SysAllocString(L"");

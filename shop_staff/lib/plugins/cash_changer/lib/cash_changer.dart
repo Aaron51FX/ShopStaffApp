@@ -2,6 +2,35 @@ import 'cash_changer_define.dart';
 import 'package:cash_changer/cash_changer_platform_interface.dart';
 import 'package:flutter/foundation.dart';
 
+class CashOperationResult<T> {
+  final T? data;
+  final CashOperationError? error;
+
+  const CashOperationResult._({this.data, this.error});
+
+  bool get isSuccess => error == null;
+
+  factory CashOperationResult.success([T? data]) =>
+      CashOperationResult._(data: data);
+
+  factory CashOperationResult.failure({
+    required int code,
+    String? message,
+    bool retriable = false,
+  }) =>
+      CashOperationResult._(
+        error: CashOperationError(code: code, message: message, retriable: retriable),
+      );
+}
+
+class CashOperationError {
+  final int code;
+  final String? message;
+  final bool retriable;
+
+  const CashOperationError({required this.code, this.message, this.retriable = false});
+}
+
 class CashChanger {
   static int? putMoney = 0;
   static String putCurrency = "";
@@ -77,217 +106,371 @@ class CashChanger {
   static Future<String?> get getPlatformVersion async {
     return CashChangerPlatform.instance.getPlatformVersion();
   }
-
+  
+      // {required Function onSuccess,
+      // required Function(int, String) catchError}
   //Open cash changer
-  static Future<bool> openCashChanger(
-      {required Function onSuccess,
-      required Function(int, String) catchError}) async {
+  static Future<CashOperationResult<bool>> openCashChanger() async {
     Map? result = await CashChangerPlatform.instance.openCashChanger();
-    var ret = false;
-    await openChangerNext(
-        openResult: result?['code'],
-        onSuccess: () async {
-          ret = true;
-          onSuccess();
-        },
-        onRetry: () async {
-          await Future.delayed(Duration(milliseconds: 200));
-          openCashChanger;
-        },
-        showError: (error) async {
-          ret = false;
-          catchError(result?['code'], error);
-        });
-    return ret;
-  }
-
-  //Close cash changer
-  static Future<int?> get closeCashChanger async {
-    return CashChangerPlatform.instance.closeCashChanger();
-  }
-
-  //Get Cash Balance Info
-  static Future<bool> getCashBalance(
-      {required Function(String) onSuccess,
-      required Function(String) catchError}) async {
-    Map? result = await CashChangerPlatform.instance.getCashBalance();
-    var ret = false;
     if (result == null) {
-      return ret;
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
     }
+    CashOperationResult<bool>? response;
     await changerResultNext(
         resultCode: result['code'],
         onSuccess: () {
-          ret = true;
-          onSuccess(result['value'] ?? "");
+          response = CashOperationResult.success(true);
         },
-        onRetry: () async {
-          await Future.delayed(Duration(milliseconds: 200));
-          getCashBalance;
-        },
-        showError: (error) async {
-          ret = false;
-          catchError(error);
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
         });
-    return ret;
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
-  static Future<bool> startDeposit(
-      {required Function onSuccess,
-      required Function(String) catchError}) async {
-    var ret = false;
-    final resultMap = await CashChangerPlatform.instance.startDeposit();
+  //Close cash changer
+  static Future<CashOperationResult<void>> get closeCashChanger async {
+    Map? result = await CashChangerPlatform.instance.closeCashChanger();
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
     await changerResultNext(
-        resultCode: resultMap?['code'],
+        resultCode: result['code'],
+        onSuccess: () => response = CashOperationResult.success(),
+        showError: (error) => response = CashOperationResult.failure(code: result['code'] ?? -1, message: error),
+    );
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
+  }
+
+  //Get Cash Balance Info
+  static Future<CashOperationResult<String>> getCashBalance() async {
+    Map? result = await CashChangerPlatform.instance.getCashBalance();
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<String>? response;
+    await changerResultNext(
+        resultCode: result['code'],
         onSuccess: () {
-          onSuccess();
-          ret = true;
+          String value = result['value'] ?? "";
+          response = CashOperationResult.success(value);
         },
-        onRetry: () async {
-          await Future.delayed(Duration(milliseconds: 200));
-          startDeposit(onSuccess: onSuccess, catchError: catchError);
-        },
-        showError: (error) async {
-          catchError(error);
-          ret = false;
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
         });
-    return ret;
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
+  }
+
+  static Future<CashOperationResult<bool>> startDeposit() async {
+    
+    final resultMap = await CashChangerPlatform.instance.startDeposit();
+    if (resultMap == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<bool>? response;
+    await changerResultNext(
+        resultCode: resultMap['code'],
+        onSuccess: () {
+          response = CashOperationResult.success(true);
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: resultMap['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //Deposit Amount
-  static Future<int?> get depositAmount async {
-    return CashChangerPlatform.instance.depositAmount();
+  static Future<CashOperationResult<int>> get depositAmount async {
+     final resultMap = await CashChangerPlatform.instance.depositAmount();
+      if (resultMap == null) {
+        return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+      }
+      CashOperationResult<int>? response;
+      await changerResultNext(
+          resultCode: resultMap['code'],
+          onSuccess: () {
+            int value = resultMap['value'] ?? 0;
+            response = CashOperationResult.success(value);
+          },
+          showError: (error) {
+            response = CashOperationResult.failure(code: resultMap['code'] ?? -1, message: error);
+          });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
-  static Future<int?> get fixDeposit async {
-    return CashChangerPlatform.instance.fixDeposit();
+  static Future<CashOperationResult<int>> get fixDeposit async {
+    final resultMap = await CashChangerPlatform.instance.fixDeposit();
+    if (resultMap == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<int>? response;
+    await changerResultNext(
+        resultCode: resultMap['code'],
+        onSuccess: () {
+          int value = resultMap['value'] ?? 0;
+          response = CashOperationResult.success(value);
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: resultMap['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //end Deposit
-  static Future<int?> endDeposit(int status) async {
-    return CashChangerPlatform.instance.endDeposit(status);
+  static Future<CashOperationResult<void>> endDeposit(int status) async {
+    final result = await CashChangerPlatform.instance.endDeposit(status);
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          response = CashOperationResult.success();
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //Dispense Change
-  static Future<Map?> dispenseChange(int change) async {
-    return CashChangerPlatform.instance.dispenseChange(change);
+  static Future<CashOperationResult<void>> dispenseChange(int change) async {
+    final result = await CashChangerPlatform.instance.dispenseChange(change);
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          response = CashOperationResult.success();
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //Deposit Repay
-  static Future<int?> get depositRepay async {
-    return CashChangerPlatform.instance.depositRepay();
+  static Future<CashOperationResult<void>> get depositRepay async {
+    final result = await CashChangerPlatform.instance.depositRepay();
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          response = CashOperationResult.success();
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //Check Changer Status
-  static Future<int?> get checkChangerStatus async {
-    return CashChangerPlatform.instance.checkChangerStatus();
+  static Future<CashOperationResult<int>> get checkChangerStatus async {
+    final result = await CashChangerPlatform.instance.checkChangerStatus();
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<int>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          int value = result['value'] ?? 0;
+          response = CashOperationResult.success(value);
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //supply cash
-  static Future<int?> get startSupply async {
-    return CashChangerPlatform.instance.startSupply();
+  static Future<CashOperationResult<void>> get startSupply async {
+    final result = await CashChangerPlatform.instance.startSupply();
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          response = CashOperationResult.success();
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //SUPPLYCOUNTS
-  static Future<bool> supplyCounts(int mode,
-      {required Function(String) onSuccess,
-      required Function(String) catchError}) async {
-    Map? result = await CashChangerPlatform.instance.supplyCounts(mode);
-    var ret = false;
+  static Future<CashOperationResult<String>> supplyCounts(int mode) async {
+    final result = await CashChangerPlatform.instance.supplyCounts(mode);
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<String>? response;
     await changerResultNext(
-        resultCode: result?['code'],
+        resultCode: result['code'],
         onSuccess: () {
-          ret = true;
-          onSuccess(result?['value'] ?? "");
+          String value = result['value'] ?? "";
+          response = CashOperationResult.success(value);
         },
-        onRetry: () async {
-          await Future.delayed(Duration(milliseconds: 200));
-          supplyCounts(mode, onSuccess: onSuccess, catchError: catchError);
-        },
-        showError: (error) async {
-          ret = false;
-          catchError(error);
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
         });
-    return ret;
+
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //COUNTCLR
-  static Future<int?> countClear() async {
-    return CashChangerPlatform.instance.countClear();
+  static Future<CashOperationResult<void>> countClear() async {
+    final result = await CashChangerPlatform.instance.countClear();
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          response = CashOperationResult.success();
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //dispenseCashOutside
-  static Future<int?> dispenseCashOutside(String cashInfo) async {
-    return CashChangerPlatform.instance.dispenseCashOutside(cashInfo);
+  static Future<CashOperationResult<void>> dispenseCashOutside(String cashInfo) async {
+    final result = await CashChangerPlatform.instance.dispenseCashOutside(cashInfo);
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          response = CashOperationResult.success();
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //dispenseChangeOutside
-  static Future<bool> dispenseChangeOutside(int count,
-      {required Function() onSuccess,
-      required Function(String) catchError}) async {
-    int? result =
+  static Future<CashOperationResult<void>> dispenseChangeOutside(int count) async {
+    Map? result  =
         await CashChangerPlatform.instance.dispenseChangeOutside(count);
-    var ret = false;
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
     await changerResultNext(
-        resultCode: result ?? -1,
+        resultCode: result['code'],
         onSuccess: () {
-          ret = true;
-          onSuccess();
+          response = CashOperationResult.success();
         },
-        onRetry: () async {
-          await Future.delayed(Duration(milliseconds: 200));
-          dispenseChangeOutside(count,
-              onSuccess: onSuccess, catchError: catchError);
-        },
-        showError: (error) async {
-          ret = false;
-          catchError(error);
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
         });
-    return ret;
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //beginCashReturn
-  static Future<int?> get beginCashReturn async {
-    return CashChangerPlatform.instance.beginCashReturn();
+  static Future<CashOperationResult<void>> get beginCashReturn async {
+    final result = await CashChangerPlatform.instance.beginCashReturn();
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          response = CashOperationResult.success();
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //BEGINDEPOSITOUTSIDE
-  static Future<int?> get beginDepositOutside async {
-    return CashChangerPlatform.instance.beginDepositOutside();
+  static Future<CashOperationResult<void>> get beginDepositOutside async {
+    final result = await CashChangerPlatform.instance.beginDepositOutside();
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          response = CashOperationResult.success();
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //changer di status
-  static Future<String?> changerDIStatus(int pData) async {
-    return CashChangerPlatform.instance.changerDIStatus(pData);
+  static Future<CashOperationResult<String>> changerDIStatus(int pData) async {
+    final result = await CashChangerPlatform.instance.changerDIStatus(pData);
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<String>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          String value = result['value'] ?? "";
+          response = CashOperationResult.success(value);
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //dispense cash
-  static Future<bool> dispenseCash(String cashCounts,
-      {required Function onSuccess,
-      required Function(String) catchError}) async {
+  static Future<CashOperationResult<void>> dispenseCash(String cashCounts) async {
     Map? result = await CashChangerPlatform.instance.dispenseCash(cashCounts);
-    var ret = false;
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
     await changerResultNext(
-        resultCode: result?['code'],
+        resultCode: result['code'],
         onSuccess: () {
-          ret = true;
-          onSuccess();
+          response = CashOperationResult.success();
         },
-        onRetry: () async {
-          await Future.delayed(Duration(milliseconds: 200));
-          dispenseCash(cashCounts,
-              onSuccess: onSuccess, catchError: catchError);
-        },
-        showError: (error) async {
-          ret = false;
-          catchError(error);
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
         });
-    return ret;
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   //collectAll
-  static Future<int?> collectAll({int bill = 1, int coin = 1}) async {
-    return CashChangerPlatform.instance.collectAll(bill: bill, coin: coin);
+  static Future<CashOperationResult<void>> collectAll({int bill = 1, int coin = 1}) async {
+    final result = await CashChangerPlatform.instance.collectAll(bill: bill, coin: coin);
+    if (result == null) {
+      return CashOperationResult.failure(code: -1, message: 'cash_error_common');
+    }
+    CashOperationResult<void>? response;
+    await changerResultNext(
+        resultCode: result['code'],
+        onSuccess: () {
+          response = CashOperationResult.success();
+        },
+        showError: (error) {
+          response = CashOperationResult.failure(code: result['code'] ?? -1, message: error);
+        });
+    return response ?? CashOperationResult.failure(code: -1, message: 'cash_error_common');
   }
 
   static getOposResult(int? result) {
@@ -316,7 +499,7 @@ class CashChanger {
   static Future changerResultNext(
       {required int? resultCode,
       required Function onSuccess,
-      required Function onRetry,
+      //required Function onRetry,
       required Function(String) showError}) async {
     OposResult result = getOposResult(resultCode);
     debugPrint("changerResultNext: ${result.resultCode}");
@@ -352,7 +535,7 @@ class CashChanger {
         changerResultExtendedNext(
             resultCodeExtended: result.resultCodeExtended,
             onSuccess: onSuccess,
-            onRetry: onRetry,
+            //onRetry: onRetry,
             showError: showError);
         break;
       default:
@@ -364,7 +547,7 @@ class CashChanger {
   static Future changerResultExtendedNext(
       {required ResultCodeExtended resultCodeExtended,
       required Function onSuccess,
-      required Function onRetry,
+      //required Function onRetry,
       required Function(String) showError}) async {
     debugPrint("changerResultExtendedNext: $resultCodeExtended");
     switch (resultCodeExtended) {
@@ -377,12 +560,12 @@ class CashChanger {
         break;
       case ResultCodeExtended.OPOS_ECHAN_IFERROR: //通信异常 重试
 
-        final result = await endDeposit(DepositAction.repay.index);
-        if (result == 0) {
-          onRetry();
-        } else {
+        // final result = await endDeposit(DepositAction.repay.index);
+        // if (result == 0) {
+        //   onRetry();
+        // } else {
           showError("cash_error_if_error");
-        }
+        //}
         //onRetry();
         //showError("cash_error_if_error");
         break;
@@ -452,7 +635,7 @@ class CashChanger {
   static Future openChangerNext(
       {required int? openResult,
       required Function onSuccess,
-      Function? onRetry,
+      //Function? onRetry,
       required Function(String) showError}) async {
     if (openResult == null) {
       showError("cash_error_common");
@@ -465,7 +648,7 @@ class CashChanger {
               ResultCodeExtended.values.fromIndex(openResult - 200) ??
                   ResultCodeExtended.NONE,
           onSuccess: onSuccess,
-          onRetry: onRetry ?? () {},
+          //onRetry: onRetry ?? () {},
           showError: showError);
       return;
     }

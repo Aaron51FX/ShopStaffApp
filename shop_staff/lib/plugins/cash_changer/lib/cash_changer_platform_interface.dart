@@ -36,7 +36,7 @@ abstract class CashChangerPlatform extends PlatformInterface {
   }
 
   //Close cash change
-  Future<int?> closeCashChanger() {
+  Future<Map?> closeCashChanger() {
     throw UnimplementedError('closeCashChanger() has not been implemented.');
   }
 
@@ -50,17 +50,17 @@ abstract class CashChangerPlatform extends PlatformInterface {
   }
 
   //Deposit Amount
-  Future<int?> depositAmount() {
+  Future<Map?> depositAmount() {
     throw UnimplementedError('depositAmount() has not been implemented.');
   }
 
   //fixDeposit
-  Future<int?> fixDeposit() {
+  Future<Map?> fixDeposit() {
     throw UnimplementedError('fixDeposit() has not been implemented.');
   }
 
   //End Deposit
-  Future<int?> endDeposit(int status) {
+  Future<Map?> endDeposit(int status) {
     throw UnimplementedError('stopDeposit() has not been implemented.');
   }
 
@@ -70,17 +70,17 @@ abstract class CashChangerPlatform extends PlatformInterface {
   }
   
   //Deposit Repay
-  Future<int?> depositRepay() {
+  Future<Map?> depositRepay() {
     throw UnimplementedError('depositRepay() has not been implemented.');
   }
 
   //Check Changer Status
-  Future<int?> checkChangerStatus() {
+  Future<Map?> checkChangerStatus() {
     throw UnimplementedError('checkChangerStatus() has not been implemented.');
   }
 
   //startSupply
-  Future<int?> startSupply() {
+  Future<Map?> startSupply() {
     throw UnimplementedError('startSupply() has not been implemented.');
   }
 
@@ -90,27 +90,27 @@ abstract class CashChangerPlatform extends PlatformInterface {
   }
 
   //COUNTCLR
-  Future<int?> countClear() {
+  Future<Map?> countClear() {
     throw UnimplementedError('countClear() has not been implemented.');
   }
 
   //dispenseCashOutside
-  Future<int?> dispenseCashOutside(String cashInfo) {
+  Future<Map?> dispenseCashOutside(String cashInfo) {
     throw UnimplementedError('dispenseCashOutside() has not been implemented.');
   }
 
   //dispenseChangeOutside
-  Future<int?> dispenseChangeOutside(int count) {
+  Future<Map?> dispenseChangeOutside(int count) {
     throw UnimplementedError('dispenseCashOutside() has not been implemented.');
   }
 
   //beginCashReturn
-  Future<int?> beginCashReturn() {
+  Future<Map?> beginCashReturn() {
     throw UnimplementedError('beginCashReturn() has not been implemented.');
   }
 
   //BEGINDEPOSITOUTSIDE
-  Future<int?> beginDepositOutside() {
+  Future<Map?> beginDepositOutside() {
     throw UnimplementedError('beginDepositOutside() has not been implemented.');
   }
   
@@ -125,7 +125,7 @@ abstract class CashChangerPlatform extends PlatformInterface {
   }
 
   //Changer DI Status
-  Future<String?> changerDIStatus(int pData) {
+  Future<Map?> changerDIStatus(int pData) {
     throw UnimplementedError('changerDIStatus() has not been implemented.');
   }
 
@@ -135,7 +135,7 @@ abstract class CashChangerPlatform extends PlatformInterface {
   }
 
   //collectAll
-  Future<int?> collectAll({int bill = 1, int coin = 1}) {
+  Future<Map?> collectAll({int bill = 1, int coin = 1}) {
     throw UnimplementedError('collectAll() has not been implemented.');
   }
 
