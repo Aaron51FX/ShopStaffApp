@@ -1,4 +1,5 @@
 
+import 'package:flutter/material.dart';
 import 'package:shop_staff/domain/services/cash_machine_service.dart';
 import 'package:shop_staff/plugins/cash_changer/lib/cash_changer.dart';
 import 'package:shop_staff/plugins/cash_changer/lib/cash_changer_define.dart';
@@ -13,9 +14,41 @@ class CashMachineServiceImpl implements CashMachineService {
   Future<CashMachineInitResult> initialize() async {
     try {
       final status = await CashChanger.checkChangerStatus;
+      // if (!status.isSuccess) {
+      //   return _fail(status.error);
+      // }
+      
       if (!status.isSuccess) {
-        return _fail(status.error);
+        int retCode = status.error?.code ?? -1;
+        debugPrint('Cash Changer open error code: $retCode');
+        if (retCode == 0) {
+          retCode = 100;
+        }
+        HealthResultCode resultCodeEnum = HealthResultCode.values[retCode - 100];
+
+        switch (resultCodeEnum) {
+          case HealthResultCode.OPOS_SUCCESS:
+          case HealthResultCode.OPOS_E_ILLEGAL:
+            //await stopCashChanger(DepositAction.repay.index, true);
+            break;
+          case HealthResultCode.OPOS_E_CLOSED:
+          case HealthResultCode.OPOS_E_NOTCLAIMED:
+          case HealthResultCode.OPOS_E_DISABLED:
+            //await openCashChanger();
+            break;
+          case HealthResultCode.OPOS_E_BUSY:
+            await Future.delayed(Duration(seconds: 5));
+            //await checkChangerStatus();
+            break;
+          case HealthResultCode.OPOS_E_NOHARDWARE:
+            break;
+          default:
+            break;
+        }
+
+        //return _fail(open.error);
       }
+
       final open = await CashChanger.openCashChanger();
       if (!open.isSuccess) return _fail(open.error);
 

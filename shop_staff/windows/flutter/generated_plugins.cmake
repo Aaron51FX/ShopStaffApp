@@ -3,6 +3,7 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  cash_changer
   flutter_secure_storage_windows
   screen_retriever_windows
   window_manager

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../../../domain/settings/app_settings_models.dart';
@@ -35,6 +36,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     return CashMachineDialogPortal(
       child: Scaffold(
         backgroundColor: theme.colorScheme.surface,
+        appBar: AppBar(
+          toolbarHeight: 64,
+          elevation: 6, // stronger shadow
+          shadowColor: Colors.grey.withAlpha(100),
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.stone500,
+          titleSpacing: 0,
+          title: Text('設置'),
+        ),
         body: SafeArea(
           child: Row(
           children: [
