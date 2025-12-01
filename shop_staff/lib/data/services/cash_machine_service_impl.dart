@@ -30,11 +30,11 @@ class CashMachineServiceImpl implements CashMachineService {
       //   return _fail(status.error);
       // }
       
-      if (!status.isSuccess) {
-        final message = _messageFromError(status.error);
-        _emitError(message);
-        return CashMachineInitResult(isReady: false, message: message);
-      }
+      // if (!status.isSuccess) {
+      //   final message = _messageFromError(status.error);
+      //   _emitError(message);
+      //   return CashMachineInitResult(isReady: false, message: message);
+      // }
 
       final recovered = await _recoverIfNeeded(status.error?.code ?? 0);
       if (!recovered.isSuccess) {
@@ -289,7 +289,6 @@ class CashMachineServiceImpl implements CashMachineService {
       case HealthResultCode.OPOS_E_CLOSED:
       case HealthResultCode.OPOS_E_NOTCLAIMED:
       case HealthResultCode.OPOS_E_DISABLED:
-        return const _RecoverResult.success();
       default:
         return const _RecoverResult.success();
     }
