@@ -43,6 +43,24 @@ class CashMachineServiceImpl implements CashMachineService {
         return CashMachineInitResult(isReady: false, message: message);
       }
 
+      final open = await CashChanger.openCashChanger();
+      if (!open.isSuccess) {
+        final code = open.error?.code ?? -1;
+        if (code == 225) {
+          // Already opened
+        } else {
+          final message = _messageFromError(open.error);
+          _emitError(message);
+          return CashMachineInitResult(isReady: false, message: message);
+        }
+      } 
+
+      final deposit = await CashChanger.depositAmount;
+      if (!deposit.isSuccess) _failAndThrow(deposit.error);
+
+      final endDeposit = await CashChanger.endDeposit(DepositAction.repay.index);
+      if (!endDeposit.isSuccess) _failAndThrow(endDeposit.error);
+
       _emitStage(CashMachineStage.idle, '现金机可用');
       return const CashMachineInitResult(isReady: true);
     } catch (e, s) {
