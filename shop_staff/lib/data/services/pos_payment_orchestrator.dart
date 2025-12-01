@@ -85,7 +85,13 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
       _sessions.remove(sessionId);
     });
 
-    return PaymentSession(sessionId: sessionId, initialStatus: initialStatus);
+    entry.finalize = run.finalize;
+
+    return PaymentSession(
+      sessionId: sessionId,
+      initialStatus: initialStatus,
+      requiresManualCompletion: run.finalize != null,
+    );
   }
 
   @override
@@ -124,6 +130,24 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
     }
   }
 
+  @override
+  Future<void> finalize(String sessionId) async {
+    final entry = _sessions[sessionId];
+    if (entry == null) {
+      throw StateError('支付会话不存在');
+    }
+    final finalize = entry.finalize;
+    if (finalize == null) {
+      throw StateError('当前支付流程不需要确认');
+    }
+    try {
+      await finalize();
+    } catch (e, stack) {
+      _logger.warning('支付流程确认失败', e, stack);
+      rethrow;
+    }
+  }
+
   String _generateSessionId() {
     final timestamp = DateTime.now().microsecondsSinceEpoch;
     final randomPart = _random.nextInt(1 << 32);
@@ -151,4 +175,5 @@ class _PaymentSessionEntry {
   final Completer<PaymentResult> completer = Completer<PaymentResult>();
   StreamSubscription<PaymentStatus>? subscription;
   PaymentStatus? lastStatus;
+  Future<void> Function()? finalize;
 }

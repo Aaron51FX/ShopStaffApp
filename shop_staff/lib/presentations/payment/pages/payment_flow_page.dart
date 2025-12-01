@@ -221,7 +221,9 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         ),
         bottomNavigationBar: _BottomActionBar(
           state: state,
+          args: args,
           cancel: () => ref.read(provider.notifier).cancelPayment(),
+          confirm: () => ref.read(provider.notifier).confirmManualPayment(),
         ),
       ),
     );
@@ -470,14 +472,22 @@ class _StatusTimeline extends StatelessWidget {
 }
 
 class _BottomActionBar extends StatelessWidget {
-  const _BottomActionBar({required this.state, required this.cancel});
+  const _BottomActionBar({
+    required this.state,
+    required this.args,
+    required this.cancel,
+    required this.confirm,
+  });
 
   final PaymentFlowState state;
+  final PaymentFlowPageArgs args;
   final VoidCallback cancel;
+  final VoidCallback confirm;
 
   @override
   Widget build(BuildContext context) {
     final padding = MediaQuery.of(context).padding;
+    final isCash = args.channelGroup == PaymentChannels.cash;
     if (state.canExit) {
       final isSuccess = state.result?.status == PaymentStatusType.success;
       final label = isSuccess ? '完成并返回' : '返回POS';
@@ -487,6 +497,23 @@ class _BottomActionBar extends StatelessWidget {
           onPressed: () => context.go('/entry'),
           icon: Icon(isSuccess ? Icons.check_circle_outline : Icons.arrow_back),
           label: Text(label),
+        ),
+      );
+    }
+
+    if (isCash && state.requiresManualCompletion && state.confirmationReady && !state.isFinished) {
+      final receipt = state.pendingReceipt;
+      final amount = receipt?['acceptedAmount'];
+      final formattedAmount = amount is num ? amount.toInt() : null;
+      final label = formattedAmount != null ? '确认支付 ¥$formattedAmount' : '确认支付';
+      return Padding(
+        padding: EdgeInsets.fromLTRB(24, 12, 24, 12 + padding.bottom),
+        child: ElevatedButton.icon(
+          onPressed: state.isConfirming ? null : confirm,
+          icon: state.isConfirming
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.check_circle_outline),
+          label: Text(state.isConfirming ? '正在确认…' : label),
         ),
       );
     }

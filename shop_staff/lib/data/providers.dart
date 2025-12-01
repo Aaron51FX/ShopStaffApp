@@ -81,10 +81,6 @@ final paymentBackendGatewayProvider = Provider<PaymentBackendGateway>((ref) {
   return StubPaymentBackendGateway(logger: Logger('PaymentBackendGatewayStub'));
 });
 
-final cashMachineClientProvider = Provider<CashMachineClient>((ref) {
-  return StubCashMachineClient(logger: Logger('CashMachineClientStub'));
-});
-
 final dialogDrivenQrScannerProvider = ChangeNotifierProvider<DialogDrivenQrScannerService>((ref) {
   final service = DialogDrivenQrScannerService(logger: Logger('QrScannerService'));
   ref.onDispose(service.dispose);
@@ -105,8 +101,9 @@ final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
 });
 
 final cashMachineServiceProvider = Provider<CashMachineService>((ref) {
-  final logger = Logger('CashMachine');
-  return CashMachineServiceImpl(logger);
+  final service = CashMachineServiceImpl(Logger('CashMachine'));
+  ref.onDispose(service.dispose);
+  return service;
 });
 
 const _appVersion = '1.0.0';
@@ -130,7 +127,7 @@ final cardPaymentFlowProvider = Provider<CardPaymentFlow>((ref) {
 
 final cashPaymentFlowProvider = Provider<CashPaymentFlow>((ref) {
   return CashPaymentFlow(
-    cashMachine: ref.watch(cashMachineClientProvider),
+    cashMachine: ref.watch(cashMachineServiceProvider),
     backendGateway: ref.watch(paymentBackendGatewayProvider),
     logger: Logger('CashPaymentFlow'),
   );

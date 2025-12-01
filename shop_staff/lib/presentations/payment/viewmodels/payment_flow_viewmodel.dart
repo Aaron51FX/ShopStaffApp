@@ -66,7 +66,13 @@ class PaymentFlowState {
     this.isCancelling = false,
     this.hasStarted = false,
     this.cancelDialog = const CancelDialogState.hidden(),
+    this.requiresManualCompletion = false,
+    this.confirmationReady = false,
+    this.isConfirming = false,
+    this.pendingReceipt,
   });
+
+  static const Object _unset = Object();
 
   final String? sessionId;
   final PaymentStatus? currentStatus;
@@ -76,6 +82,10 @@ class PaymentFlowState {
   final bool isCancelling;
   final bool hasStarted;
   final CancelDialogState cancelDialog;
+  final bool requiresManualCompletion;
+  final bool confirmationReady;
+  final bool isConfirming;
+  final Map<String, dynamic>? pendingReceipt;
 
   bool get isFinished => result != null || (currentStatus?.isTerminal ?? false);
   bool get canExit => error != null || isFinished;
@@ -89,6 +99,10 @@ class PaymentFlowState {
     bool? isCancelling,
     bool? hasStarted,
     CancelDialogState? cancelDialog,
+    bool? requiresManualCompletion,
+    bool? confirmationReady,
+    bool? isConfirming,
+    Object? pendingReceipt = _unset,
   }) {
     return PaymentFlowState(
       sessionId: sessionId ?? this.sessionId,
@@ -99,6 +113,12 @@ class PaymentFlowState {
       isCancelling: isCancelling ?? this.isCancelling,
       hasStarted: hasStarted ?? this.hasStarted,
       cancelDialog: cancelDialog ?? this.cancelDialog,
+      requiresManualCompletion: requiresManualCompletion ?? this.requiresManualCompletion,
+      confirmationReady: confirmationReady ?? this.confirmationReady,
+      isConfirming: isConfirming ?? this.isConfirming,
+      pendingReceipt: identical(pendingReceipt, _unset)
+          ? this.pendingReceipt
+          : pendingReceipt as Map<String, dynamic>?,
     );
   }
 }
@@ -157,17 +177,31 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
         currentStatus: initial,
         timeline: <PaymentStatus>[initial],
         hasStarted: true,
+        requiresManualCompletion: session.requiresManualCompletion,
+        confirmationReady: false,
+        pendingReceipt: null,
       );
 
       _statusSubscription = _orchestrator.watch(session.sessionId).listen((status) {
         final previous = state;
         final timeline = List<PaymentStatus>.from(previous.timeline)..add(status);
         final dialogUpdate = _cancelDialogStateForStatus(status, previous.cancelDialog);
-        state = previous.copyWith(
+        var next = previous.copyWith(
           currentStatus: status,
           timeline: timeline,
           cancelDialog: dialogUpdate ?? previous.cancelDialog,
         );
+        final stage = status.details?['stage'];
+        if (stage == 'await_confirmation') {
+          next = next.copyWith(
+            confirmationReady: true,
+            pendingReceipt: status.details?['receipt'] as Map<String, dynamic>?,
+          );
+        }
+        if (status.isTerminal || status.type == PaymentStatusType.failure) {
+          next = next.copyWith(confirmationReady: false, pendingReceipt: null);
+        }
+        state = next;
       }, onError: (error, stack) => _handleError(error, stack));
 
       _resultFuture = _orchestrator.result(session.sessionId);
@@ -249,6 +283,21 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
         .confirm(title: '注意', message: '确认要取消支付吗？', destructive: true);
     if (ok) {
       _cancelPayment();
+    }
+  }
+
+  Future<void> confirmManualPayment() async {
+    if (!state.requiresManualCompletion || !state.confirmationReady || state.isConfirming) return;
+    final id = state.sessionId;
+    if (id == null) return;
+    state = state.copyWith(isConfirming: true);
+    try {
+      await _orchestrator.finalize(id);
+    } catch (e, stack) {
+      _logger.warning('Confirm payment failed', e, stack);
+      SimpleToast.errorGlobal('确认现金支付失败: $e');
+    } finally {
+      state = state.copyWith(isConfirming: false);
     }
   }
 

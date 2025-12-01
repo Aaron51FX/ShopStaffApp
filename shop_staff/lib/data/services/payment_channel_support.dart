@@ -6,26 +6,6 @@ import 'package:shop_staff/domain/payments/payment_models.dart';
 
 import 'payment_backend_gateway.dart';
 
-/// Interface for communicating with a physical cash handling machine.
-abstract class CashMachineClient {
-  Future<void> startTransaction(PaymentContext context);
-  Future<CashMachineReceipt> waitForSettlement();
-  Future<void> cancelTransaction();
-}
-
-/// Receipt modeled from the cash machine output.
-class CashMachineReceipt {
-  CashMachineReceipt({required this.acceptedAmount, this.raw});
-
-  final int acceptedAmount;
-  final Map<String, dynamic>? raw;
-
-  Map<String, dynamic> toJson() => {
-        'acceptedAmount': acceptedAmount,
-        if (raw != null) 'raw': raw,
-      };
-}
-
 /// Interface for scanning QR codes (camera / external scanners).
 abstract class QrScannerService {
   Future<String> acquireCode(PaymentContext context);
@@ -162,38 +142,6 @@ class DialogDrivenQrScannerService extends ChangeNotifier implements QrScannerSe
 }
 
 /// Default stubbed implementations used until real integrations are provided.
-class StubCashMachineClient implements CashMachineClient {
-  StubCashMachineClient({Logger? logger}) : _logger = logger ?? Logger('StubCashMachineClient');
-
-  final Logger _logger;
-  PaymentContext? _activeContext;
-
-  @override
-  Future<void> startTransaction(PaymentContext context) async {
-    _activeContext = context;
-    _logger.info('Simulating cash transaction start for order ${context.order.orderId}');
-    await Future<void>.delayed(const Duration(milliseconds: 400));
-  }
-
-  @override
-  Future<CashMachineReceipt> waitForSettlement() async {
-    _logger.info('Waiting for simulated cash settlement...');
-    await Future<void>.delayed(const Duration(seconds: 2));
-    final amount = _activeContext?.order.total ?? 0;
-    return CashMachineReceipt(acceptedAmount: amount, raw: {
-      'simulated': true,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-
-  @override
-  Future<void> cancelTransaction() async {
-    _logger.info('Cancelling simulated cash transaction');
-    await Future<void>.delayed(const Duration(milliseconds: 200));
-    _activeContext = null;
-  }
-}
-
 class StubPaymentBackendGateway implements PaymentBackendGateway {
   StubPaymentBackendGateway({Logger? logger}) : _logger = logger ?? Logger('StubPaymentBackendGateway');
 

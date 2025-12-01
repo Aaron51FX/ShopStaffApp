@@ -120,11 +120,13 @@ class PaymentFlowRun {
     required this.statuses,
     required this.result,
     required this.cancel,
+    this.finalize,
   });
 
   final Stream<PaymentStatus> statuses;
   final Future<PaymentResult> result;
   final Future<void> Function() cancel;
+  final Future<void> Function()? finalize;
 }
 
 /// Base contract that every payment flow must implement.
