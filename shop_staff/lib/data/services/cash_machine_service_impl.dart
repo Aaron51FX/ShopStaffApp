@@ -289,6 +289,7 @@ class CashMachineServiceImpl implements CashMachineService {
       case HealthResultCode.OPOS_E_CLOSED:
       case HealthResultCode.OPOS_E_NOTCLAIMED:
       case HealthResultCode.OPOS_E_DISABLED:
+        return const _RecoverResult.success();
       default:
         return const _RecoverResult.success();
     }
