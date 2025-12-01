@@ -44,20 +44,29 @@ class CashMachineServiceImpl implements CashMachineService {
       }
 
       final open = await CashChanger.openCashChanger();
+      final openCode = open.error?.code ?? -1;
       if (!open.isSuccess) {
-        final code = open.error?.code ?? -1;
-        if (code == 225) {
-          // Already opened
+        if (openCode == 225) {
+          // openCode opened
         } else {
           final message = _messageFromError(open.error);
           _emitError(message);
           return CashMachineInitResult(isReady: false, message: message);
         }
-      } 
-
-      final deposit = await CashChanger.depositAmount;
+      }
+      if (openCode == 225) {
+        // already opened
+        final deposit = await CashChanger.depositAmount;
       if (!deposit.isSuccess) _failAndThrow(deposit.error);
-
+      } else {
+        final start = await CashChanger.startDeposit();
+        if (!start.isSuccess) {
+          final message = _messageFromError(start.error);
+          _emitError(message);
+          return CashMachineInitResult(isReady: false, message: message);
+        }
+      }
+       
       final endDeposit = await CashChanger.endDeposit(DepositAction.repay.index);
       if (!endDeposit.isSuccess) _failAndThrow(endDeposit.error);
 
