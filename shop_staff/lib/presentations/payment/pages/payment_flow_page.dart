@@ -187,6 +187,9 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(provider);
     final args = widget.args;
+    final amountInfo = args.channelGroup == PaymentChannels.cash
+      ? _extractCashAmount(state)
+      : null;
 
     return WillPopScope(
       onWillPop: () async => state.canExit,
@@ -209,6 +212,10 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
             children: [
               _OrderSummary(args: args),
               const SizedBox(height: 16),
+              if (amountInfo != null) ...[
+                _CashAmountCard(info: amountInfo, expectedTotal: args.order.total),
+                const SizedBox(height: 16),
+              ],
               _StatusHero(
                 state: state,
                 args: args,
@@ -241,6 +248,25 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
       default:
         return '支付流程';
     }
+  }
+
+  _CashAmountSnapshot? _extractCashAmount(PaymentFlowState state) {
+    final receiptAmount = state.pendingReceipt?['acceptedAmount'];
+    if (receiptAmount is num) {
+      return _CashAmountSnapshot(amount: receiptAmount, isFinal: true);
+    }
+    for (final status in state.timeline.reversed) {
+      final details = status.details;
+      if (details == null) continue;
+      if (details['stage'] == 'amount') {
+        final amount = details['amount'];
+        if (amount is num) {
+          final isFinal = details['isFinal'] == true;
+          return _CashAmountSnapshot(amount: amount, isFinal: isFinal);
+        }
+      }
+    }
+    return null;
   }
 }
 
@@ -276,6 +302,66 @@ class _OrderSummary extends StatelessWidget {
       ),
     );
   }
+}
+
+class _CashAmountCard extends StatelessWidget {
+  const _CashAmountCard({required this.info, required this.expectedTotal});
+
+  final _CashAmountSnapshot info;
+  final num expectedTotal;
+
+  @override
+  Widget build(BuildContext context) {
+    final formatter = NumberFormat.currency(locale: 'ja_JP', symbol: '¥');
+    final amountText = formatter.format(info.amount);
+    final expectedText = formatter.format(expectedTotal);
+    final difference = info.amount - expectedTotal;
+    final diffText = difference == 0
+        ? '金额已匹配订单金额'
+        : difference > 0
+            ? '需找零 ${formatter.format(difference)}'
+            : '仍差 ${formatter.format(difference.abs())}';
+    final label = info.isFinal ? '已确认现金金额' : '识别中的现金金额';
+    final icon = info.isFinal ? Icons.check_circle_rounded : Icons.attach_money_rounded;
+    final color = info.isFinal ? Colors.green : Colors.blueAccent;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.4)),
+        color: color.withOpacity(0.05),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 32),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontSize: 15, color: color, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 4),
+                Text(amountText, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text('订单金额：$expectedText', style: const TextStyle(color: Colors.black54)),
+                const SizedBox(height: 2),
+                Text(diffText, style: TextStyle(color: difference > 0 ? Colors.orange : Colors.blueGrey)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CashAmountSnapshot {
+  const _CashAmountSnapshot({required this.amount, required this.isFinal});
+
+  final num amount;
+  final bool isFinal;
 }
 
 class _StatusHero extends StatelessWidget {
