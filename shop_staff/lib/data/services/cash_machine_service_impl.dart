@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:shop_staff/domain/services/cash_machine_service.dart';
 import 'package:shop_staff/plugins/cash_changer/lib/cash_changer.dart';
@@ -32,13 +33,12 @@ class CashMachineServiceImpl implements CashMachineService {
       if (recovered.isSuccess) {
         _emitStage(CashMachineStage.idle, '现金机可用');
         return const CashMachineInitResult(isReady: true);
-      } else if (!recovered.isSuccess) {
-        if (recovered.message != 'continue') {
+      } else if (recovered.message != 'continue') {
           // continue to open
           final message = recovered.message ?? '现金机恢复失败';
           _emitError(message);
           return CashMachineInitResult(isReady: false, message: message);
-        }
+        
       }
 
       final open = await CashChanger.openCashChanger();
@@ -86,6 +86,7 @@ class CashMachineServiceImpl implements CashMachineService {
 
   @override
   Future<CashMachineReceipt> runPayment(int expectedAmount) async {
+    debugPrint('---CashMachineServiceImpl.runPayment expectedAmount $expectedAmount called---');
     _logger.info('Starting cash payment sequence for amount: $expectedAmount');
     if (_isRunning || _awaitingCompletion) {
       throw StateError('上一笔现金支付仍在进行');
@@ -180,11 +181,13 @@ class CashMachineServiceImpl implements CashMachineService {
 
   @override
   Future<void> cancelPayment() async {
+    debugPrint('---CashMachineServiceImpl.cancelPayment called---');
     if (!_isRunning && !_awaitingCompletion) {
       return;
     }
     _emitStage(CashMachineStage.closing, '正在取消现金交易…');
     try {
+      await CashChanger.fixDeposit;
       await CashChanger.endDeposit(DepositAction.repay.index);
     } catch (e, s) {
       _logger.warning('Failed to end deposit during cancel', e, s);
@@ -208,12 +211,14 @@ class CashMachineServiceImpl implements CashMachineService {
     await _eventsController.close();
   }
 
-  void _setupLiveListeners(int targetAmount) {
+  void _setupLiveListeners(int targetAmount) async {
+    await CashChanger.setEventsListener();
     if (targetAmount == 0) {
       _emit(CashMachineAmountEvent(0, isFinal: true));
     }
 
     CashChanger.onGetPutMoneyStringChange = (int value) {
+      debugPrint('CashChanger onGetPutMoneyStringChange: $value');
       _logger.info('CashChanger onGetPutMoneyStringChange: $value');
       if (value <= 0) return;
       final isFinal = value >= targetAmount;
