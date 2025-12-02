@@ -8,8 +8,8 @@ import 'package:shop_staff/plugins/cash_changer/lib/cash_changer_define.dart';
 /// Emits granular cash-machine states and orchestrates hardware operations.
 class CashMachineServiceImpl implements CashMachineService {
   CashMachineServiceImpl(Logger logger)
-      : _logger = logger,
-        _eventsController = StreamController<CashMachineEvent>.broadcast();
+    : _logger = logger,
+      _eventsController = StreamController<CashMachineEvent>.broadcast();
 
   final Logger _logger;
   final StreamController<CashMachineEvent> _eventsController;
@@ -26,21 +26,19 @@ class CashMachineServiceImpl implements CashMachineService {
     _emitStage(CashMachineStage.checking, '正在检查现金机状态…');
     try {
       final status = await CashChanger.checkChangerStatus;
-      // if (!status.isSuccess) {
-      //   return _fail(status.error);
-      // }
-      
-      // if (!status.isSuccess) {
-      //   final message = _messageFromError(status.error);
-      //   _emitError(message);
-      //   return CashMachineInitResult(isReady: false, message: message);
-      // }
 
       final recovered = await _recoverIfNeeded(status.error?.code ?? 0);
-      if (!recovered.isSuccess) {
-        final message = recovered.message ?? '现金机恢复失败';
-        _emitError(message);
-        return CashMachineInitResult(isReady: false, message: message);
+
+      if (recovered.isSuccess) {
+        _emitStage(CashMachineStage.idle, '现金机可用');
+        return const CashMachineInitResult(isReady: true);
+      } else if (!recovered.isSuccess) {
+        if (recovered.message != 'continue') {
+          // continue to open
+          final message = recovered.message ?? '现金机恢复失败';
+          _emitError(message);
+          return CashMachineInitResult(isReady: false, message: message);
+        }
       }
 
       final open = await CashChanger.openCashChanger();
@@ -54,11 +52,10 @@ class CashMachineServiceImpl implements CashMachineService {
           return CashMachineInitResult(isReady: false, message: message);
         }
       }
-      if (openCode == 225) {
+
+      await Future.delayed(Duration(milliseconds: 200));
+      if (openCode != 225) {
         // already opened
-        final deposit = await CashChanger.depositAmount;
-      if (!deposit.isSuccess) _failAndThrow(deposit.error);
-      } else {
         final start = await CashChanger.startDeposit();
         if (!start.isSuccess) {
           final message = _messageFromError(start.error);
@@ -66,8 +63,15 @@ class CashMachineServiceImpl implements CashMachineService {
           return CashMachineInitResult(isReady: false, message: message);
         }
       }
-       
-      final endDeposit = await CashChanger.endDeposit(DepositAction.repay.index);
+
+      await Future.delayed(Duration(milliseconds: 200));
+      final deposit = await CashChanger.depositAmount;
+      if (!deposit.isSuccess) _failAndThrow(deposit.error);
+
+      await Future.delayed(Duration(milliseconds: 200));
+      final endDeposit = await CashChanger.endDeposit(
+        DepositAction.repay.index,
+      );
       if (!endDeposit.isSuccess) _failAndThrow(endDeposit.error);
 
       _emitStage(CashMachineStage.idle, '现金机可用');
@@ -146,7 +150,9 @@ class CashMachineServiceImpl implements CashMachineService {
     }
     final receipt = _pendingReceipt!;
     final expected = _expectedAmount ?? receipt.acceptedAmount;
-    final changeAmount = receipt.acceptedAmount > expected ? (receipt.acceptedAmount - expected) : 0;
+    final changeAmount = receipt.acceptedAmount > expected
+        ? (receipt.acceptedAmount - expected)
+        : 0;
 
     if (changeAmount > 0) {
       _emitStage(CashMachineStage.closing, '正在找零 ¥$changeAmount…');
@@ -299,15 +305,13 @@ class CashMachineServiceImpl implements CashMachineService {
       case HealthResultCode.OPOS_E_NOTCLAIMED:
       case HealthResultCode.OPOS_E_DISABLED:
       default:
-        return const _RecoverResult.success();
+        return const _RecoverResult.failure('continue');
     }
   }
 }
 
 class _RecoverResult {
-  const _RecoverResult.success()
-      : isSuccess = true,
-        message = null;
+  const _RecoverResult.success() : isSuccess = true, message = null;
   const _RecoverResult.failure(this.message) : isSuccess = false;
 
   final bool isSuccess;
