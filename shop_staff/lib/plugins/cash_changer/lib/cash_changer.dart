@@ -54,6 +54,8 @@ class CashChanger {
           break;
         case 'DataEvent':
           putMoney = call.arguments;
+          debugPrint('Cash Changer putMoney: $putMoney');
+          debugPrint('Cash Changer onGetPutMoneyStringChange: $onGetPutMoneyStringChange');
           onGetPutMoneyStringChange?.call(putMoney ?? 0);
           break;
         case 'StatusUpdateEvent':

@@ -253,7 +253,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   _CashAmountSnapshot? _extractCashAmount(PaymentFlowState state) {
     final receiptAmount = state.pendingReceipt?['acceptedAmount'];
     if (receiptAmount is num) {
-      return _CashAmountSnapshot(amount: receiptAmount, isFinal: true);
+      return _CashAmountSnapshot(amount: receiptAmount, isFinal: false);
     }
     for (final status in state.timeline.reversed) {
       final details = status.details;

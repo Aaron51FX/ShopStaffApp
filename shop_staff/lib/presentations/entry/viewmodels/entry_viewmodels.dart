@@ -106,7 +106,7 @@ class CashMachineCheckController extends StateNotifier<CashMachineCheckState> {
 		_autoPrompted = true;
 		_syncSupport();
 		_syncEnabled();
-		if (state.isSupported && !state.isEnabled) {
+		if (state.isSupported) {
 			start(auto: true);
 		}
 	}

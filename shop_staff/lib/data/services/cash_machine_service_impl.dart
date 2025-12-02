@@ -96,8 +96,8 @@ class CashMachineServiceImpl implements CashMachineService {
     try {
       _setupLiveListeners(expectedAmount);
       _emitStage(CashMachineStage.opening, '正在打开现金机…');
-      final open = await CashChanger.openCashChanger();
-      if (!open.isSuccess) _failAndThrow(open.error);
+      // final open = await CashChanger.openCashChanger();
+      // if (!open.isSuccess) _failAndThrow(open.error);
 
       final start = await CashChanger.startDeposit();
       if (!start.isSuccess) _failAndThrow(start.error);
@@ -138,8 +138,8 @@ class CashMachineServiceImpl implements CashMachineService {
       _emitError('现金机异常: $e');
       rethrow;
     } finally {
-      _isRunning = false;
-      _teardownLiveListeners();
+      // _isRunning = false;
+      // _teardownLiveListeners();
     }
   }
 
@@ -176,6 +176,8 @@ class CashMachineServiceImpl implements CashMachineService {
     _pendingReceipt = null;
     _awaitingCompletion = false;
     _expectedAmount = null;
+    _isRunning = false;
+    _teardownLiveListeners();
     return receipt;
   }
 
@@ -212,11 +214,12 @@ class CashMachineServiceImpl implements CashMachineService {
   }
 
   void _setupLiveListeners(int targetAmount) async {
+    debugPrint('---CashMachineServiceImpl._setupLiveListeners targetAmount $targetAmount called---');
     await CashChanger.setEventsListener();
     if (targetAmount == 0) {
       _emit(CashMachineAmountEvent(0, isFinal: true));
     }
-
+    debugPrint('---onGetPutMoneyStringChange listeners set---');
     CashChanger.onGetPutMoneyStringChange = (int value) {
       debugPrint('CashChanger onGetPutMoneyStringChange: $value');
       _logger.info('CashChanger onGetPutMoneyStringChange: $value');
