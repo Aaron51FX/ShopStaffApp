@@ -17,7 +17,7 @@ class CashMachineServiceImpl implements CashMachineService {
   bool _isRunning = false;
   bool _awaitingCompletion = false;
   CashMachineReceipt? _pendingReceipt;
-  int? _expectedAmount;
+  //int? _expectedAmount;
 
   @override
   Stream<CashMachineEvent> get events => _eventsController.stream;
@@ -92,7 +92,7 @@ class CashMachineServiceImpl implements CashMachineService {
       throw StateError('上一笔现金支付仍在进行');
     }
     _isRunning = true;
-    _expectedAmount = expectedAmount;
+
     try {
       _setupLiveListeners(expectedAmount);
       _emitStage(CashMachineStage.opening, '正在打开现金机…');
@@ -103,27 +103,12 @@ class CashMachineServiceImpl implements CashMachineService {
       if (!start.isSuccess) _failAndThrow(start.error);
       _emitStage(CashMachineStage.accepting, '等待顾客投入现金');
 
-      // final deposit = await CashChanger.depositAmount;
-      // if (!deposit.isSuccess) _failAndThrow(deposit.error);
-      // final accepted = deposit.data ?? 0;
-      // _emit(CashMachineAmountEvent(accepted, isFinal: true));
-
-      // _emitStage(CashMachineStage.counting, '正在确认金额…');
-      // final fix = await CashChanger.fixDeposit;
-      // var fixedAmount = accepted;
-      // if (fix.isSuccess && fix.data != null) {
-      //   fixedAmount = fix.data!;
-      //   if (fixedAmount != accepted) {
-      //     _emit(CashMachineAmountEvent(fixedAmount, isFinal: true));
-      //   }
-      // }
-
       final receipt = CashMachineReceipt(
         acceptedAmount: 0,
+        expectedAmount: expectedAmount,
         raw: {
-          'deposit': 0,
-          'fixed': 0,
-          'expected': expectedAmount,
+          'acceptedAmount': 0,
+          'expectedAmount': expectedAmount,
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
@@ -145,37 +130,31 @@ class CashMachineServiceImpl implements CashMachineService {
 
   @override
   Future<CashMachineReceipt> completePayment() async {
-    _logger.info('Completing cash payment');
+    debugPrint('Completing cash payment');
     if (_pendingReceipt == null || !_awaitingCompletion) {
       throw StateError('没有待完成的现金交易');
     }
+    
+    final deposit = await CashChanger.depositAmount;
+    if (!deposit.isSuccess) _failAndThrow(deposit.error);
     final receipt = _pendingReceipt!;
-    final expected = _expectedAmount ?? receipt.acceptedAmount;
-    final changeAmount = receipt.acceptedAmount > expected
-        ? (receipt.acceptedAmount - expected)
+    int acceptedAmount = deposit.data ?? receipt.acceptedAmount; 
+    final expected = receipt.expectedAmount;
+    final changeAmount = acceptedAmount > expected
+        ? (acceptedAmount - expected)
         : 0;
-
+    debugPrint('---CashMachineServiceImpl.completePayment changeAmount $changeAmount called---');
+    await Future.delayed(Duration(milliseconds: 200));
     if (changeAmount > 0) {
-      _emitStage(CashMachineStage.closing, '正在找零 ¥$changeAmount…');
+      _emitStage(CashMachineStage.change, '正在找零 ¥$changeAmount…');
       final change = await CashChanger.dispenseChange(changeAmount);
       if (!change.isSuccess) _failAndThrow(change.error);
     }
 
-    _emitStage(CashMachineStage.closing, '正在结束本次现金操作…');
-    try {
-      final end = await CashChanger.endDeposit(DepositAction.none.index);
-      if (!end.isSuccess) _failAndThrow(end.error);
-    } finally {
-      try {
-        await CashChanger.closeCashChanger;
-      } catch (e, s) {
-        _logger.warning('关闭现金机失败', e, s);
-      }
-    }
-    _emitStage(CashMachineStage.idle, '现金机已回到空闲状态');
+    _emitStage(CashMachineStage.completed, '现金机已回到空闲状态');
+    
     _pendingReceipt = null;
     _awaitingCompletion = false;
-    _expectedAmount = null;
     _isRunning = false;
     _teardownLiveListeners();
     return receipt;
@@ -194,15 +173,10 @@ class CashMachineServiceImpl implements CashMachineService {
     } catch (e, s) {
       _logger.warning('Failed to end deposit during cancel', e, s);
     }
-    try {
-      await CashChanger.closeCashChanger;
-    } catch (e, s) {
-      _logger.warning('Failed to close cash changer', e, s);
-    }
+
     _pendingReceipt = null;
     _awaitingCompletion = false;
     _isRunning = false;
-    _expectedAmount = null;
     _teardownLiveListeners();
     _emitStage(CashMachineStage.idle, '现金机已回到空闲状态');
   }
@@ -227,7 +201,8 @@ class CashMachineServiceImpl implements CashMachineService {
       final isFinal = value >= targetAmount;
       _pendingReceipt = CashMachineReceipt(
         acceptedAmount: value,
-        raw: _pendingReceipt?.raw ?? {},
+        expectedAmount: targetAmount,
+        raw: _pendingReceipt?.raw ?? {},  
       );
       _emit(CashMachineAmountEvent(value, isFinal: isFinal));
     };
@@ -260,7 +235,6 @@ class CashMachineServiceImpl implements CashMachineService {
     } finally {
       _pendingReceipt = null;
       _awaitingCompletion = false;
-      _expectedAmount = null;
       _teardownLiveListeners();
     }
   }

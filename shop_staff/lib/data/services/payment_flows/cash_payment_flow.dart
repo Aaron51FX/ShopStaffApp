@@ -199,6 +199,10 @@ class CashPaymentFlow implements PaymentFlow {
         return '现金机已满，请清空现金箱';
       case CashMachineStage.error:
         return '现金机异常';
+      case CashMachineStage.change:
+        return '正在找零…';
+      case CashMachineStage.changeFailed:
+        return '找零失败';
     }
   }
 }

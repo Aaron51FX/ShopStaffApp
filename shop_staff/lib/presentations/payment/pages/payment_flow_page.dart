@@ -213,7 +213,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
               _OrderSummary(args: args),
               const SizedBox(height: 16),
               if (amountInfo != null) ...[
-                _CashAmountCard(info: amountInfo, expectedTotal: args.order.total),
+                _CashAmountCard(state: state, expectedTotal: args.order.total),
                 const SizedBox(height: 16),
               ],
               _StatusHero(
@@ -255,9 +255,9 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
     if (receiptAmount is num) {
       return _CashAmountSnapshot(amount: receiptAmount, isFinal: false);
     }
-    for (final status in state.timeline.reversed) {
-      final details = status.details;
-      if (details == null) continue;
+    //for (final status in state.timeline.reversed) {
+      final details = state.currentStatus?.details ?? {};
+      //if (details == null) continue;
       if (details['stage'] == 'amount') {
         final amount = details['amount'];
         if (amount is num) {
@@ -265,7 +265,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
           return _CashAmountSnapshot(amount: amount, isFinal: isFinal);
         }
       }
-    }
+    //}
     return null;
   }
 }
@@ -305,25 +305,28 @@ class _OrderSummary extends StatelessWidget {
 }
 
 class _CashAmountCard extends StatelessWidget {
-  const _CashAmountCard({required this.info, required this.expectedTotal});
+  const _CashAmountCard({required this.state, required this.expectedTotal});
 
-  final _CashAmountSnapshot info;
+  final PaymentFlowState state;
   final num expectedTotal;
 
   @override
   Widget build(BuildContext context) {
     final formatter = NumberFormat.currency(locale: 'ja_JP', symbol: '¥');
-    final amountText = formatter.format(info.amount);
+    final details = state.currentStatus?.details ?? {};
+    final amount = details['amount'] is num ? details['amount'] as num : 0;
+    final isFinal = details['isFinal'] == true;
+    final amountText = formatter.format(amount);
     final expectedText = formatter.format(expectedTotal);
-    final difference = info.amount - expectedTotal;
+    final difference = amount - expectedTotal;
     final diffText = difference == 0
         ? '金额已匹配订单金额'
         : difference > 0
             ? '需找零 ${formatter.format(difference)}'
             : '仍差 ${formatter.format(difference.abs())}';
-    final label = info.isFinal ? '已确认现金金额' : '识别中的现金金额';
-    final icon = info.isFinal ? Icons.check_circle_rounded : Icons.attach_money_rounded;
-    final color = info.isFinal ? Colors.green : Colors.blueAccent;
+    final label = isFinal ? '已确认现金金额' : '识别中的现金金额';
+    final icon = isFinal ? Icons.check_circle_rounded : Icons.attach_money_rounded;
+    final color = isFinal ? Colors.green : Colors.blueAccent;
 
     return Container(
       width: double.infinity,

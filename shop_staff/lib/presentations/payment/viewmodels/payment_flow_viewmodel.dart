@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
@@ -184,6 +185,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
 
       _statusSubscription = _orchestrator.watch(session.sessionId).listen((status) {
         final previous = state;
+        debugPrint('Payment status update: ${status.type} - ${status.message}');
         final timeline = List<PaymentStatus>.from(previous.timeline)..add(status);
         final dialogUpdate = _cancelDialogStateForStatus(status, previous.cancelDialog);
         var next = previous.copyWith(

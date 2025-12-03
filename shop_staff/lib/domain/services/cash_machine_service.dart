@@ -4,6 +4,8 @@ enum CashMachineStage {
   opening,
   accepting,
   counting,
+  change,
+  changeFailed,
   closing,
   completed,
   nearfull,
@@ -65,13 +67,15 @@ class CashMachineInitResult {
 }
 
 class CashMachineReceipt {
-  const CashMachineReceipt({required this.acceptedAmount, this.raw});
+  const CashMachineReceipt({required this.acceptedAmount, required this.expectedAmount, this.raw});
 
   final int acceptedAmount;
+  final int expectedAmount;
   final Map<String, dynamic>? raw;
 
   Map<String, dynamic> toJson() => {
         'acceptedAmount': acceptedAmount,
+        'expectedAmount': expectedAmount,
         if (raw != null) 'raw': raw,
       };
 }
