@@ -176,7 +176,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       state = state.copyWith(
         sessionId: session.sessionId,
         currentStatus: initial,
-        timeline: <PaymentStatus>[initial],
+        timeline: <PaymentStatus>[_snapshotStatus(initial)],
         hasStarted: true,
         requiresManualCompletion: session.requiresManualCompletion,
         confirmationReady: false,
@@ -186,24 +186,41 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       _statusSubscription = _orchestrator.watch(session.sessionId).listen((status) {
         final previous = state;
         debugPrint('Payment status update: ${status.type} - ${status.message}');
-        final timeline = List<PaymentStatus>.from(previous.timeline)..add(status);
+        final timeline = List<PaymentStatus>.from(previous.timeline)..add(_snapshotStatus(status));
         final dialogUpdate = _cancelDialogStateForStatus(status, previous.cancelDialog);
-        var next = previous.copyWith(
-          currentStatus: status,
-          timeline: timeline,
-          cancelDialog: dialogUpdate ?? previous.cancelDialog,
-        );
-        final stage = status.details?['stage'];
-        if (stage == 'await_confirmation') {
-          next = next.copyWith(
-            confirmationReady: true,
-            pendingReceipt: status.details?['receipt'] as Map<String, dynamic>?,
+          var confirmationReady = previous.confirmationReady;
+          var pendingReceipt = previous.pendingReceipt;
+          final stage = status.details?['stage'];
+          if (stage == 'await_confirmation') {
+            final receipt = status.details?['receipt'] as Map<String, dynamic>?;
+            if (receipt != null) {
+              pendingReceipt = Map<String, dynamic>.from(receipt);
+            }
+          } else if (stage == 'amount') {
+            final amount = status.details?['amount'];
+            final isFinal = status.details?['isFinal'] == true;
+            if (amount is num) {
+              final meetsRequirement = amount >= _expectedAmount;
+              confirmationReady = isFinal && meetsRequirement;
+              pendingReceipt = confirmationReady
+                  ? _mergeReceiptAmount(pendingReceipt, amount)
+                  : null;
+            } else {
+              confirmationReady = false;
+              pendingReceipt = null;
+            }
+          }
+          if (status.isTerminal || status.type == PaymentStatusType.failure) {
+            confirmationReady = false;
+            pendingReceipt = null;
+          }
+          state = previous.copyWith(
+            currentStatus: status,
+            timeline: timeline,
+            cancelDialog: dialogUpdate ?? previous.cancelDialog,
+            confirmationReady: confirmationReady,
+            pendingReceipt: pendingReceipt,
           );
-        }
-        if (status.isTerminal || status.type == PaymentStatusType.failure) {
-          next = next.copyWith(confirmationReady: false, pendingReceipt: null);
-        }
-        state = next;
       }, onError: (error, stack) => _handleError(error, stack));
 
       _resultFuture = _orchestrator.result(session.sessionId);
@@ -387,6 +404,35 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
 
   void goEntryPage() {
     _ref.read(appRouterProvider).go('/entry');
+  }
+
+  int get _expectedAmount => _args.order.total;
+
+  Map<String, dynamic> _mergeReceiptAmount(
+    Map<String, dynamic>? current,
+    num amount,
+  ) {
+    final receipt = <String, dynamic>{
+      'expectedAmount': _expectedAmount,
+    };
+    if (current != null) {
+      receipt.addAll(current);
+    }
+    receipt['acceptedAmount'] = amount.toInt();
+    return receipt;
+  }
+
+  PaymentStatus _snapshotStatus(PaymentStatus status) {
+    final details = status.details;
+    Map<String, dynamic>? clonedDetails;
+    if (details != null) {
+      clonedDetails = Map<String, dynamic>.from(details);
+    }
+    return PaymentStatus(
+      type: status.type,
+      message: status.message,
+      details: clonedDetails,
+    );
   }
 
   Future<void> _teardownActiveSession({bool releaseQrScanner = false}) async {
