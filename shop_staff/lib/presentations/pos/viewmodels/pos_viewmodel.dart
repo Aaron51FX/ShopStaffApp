@@ -13,7 +13,7 @@ import 'package:shop_staff/domain/entities/suspended_order.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/repositories/menu_repository.dart';
 import 'package:shop_staff/domain/repositories/order_repository.dart'; // ensure type reference
-import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_viewmodel.dart';
+import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/pos/widgets/option_dialog_widgets.dart';
 import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
 import 'pos_state.dart';
