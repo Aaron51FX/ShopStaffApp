@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/settings/pages/settings_page.dart';
 import '../../presentations/pos/pages/pos_page.dart';
 import '../../presentations/auth/pages/login_page.dart';
 import '../../presentations/splash/pages/splash_page.dart';
 import '../../presentations/pos/pages/suspended_orders_page.dart';
 import '../../presentations/payment/pages/payment_flow_page.dart';
-import '../../presentations/payment/viewmodels/payment_flow_viewmodel.dart';
 import '../../presentations/entry/pages/entry_page.dart';
 import '../storage/key_value_store.dart';
 
