@@ -76,42 +76,67 @@ class CartPanel extends ConsumerWidget {
                             onLongPress: () => onEdit(item),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-                              child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center, 
+                                spacing: 5,
+                              children: [
                                 Expanded(
                                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                    Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                    Text(item.product.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
                                     if (optionText.isNotEmpty)
                                       Padding(
                                         padding: const EdgeInsets.only(top: 2.0),
-                                        child: Text(optionText, style: const TextStyle(fontSize: 11, color: AppColors.stone500)),
+                                        child: Text(optionText, style: const TextStyle(fontSize: 12, color: AppColors.stone500)),
                                       ),
                                     Padding(
                                       padding: const EdgeInsets.only(top: 4.0),
-                                      child: Text('¥${item.unitPrice.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: AppColors.amberPrimary)),
+                                      child: Text('¥${item.unitPrice}', style: const TextStyle(fontSize: 12, fontFamily: 'monospace', color: AppColors.amberPrimary)),
                                     ),
                                   ]),
                                 ),
-                                Column(children: [
-                                  Row(mainAxisSize: MainAxisSize.min, children: [
-                                    _QtyBtn(icon: Icons.remove, onTap: () => vm.changeQuantity(item.id, -1)),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                                      child: Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                                    ),
-                                    _QtyBtn(icon: Icons.add, onTap: () => vm.changeQuantity(item.id, 1)),
-                                  ]),
-                                  GestureDetector(
-                                    onTap: () => onEdit(item),
-                                    child: const Padding(
-                                      padding: EdgeInsets.only(top: 4.0),
-                                      child: Icon(Icons.edit_note_outlined, size: 18, color: AppColors.stone400),
-                                    ),
+                                
+                                Column(
+                                  spacing: 10,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                  
+                                  Row(mainAxisSize: MainAxisSize.min, spacing: 5, children: [
+                            
+                                      _QtyBtn(icon: Icons.remove, onTap: () => vm.changeQuantity(item.id, -1)),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                                        child: Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                                      ),
+                                      _QtyBtn(icon: Icons.add, onTap: () => vm.changeQuantity(item.id, 1)),
+                                      
+                                    ]
                                   ),
+
+                                  Row(
+                                    spacing: 10,
+                                    
+                                    children: [
+                                      SizedBox(
+                                        width: 60,
+                                        child: Text('¥${item.lineTotal}', 
+                                        textAlign: TextAlign.end, 
+                                        style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w600)
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                          onTap: () => onEdit(item),
+                                          child: const Padding(
+                                            padding: EdgeInsets.only(top: 4.0),
+                                            child: Icon(Icons.edit_note_outlined, size: 21, color: AppColors.stone400),
+                                          ),
+                                        ),
+                                    ])
+
+                                  
+                                  
+                              
                                 ]),
-                                SizedBox(
-                                  width: 60,
-                                  child: Text('¥${item.lineTotal.toStringAsFixed(2)}', textAlign: TextAlign.end, style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w600)),
-                                ),
+                                
                               ]),
                             ),
                           ),
@@ -169,7 +194,7 @@ class _QtyBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(color: AppColors.stone100, borderRadius: BorderRadius.circular(6)),
-        child: Icon(icon, size: 16, color: AppColors.stone600),
+        child: Icon(icon, size: 20, color: AppColors.stone600),
       ),
     );
   }
