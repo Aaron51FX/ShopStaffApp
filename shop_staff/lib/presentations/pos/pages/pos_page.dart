@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 import '../widgets/cart_panel.dart';
+import '../widgets/discount_input_dialog.dart';
 import '../widgets/pos_app_bar.dart';
 import '../widgets/product_grid.dart';
 import '../widgets/side_bar.dart';
@@ -36,39 +36,13 @@ class PosPage extends ConsumerWidget {
                 final discount = ref.read(
                   posViewModelProvider.select((s) => s.discount),
                 );
-                final v = await showDialog<double>(
-                  context: context,
-                  builder: (ctx) {
-                    final dialogL10n = AppLocalizations.of(ctx);
-                    final controller = TextEditingController(
-                      text: discount.toString(),
-                    );
-                    return AlertDialog(
-                      title: Text(dialogL10n.posDiscountDialogTitle),
-                      content: TextField(
-                        controller: controller,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: Text(dialogL10n.dialogCancel),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            final parsed =
-                                double.tryParse(controller.text) ?? 0;
-                            Navigator.pop(ctx, parsed);
-                          },
-                          child: Text(dialogL10n.dialogConfirm),
-                        ),
-                      ],
-                    );
-                  },
+                final value = await showDiscountInputDialog(
+                  context,
+                  initialValue: discount,
                 );
-                if (v != null) vm.applyDiscount(v);
+                if (value != null) {
+                  vm.applyDiscount(value);
+                }
               },
             ),
           ],
