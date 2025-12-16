@@ -17,6 +17,23 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.7.1"
+  android_usb_printer:
+    dependency: transitive
+    description:
+      path: "."
+      ref: master
+      resolved-ref: "701585f73c8ef8965773e53dbbe9e49443d262a3"
+      url: "git@github.com:Aaron51FX/android_usb_printer.git"
+    source: git
+    version: "1.0.0+3"
+  archive:
+    dependency: transitive
+    description:
+      name: archive
+      sha256: cb6a278ef2dbb298455e1a713bda08524a175630ec643a242c399c932a0a1f7d
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.6.1"
   args:
     dependency: transitive
     description:
@@ -168,6 +185,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.6"
+  csslib:
+    dependency: transitive
+    description:
+      name: csslib
+      sha256: "09bad715f418841f976c77db72d5398dc1253c21fb9c0c7f0b0b985860b2d58e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -208,6 +233,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.7"
+  esc_utils:
+    dependency: transitive
+    description:
+      name: esc_utils
+      sha256: "4cef6c4a2719cd9ea2b461d381f626f2c9d2e39d62fe5a57c9d82a2fa3dfbf46"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   fake_async:
     dependency: transitive
     description:
@@ -258,6 +291,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_printer_plus:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: new
+      resolved-ref: "16eb18b9f908628cd97958f1dc27b022bb13e74e"
+      url: "git@github.com:Aaron51FX/flutter_printer_plus.git"
+    source: git
+    version: "1.0.2"
   flutter_riverpod:
     dependency: "direct main"
     description:
@@ -348,6 +390,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.0"
+  gbk_codec:
+    dependency: transitive
+    description:
+      name: gbk_codec
+      sha256: "3af5311fc9393115e3650ae6023862adf998051a804a08fb804f042724999f61"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.0"
   glob:
     dependency: transitive
     description:
@@ -380,6 +430,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  hex:
+    dependency: transitive
+    description:
+      name: hex
+      sha256: "4e7cd54e4b59ba026432a6be2dd9d96e4c5205725194997193bf871703b82c4a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   hive:
     dependency: "direct main"
     description:
@@ -396,6 +454,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  html:
+    dependency: transitive
+    description:
+      name: html
+      sha256: "6d1264f2dffa1b1101c25a91dff0dc2daee4c18e87cd8538729773c073dbf602"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.15.6"
   http:
     dependency: "direct main"
     description:
@@ -420,6 +486,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  image:
+    dependency: transitive
+    description:
+      name: image
+      sha256: "8e9d133755c3e84c73288363e6343157c383a0c6c56fc51afcc5d4d7180306d6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.3.0"
   intl:
     dependency: "direct main"
     description:
@@ -436,6 +510,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  isolates:
+    dependency: transitive
+    description:
+      name: isolates
+      sha256: ce89e4141b27b877326d3715be2dceac7a7ba89f3229785816d2d318a75ddf28
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.3+8"
   js:
     dependency: transitive
     description:
@@ -596,6 +678,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  petitparser:
+    dependency: transitive
+    description:
+      name: petitparser
+      sha256: "1a97266a94f7350d30ae522c0af07890c70b8e62c71e8e3920d1db4d23c057d1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.1"
   platform:
     dependency: transitive
     description:
@@ -628,6 +718,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  print_image_generate_tool:
+    dependency: transitive
+    description:
+      name: print_image_generate_tool
+      sha256: "86707807859c6bc1af159345a756609ca13745326b38fd5cb6024d982caeea81"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   pub_semver:
     dependency: transitive
     description:
@@ -644,6 +742,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  r_get_ip:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "0fa8669e81ed28b35b8d82566b576121e3dcc623"
+      url: "git@github.com:Aaron51FX/r_get_ip.git"
+    source: git
+    version: "0.1.7"
   riverpod:
     dependency: "direct main"
     description:
@@ -801,6 +908,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.2"
+  tsc_utils:
+    dependency: transitive
+    description:
+      name: tsc_utils
+      sha256: "2705fd7a2765afbd4d98969957b372449e4463357c89849babe7efa63a4f6325"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1+2"
   typed_data:
     dependency: transitive
     description:
@@ -861,10 +976,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: "66814138c3562338d05613a6e368ed8cfb237ad6d64a9e9334be3f309acfca03"
+      sha256: "015002c060f1ae9f41a818f2d5640389cc05283e368be19dc8d77cecb43c40c9"
       url: "https://pub.dev"
     source: hosted
-    version: "5.14.0"
+    version: "5.5.3"
   window_manager:
     dependency: "direct main"
     description:
@@ -873,6 +988,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.3"
+  windows_usb_printer:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: bcecddb9df00c01b7725c4aca1e928d2ab3ce951
+      url: "git@github.com:Aaron51FX/windows_usb_printer.git"
+    source: git
+    version: "0.0.2+6"
   xdg_directories:
     dependency: transitive
     description:
@@ -881,6 +1005,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
+  xml:
+    dependency: transitive
+    description:
+      name: xml
+      sha256: "971043b3a0d3da28727e40ed3e0b5d18b742fa5a68665cca88e74b7876d5e025"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.6.1"
   yaml:
     dependency: transitive
     description:

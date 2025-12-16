@@ -35,6 +35,12 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
+
+  flutter_printer_plus:
+    git:
+      url: git@github.com:Aaron51FX/flutter_printer_plus.git
+      ref: new
+
   cupertino_icons: ^1.0.8
   riverpod: ^2.6.1
   flutter_riverpod: ^2.6.1

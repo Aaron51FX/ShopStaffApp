@@ -1,9 +1,13 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:window_manager/window_manager.dart';
+import 'package:print_image_generate_tool/print_image_generate_tool.dart';
+import 'package:flutter_printer_plus/flutter_printer_plus.dart' as printerPlus;
+import 'package:shop_staff/core/config/print_info.dart';
 import 'core/router/app_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'core/theme/app_theme.dart';
@@ -37,11 +41,12 @@ Future<void> main() async {
   // }
 
   await Hive.initFlutter();
-  runApp(const ProviderScope(child: ShopStaffApp()));
+  runApp(ProviderScope(child: ShopStaffApp()));
 }
 
 class ShopStaffApp extends ConsumerWidget {
-  const ShopStaffApp({super.key});
+  ShopStaffApp({super.key});
+  final printerController = printerPlus.PrinterJobController();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -61,8 +66,65 @@ class ShopStaffApp extends ConsumerWidget {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
-        return GlobalDialogHost(child: child ?? const SizedBox.shrink());
+        return GlobalDialogHost(
+          child: 
+            PrintImageGenerateWidget(
+            contentBuilder: (context) {
+              return child ?? const SizedBox.shrink();
+            },
+            onPictureGenerated: _onPictureGenerated,
+          ));
       },
     );
   }
+
+    //打印图层生成成功
+  Future<void> _onPictureGenerated(PicGenerateResult imgData) async {
+    //final imageBytes = imgdata.data;
+      final printTask = imgData.taskItem;
+
+    //指定的打印机
+      final printerInfo = printTask.params as PrinterInfo;
+      //print('printerInfo: $printerInfo');
+      //打印票据类型（标签、小票）
+      final printTypeEnum = printTask.printTypeEnum;
+
+      final imageBytes =
+          await imgData.convertUint8List(imageByteFormat: ImageByteFormat.rawRgba);
+      //也可以使用 ImageByteFormat.png
+      final argbWidth = imgData.imageWidth;
+      final argbHeight = imgData.imageHeight;
+      if (imageBytes == null) {
+        return;
+      }
+
+      var printData = await printerPlus.PrinterCommandTool.generatePrintCmd(
+      imgData: imageBytes,
+      printType: printTypeEnum,
+      argbWidthPx: argbWidth,
+      argbHeightPx: argbHeight,
+    );
+
+      if (printerInfo.isUsbPrinter) {
+        // usb 打印
+        final conn = printerPlus.UsbConn(printerInfo.usbDevice!);
+        conn.writeMultiBytes(printData, 1024 * 8);
+      } else if (printerInfo.isNetPrinter) {
+        // 网络 打印
+        // final conn = printerPlus.NetConn(printerInfo.ip!);
+        // conn.writeMultiBytes(printData);
+
+        try {
+          await printerController.enqueue(printerInfo.ip!, printData, timeout: Duration(seconds: 12));
+          // final conn = printerPlus.NetConn(printerInfo.ip!);
+          // conn.writeMultiBytes(printData);
+        } catch (e) {
+          // handle/report failure for diagnostics
+        }
+      }
+
+      // // 网络 打印
+      // final conn = printerPlus.NetConn(printerInfo.ip!);
+      // conn.writeMultiBytes(printData);
+    }
 }
