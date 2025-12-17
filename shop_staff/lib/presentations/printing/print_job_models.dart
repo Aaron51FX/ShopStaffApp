@@ -7,7 +7,7 @@ class PrintJobRequest {
     required this.printers,
     this.orderId,
     this.payAmount,
-    this.rprintType,
+    this.printType,
     this.document,
   });
 
@@ -15,7 +15,7 @@ class PrintJobRequest {
   final List<PrinterSettings> printers;
   final String? orderId;
   final String? payAmount;
-  final String? rprintType;
+  final String? printType;
   final PrintInfoDocument? document;
 
   bool get hasDocument => document != null;

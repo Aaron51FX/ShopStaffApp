@@ -102,14 +102,14 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
 
   Future<PrintInfoDocument> _resolveDocument() async {
     if (request.document != null) return request.document!;
-    if (request.orderId == null || request.payAmount == null || request.rprintType == null) {
+    if (request.orderId == null || request.payAmount == null || request.printType == null) {
       throw StateError('缺少打印参数');
     }
     return _repository.printInfo(
       orderId: request.orderId!,
       machineCode: request.machineCode,
       payAmount: request.payAmount!,
-      rprintType: request.rprintType!,
+      printType: request.printType!,
     );
   }
 }

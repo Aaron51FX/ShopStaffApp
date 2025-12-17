@@ -12,12 +12,12 @@ class PrintRepositoryImpl implements PrintRepository {
     required String orderId, 
     required String machineCode, 
     required String payAmount, 
-    required String rprintType}) async {
+    required String printType}) async {
       final payload = {
         'orderId': orderId,
         'machineCode': machineCode,
         'payAmount': payAmount,
-        'rprintType': rprintType,
+        'printType': printType,
       };
       final response = await _remote.printInfo(payload);
       return PrintInfoDocument.fromJson(response);

@@ -6,5 +6,5 @@ abstract class PrintRepository {
     required String orderId, 
     required String machineCode, 
     required String payAmount, 
-    required String rprintType});
+    required String printType});
 }

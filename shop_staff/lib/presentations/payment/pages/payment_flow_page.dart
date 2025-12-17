@@ -271,12 +271,21 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
     final machineCode = widget.args.metadata?['machineCode'] as String? ??
         ref.read(machineCodeProvider) ?? '';
     final printers = ref.read(appSettingsSnapshotProvider)?.printers ?? const <PrinterSettings>[];
+
+    String printType = "";
+    final labelPrinter = printers.firstWhere(
+        (printer) => printer.type == 10 && !printer.receipt);
+
+    if (labelPrinter.isOn) {
+      printType = 'Label';
+    }
+    
     final request = PrintJobRequest(
       machineCode: machineCode,
       printers: printers,
       orderId: widget.args.order.orderId,
       payAmount: widget.args.order.total.toString(),
-      rprintType: widget.args.channelGroup,
+      printType: printType,
     );
 
     try {
