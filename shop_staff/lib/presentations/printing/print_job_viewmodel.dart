@@ -45,11 +45,13 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
     state = state.copyWith(stage: '拉取打印内容…', jobs: jobs, error: null, completed: false);
 
     if (request.machineCode.isEmpty) {
+      _logger.warning('Missing machine code');
       state = state.copyWith(error: '缺少机号，无法打印', completed: true);
       _running = false;
       return;
     }
     if (activePrinters.isEmpty) {
+      _logger.info('No active printers');
       state = state.copyWith(error: '未开启任何打印机', completed: true);
       _running = false;
       return;
