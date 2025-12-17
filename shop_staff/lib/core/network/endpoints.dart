@@ -27,6 +27,7 @@ class Endpoints {
   String get printV6 => '$_b/pad/web/boot/v6/print';
   String get printV7 => '$_b/pad/web/boot/v7/print';
   String get printV8 => '$_b/pad/web/boot/v8/print';
+  String get printV9 => '$_b/pad/web/boot/v9/print';
   String get retryPrint => '$_b/pad/web/boot/retry/print';
 
   String get reportV1 => '$_b/pad/web/boot/v1/report';

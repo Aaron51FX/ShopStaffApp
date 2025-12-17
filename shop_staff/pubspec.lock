@@ -719,7 +719,7 @@ packages:
     source: hosted
     version: "1.4.0"
   print_image_generate_tool:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: print_image_generate_tool
       sha256: "86707807859c6bc1af159345a756609ca13745326b38fd5cb6024d982caeea81"

@@ -15,13 +15,13 @@ OptionVoModel _$OptionVoModelFromJson(Map<String, dynamic> json) =>
       subTitle: json['subTitle'] as String?,
       printText: json['printText'] as String,
       extend1: json['extend1'] as String?,
-      price: (json['price'] as num?)?.toInt(),
-      currentPrice: (json['currentPrice'] as num?)?.toInt(),
+      price: _toIntOrNull(json['price']),
+      currentPrice: _toIntOrNull(json['currentPrice']),
       homeImage: json['homeImage'] as String?,
       homeImageHttp: json['homeImageHttp'] as String?,
-      standard: (json['standard'] as num?)?.toInt(),
-      bounds: (json['bounds'] as num?)?.toInt(),
-      boundsPrice: (json['boundsPrice'] as num?)?.toInt(),
+      standard: _toIntOrNull(json['standard']),
+      bounds: _toIntOrNull(json['bounds']),
+      boundsPrice: _toIntOrNull(json['boundsPrice']),
       buttonColorValue: json['buttonColorValue'] as String?,
     );
 
@@ -50,8 +50,8 @@ OptionGroupModel _$OptionGroupModelFromJson(Map<String, dynamic> json) =>
       groupName: json['groupName'] as String,
       printText: json['printText'] as String,
       remark: json['remark'] as String?,
-      multipleState: (json['multipleState'] as num).toInt(),
-      smallest: (json['smallest'] as num).toInt(),
+      multipleState: _toInt(json['multipleState']),
+      smallest: _toInt(json['smallest']),
       optionVoList: (json['optionVoList'] as List<dynamic>)
           .map((e) => OptionVoModel.fromJson(e as Map<String, dynamic>))
           .toList(),

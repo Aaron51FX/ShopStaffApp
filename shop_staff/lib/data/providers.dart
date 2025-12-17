@@ -24,6 +24,7 @@ import 'services/key_value_app_settings_service.dart';
 import 'services/pos_card_payment_gateway.dart';
 import 'services/pos_payment_orchestrator.dart';
 import 'services/pos_payment_service_impl.dart';
+import 'services/print_service_impl.dart';
 
 // Public repository interfaces
 import '../domain/repositories/menu_repository.dart';
@@ -31,11 +32,14 @@ import '../domain/repositories/order_repository.dart';
 import '../domain/payments/payment_models.dart';
 import '../domain/services/pos_payment_service.dart';
 import '../domain/services/payment_orchestrator.dart';
+import '../domain/services/print_service.dart';
 import '../domain/services/app_settings_service.dart';
 import '../domain/services/startup_service.dart';
 import '../data/models/shop_info_models.dart';
 import 'services/startup_service_impl.dart';
 import '../domain/settings/app_settings_models.dart';
+import 'repositories_impl/print_repository_impl.dart';
+import '../domain/repositories/print_repository.dart';
 
 // Environment / Config provider (can later be overridden in tests)
 final appEnvironmentProvider = Provider<AppEnvironment>((_) => AppEnvironment.production);
@@ -79,6 +83,15 @@ final posCardPaymentGatewayProvider = Provider<PosCardPaymentGateway>((ref) {
 
 final paymentBackendGatewayProvider = Provider<PaymentBackendGateway>((ref) {
   return StubPaymentBackendGateway(logger: Logger('PaymentBackendGatewayStub'));
+});
+
+final printRepositoryProvider = Provider<PrintRepository>((ref) {
+  final ds = ref.watch(posRemoteDataSourceProvider);
+  return PrintRepositoryImpl(ds);
+});
+
+final printServiceProvider = Provider<PrintService>((ref) {
+  return PrintServiceImpl();
 });
 
 final dialogDrivenQrScannerProvider = ChangeNotifierProvider<DialogDrivenQrScannerService>((ref) {

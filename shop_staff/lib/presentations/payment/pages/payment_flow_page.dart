@@ -5,6 +5,8 @@ import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/data/services/payment_channel_support.dart';
+import 'package:shop_staff/presentations/printing/show_print_dialog.dart';
+import 'package:shop_staff/presentations/printing/print_job_models.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/cancel_dialog_state.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/cash_amount_snapshot.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
@@ -16,6 +18,7 @@ import 'package:shop_staff/presentations/payment/widgets/order_summary.dart';
 import 'package:shop_staff/presentations/payment/widgets/qr_scan_dialog.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_hero.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_time_line.dart';
+import 'package:shop_staff/domain/settings/app_settings_models.dart';
 
 import '../viewmodels/payment_flow_viewmodel.dart';
 
@@ -37,6 +40,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   ProviderSubscription<QrScanUiState>? _qrScanSubscription;
   ValueNotifier<QrScanUiState>? _qrDialogNotifier;
   bool _isQrDialogVisible = false;
+  bool _printing = false;
 
   @override
   void initState() {
@@ -47,6 +51,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         switch (result.status) {
           case PaymentStatusType.success:
             SimpleToast.successGlobal(result.message ?? '支付成功');
+            _startPrintFlow();
             break;
           case PaymentStatusType.cancelled:
             //SimpleToast.successGlobal(result.message ?? '支付已取消');
@@ -257,6 +262,32 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         return '扫码支付${name != null ? ' - $name' : ''}';
       default:
         return '支付流程';
+    }
+  }
+
+  Future<void> _startPrintFlow() async {
+    if (_printing) return;
+    _printing = true;
+    final machineCode = widget.args.metadata?['machineCode'] as String? ??
+        ref.read(machineCodeProvider) ?? '';
+    final printers = ref.read(appSettingsSnapshotProvider)?.printers ?? const <PrinterSettings>[];
+    final request = PrintJobRequest(
+      machineCode: machineCode,
+      printers: printers,
+      orderId: widget.args.order.orderId,
+      payAmount: widget.args.order.total.toString(),
+      rprintType: widget.args.channelGroup,
+    );
+
+    try {
+      await showPrintStatusDialog(
+        context: context,
+        ref: ref,
+        request: request,
+        onCompleted: () => context.go('/pos'),
+      );
+    } finally {
+      _printing = false;
     }
   }
 

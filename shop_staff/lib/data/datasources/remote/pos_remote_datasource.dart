@@ -89,4 +89,8 @@ class PosRemoteDataSource {
 
   Future<dynamic> cancelCreditCard(Map<String, dynamic> payload) async =>
     _client.postJson(_e.creditCardCancel, body: payload);
+
+  //print info
+  Future<dynamic> printInfo(Map<String, dynamic> payload) async =>
+    _client.postJson(_e.printV9, body: payload);  
 }
