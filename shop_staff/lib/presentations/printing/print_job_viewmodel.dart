@@ -8,6 +8,8 @@ import 'print_job_models.dart';
 
 final printJobViewModelProvider = StateNotifierProvider.autoDispose
     .family<PrintJobViewModel, PrintProgressState, PrintJobRequest>((ref, req) {
+  final link = ref.keepAlive();
+  ref.onDispose(link.close);
   return PrintJobViewModel(
     ref: ref,
     request: req,
@@ -42,23 +44,33 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
     final jobs = activePrinters
         .map((p) => PrintJobStateItem(name: p.name))
         .toList(growable: true);
-    state = state.copyWith(stage: '拉取打印内容…', jobs: jobs, error: null, completed: false);
+    if (mounted) {
+      state = state.copyWith(stage: '拉取打印内容…', jobs: jobs, error: null, completed: false);
+    }
 
     if (request.machineCode.isEmpty) {
       _logger.warning('Missing machine code');
-      state = state.copyWith(error: '缺少机号，无法打印', completed: true);
+      if (mounted) {
+        state = state.copyWith(error: '缺少机号，无法打印', completed: true);
+      }
       _running = false;
       return;
     }
     if (activePrinters.isEmpty) {
       _logger.info('No active printers');
-      state = state.copyWith(error: '未开启任何打印机', completed: true);
+      if (mounted) {
+        state = state.copyWith(error: '未开启任何打印机', completed: true);
+      }
       _running = false;
       return;
     }
 
     try {
       final doc = await _resolveDocument();
+      if (!mounted) {
+        _running = false;
+        return;
+      }
       state = state.copyWith(stage: '生成打印任务…');
       final results = await _service.enqueuePrintJobs(
         document: doc,
@@ -80,16 +92,20 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
         );
       }
 
-      state = state.copyWith(
-        stage: updatedJobs.any((j) => j.status == PrintJobStatus.failure)
-            ? '部分打印失败'
-            : '打印任务已发送',
-        jobs: updatedJobs,
-        completed: true,
-      );
+      if (mounted) {
+        state = state.copyWith(
+          stage: updatedJobs.any((j) => j.status == PrintJobStatus.failure)
+              ? '部分打印失败'
+              : '打印任务已发送',
+          jobs: updatedJobs,
+          completed: true,
+        );
+      }
     } catch (e, stack) {
       _logger.warning('Print failed', e, stack);
-      state = state.copyWith(error: '打印失败: $e', completed: true);
+      if (mounted) {
+        state = state.copyWith(error: '打印失败: $e', completed: true);
+      }
     } finally {
       _running = false;
     }

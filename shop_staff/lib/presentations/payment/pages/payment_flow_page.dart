@@ -272,9 +272,11 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         ref.read(machineCodeProvider) ?? '';
     final printers = ref.read(appSettingsSnapshotProvider)?.printers ?? const <PrinterSettings>[];
 
-    String printType = "";
+    String printType = '';
     final labelPrinter = printers.firstWhere(
-        (printer) => printer.type == 10 && !printer.receipt);
+      (printer) => printer.type == 10 && !printer.receipt,
+      orElse: () => PrinterSettings(name: '', printIp: '', receipt: false, labelSize: '', type: 0, isOn: false),
+    );
 
     if (labelPrinter.isOn) {
       printType = 'Label';
