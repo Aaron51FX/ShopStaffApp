@@ -99,11 +99,11 @@ class ShopStaffApp extends ConsumerWidget {
       }
 
       var printData = await printerPlus.PrinterCommandTool.generatePrintCmd(
-      imgData: imageBytes,
-      printType: printTypeEnum,
-      argbWidthPx: argbWidth,
-      argbHeightPx: argbHeight,
-    );
+        imgData: imageBytes,
+        printType: printTypeEnum,
+        argbWidthPx: argbWidth,
+        argbHeightPx: argbHeight,
+      );
 
       if (printerInfo.isUsbPrinter) {
         // usb 打印
@@ -113,13 +113,15 @@ class ShopStaffApp extends ConsumerWidget {
         // 网络 打印
         // final conn = printerPlus.NetConn(printerInfo.ip!);
         // conn.writeMultiBytes(printData);
+        debugPrint('开始网络打印，IP：${printerInfo.ip}');
 
         try {
           await printerController.enqueue(printerInfo.ip!, printData, timeout: Duration(seconds: 12));
           // final conn = printerPlus.NetConn(printerInfo.ip!);
           // conn.writeMultiBytes(printData);
         } catch (e) {
-          // handle/report failure for diagnostics
+          debugPrint('打印失败: $e');
+          throw Exception('打印失败: $e');
         }
       }
 
