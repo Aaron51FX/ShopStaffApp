@@ -55,8 +55,8 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
       _ref.read(appSettingsSnapshotProvider.notifier).state = result.settings;
       debugPrint('[Activation] backend success, writing storage');
       if (context.mounted) {
-        debugPrint('[Activation] navigating to /print-root');
-        context.go('/print-root');
+        debugPrint('[Activation] navigating to /entry');
+        context.go('/entry');
       }
     } catch (e) {
       debugPrint('[Activation] error: $e');

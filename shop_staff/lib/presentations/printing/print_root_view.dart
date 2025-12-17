@@ -3,14 +3,15 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_printer_plus/flutter_printer_plus.dart' as printerPlus;
 import 'package:print_image_generate_tool/print_image_generate_tool.dart';
 import 'package:shop_staff/core/config/print_info.dart';
 
-/// Root view to anchor print instrumentation; auto-routes to entry.
+/// Root view to anchor print instrumentation across the app.
 class PrintRootView extends ConsumerStatefulWidget {
-	const PrintRootView({super.key});
+	const PrintRootView({super.key, required this.child});
+
+	final Widget child;
 
 	@override
 	ConsumerState<PrintRootView> createState() => _PrintRootViewState();
@@ -18,35 +19,15 @@ class PrintRootView extends ConsumerStatefulWidget {
 
 class _PrintRootViewState extends ConsumerState<PrintRootView> {
 	final printerController = printerPlus.PrinterJobController();
-	bool _navigated = false;
-
-	@override
-	void initState() {
-		super.initState();
-		WidgetsBinding.instance.addPostFrameCallback((_) => _goEntry());
-	}
 
 	@override
 	Widget build(BuildContext context) {
 		return PrintImageGenerateWidget(
 			onPictureGenerated: _onPictureGenerated,
 			contentBuilder: (context) {
-				return Scaffold(
-					body: Center(
-						child: ElevatedButton(
-							onPressed: _goEntry,
-							child: const Text('Entry'),
-						),
-					),
-				);
+				return widget.child;
 			},
 		);
-	}
-
-	void _goEntry() {
-		if (_navigated || !mounted) return;
-		_navigated = true;
-		context.push('/entry');
 	}
 
 	// Mirrors entry view printing pipeline to capture print tasks.

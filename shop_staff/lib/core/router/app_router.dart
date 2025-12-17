@@ -35,7 +35,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         '/pos/suspended',
         '/settings',
         '/payment',
-        '/print-root',
       };
       final needsGuard =
           protectedPaths.contains(loc) || loc.startsWith('/pos/');
@@ -54,41 +53,41 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: 'login',
         builder: (context, state) => const LoginPage(),
       ),
-      GoRoute(
-        path: '/entry',
-        name: 'entry',
-        builder: (context, state) => const EntryPage(),
-      ),
-      GoRoute(
-        path: '/print-root',
-        name: 'print-root',
-        builder: (context, state) => const PrintRootView(),
-      ),
-      GoRoute(
-        path: '/pos',
-        name: 'pos',
-        builder: (context, state) => const PosPage(),
-      ),
-      GoRoute(
-        path: '/pos/suspended',
-        name: 'suspended',
-        builder: (context, state) => const SuspendedOrdersPage(),
-      ),
-      GoRoute(
-        path: '/settings',
-        name: 'settings',
-        builder: (context, state) => const SettingsPage(),
-      ),
-      GoRoute(
-        path: '/payment',
-        name: 'payment',
-        builder: (context, state) {
-          final args = state.extra;
-          if (args is! PaymentFlowPageArgs) {
-            return const Scaffold(body: Center(child: Text('缺少支付参数')));
-          }
-          return PaymentFlowPage(args: args);
-        },
+      ShellRoute(
+        builder: (context, state, child) => PrintRootView(child: child),
+        routes: [
+          GoRoute(
+            path: '/entry',
+            name: 'entry',
+            builder: (context, state) => const EntryPage(),
+          ),
+          GoRoute(
+            path: '/pos',
+            name: 'pos',
+            builder: (context, state) => const PosPage(),
+          ),
+          GoRoute(
+            path: '/pos/suspended',
+            name: 'suspended',
+            builder: (context, state) => const SuspendedOrdersPage(),
+          ),
+          GoRoute(
+            path: '/settings',
+            name: 'settings',
+            builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/payment',
+            name: 'payment',
+            builder: (context, state) {
+              final args = state.extra;
+              if (args is! PaymentFlowPageArgs) {
+                return const Scaffold(body: Center(child: Text('缺少支付参数')));
+              }
+              return PaymentFlowPage(args: args);
+            },
+          ),
+        ],
       ),
     ],
   );
