@@ -36,7 +36,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
       ref.read(appSettingsSnapshotProvider.notifier).state = result.settings;
       _error = null;
       debugPrint('[Splash] resume success, navigating to /entry');
-      context.go('/entry');
+      context.push('/entry');
     } catch (e) {
       String msg;
       if (e is ApiException) {

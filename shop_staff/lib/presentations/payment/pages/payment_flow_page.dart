@@ -295,7 +295,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         context: context,
         ref: ref,
         request: request,
-        onCompleted: () => context.go('/pos'),
+        onCompleted: () => context.go('/entry'),
       );
     } finally {
       _printing = false;
