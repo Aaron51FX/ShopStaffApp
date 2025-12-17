@@ -1,10 +1,5 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_printer_plus/flutter_printer_plus.dart' as printerPlus;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:print_image_generate_tool/print_image_generate_tool.dart';
-import 'package:shop_staff/core/config/print_info.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../../../core/router/app_router.dart';
@@ -25,7 +20,6 @@ class EntryPage extends ConsumerStatefulWidget {
 
 class _EntryPageState extends ConsumerState<EntryPage> {
 
-  final printerController = printerPlus.PrinterJobController();
   @override
   void initState() {
     super.initState();
@@ -48,10 +42,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
     final dateText = _formatDate(now);
 
     return CashMachineDialogPortal(
-      child: PrintImageGenerateWidget(
-        onPictureGenerated: _onPictureGenerated,
-        contentBuilder: (context) {
-          return Scaffold(
+      child: Scaffold(
             backgroundColor: Colors.transparent,
             body: Container(
               decoration: const BoxDecoration(
@@ -158,64 +149,10 @@ class _EntryPageState extends ConsumerState<EntryPage> {
                 ),
               ),
             ),
-          );
-        },
-      ),
+          ),
     );
     
   }
-
-      //打印图层生成成功
-  Future<void> _onPictureGenerated(PicGenerateResult imgData) async {
-    //final imageBytes = imgdata.data;
-      final printTask = imgData.taskItem;
-
-    //指定的打印机
-      final printerInfo = printTask.params as PrinterInfo;
-      //print('printerInfo: $printerInfo');
-      //打印票据类型（标签、小票）
-      final printTypeEnum = printTask.printTypeEnum;
-
-      final imageBytes =
-          await imgData.convertUint8List(imageByteFormat: ImageByteFormat.rawRgba);
-      //也可以使用 ImageByteFormat.png
-      final argbWidth = imgData.imageWidth;
-      final argbHeight = imgData.imageHeight;
-      if (imageBytes == null) {
-        return;
-      }
-
-      var printData = await printerPlus.PrinterCommandTool.generatePrintCmd(
-        imgData: imageBytes,
-        printType: printTypeEnum,
-        argbWidthPx: argbWidth,
-        argbHeightPx: argbHeight,
-      );
-
-      if (printerInfo.isUsbPrinter) {
-        // usb 打印
-        final conn = printerPlus.UsbConn(printerInfo.usbDevice!);
-        conn.writeMultiBytes(printData, 1024 * 8);
-      } else if (printerInfo.isNetPrinter) {
-        // 网络 打印
-        // final conn = printerPlus.NetConn(printerInfo.ip!);
-        // conn.writeMultiBytes(printData);
-        debugPrint('开始网络打印，IP：${printerInfo.ip}');
-
-        try {
-          await printerController.enqueue(printerInfo.ip!, printData, timeout: Duration(seconds: 12));
-          // final conn = printerPlus.NetConn(printerInfo.ip!);
-          // conn.writeMultiBytes(printData);
-        } catch (e) {
-          debugPrint('打印失败: $e');
-          throw Exception('打印失败: $e');
-        }
-      }
-
-      // // 网络 打印
-      // final conn = printerPlus.NetConn(printerInfo.ip!);
-      // conn.writeMultiBytes(printData);
-    }
 
   Widget _buildTopBar(
     BuildContext context,

@@ -9,6 +9,7 @@ import '../../presentations/splash/pages/splash_page.dart';
 import '../../presentations/pos/pages/suspended_orders_page.dart';
 import '../../presentations/payment/pages/payment_flow_page.dart';
 import '../../presentations/entry/pages/entry_page.dart';
+import '../../presentations/printing/print_root_view.dart';
 import '../storage/key_value_store.dart';
 
 // Expose a root navigator key for global navigation/overlay usage
@@ -34,6 +35,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         '/pos/suspended',
         '/settings',
         '/payment',
+        '/print-root',
       };
       final needsGuard =
           protectedPaths.contains(loc) || loc.startsWith('/pos/');
@@ -56,6 +58,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/entry',
         name: 'entry',
         builder: (context, state) => const EntryPage(),
+      ),
+      GoRoute(
+        path: '/print-root',
+        name: 'print-root',
+        builder: (context, state) => const PrintRootView(),
       ),
       GoRoute(
         path: '/pos',

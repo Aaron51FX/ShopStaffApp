@@ -35,8 +35,8 @@ class _SplashPageState extends ConsumerState<SplashPage> {
       ref.read(shopInfoProvider.notifier).state = result.shopInfo;
       ref.read(appSettingsSnapshotProvider.notifier).state = result.settings;
       _error = null;
-      debugPrint('[Splash] resume success, navigating to /entry');
-      context.push('/entry');
+      debugPrint('[Splash] resume success, navigating to /print-root');
+      context.push('/print-root');
     } catch (e) {
       String msg;
       if (e is ApiException) {

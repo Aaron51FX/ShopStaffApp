@@ -113,7 +113,7 @@ class ShopStaffApp extends ConsumerWidget {
         // 网络 打印
         // final conn = printerPlus.NetConn(printerInfo.ip!);
         // conn.writeMultiBytes(printData);
-        debugPrint('开始网络打印，IP：${printerInfo.ip}');
+        debugPrint('网络打印，IP：${printerInfo.ip}');
 
         try {
           await printerController.enqueue(printerInfo.ip!, printData, timeout: Duration(seconds: 12));
