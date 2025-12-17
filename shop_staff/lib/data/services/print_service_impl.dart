@@ -27,6 +27,7 @@ class PrintServiceImpl implements PrintService {
         pageHeight: size.$2,
         child: TicketBody(document: document, isLabel: isLabel),
       );
+      debugPrint('Enqueuing print job for printer ${printer.name} (IP: ${printer.printIp}), isLabel: $isLabel');
 
       PictureGeneratorProvider.instance.addPicGeneratorTask(
         PicGenerateTask<PrinterInfo>(

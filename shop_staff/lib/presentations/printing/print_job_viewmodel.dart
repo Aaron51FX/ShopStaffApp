@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:shop_staff/data/providers.dart';
@@ -72,6 +73,8 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
         return;
       }
       state = state.copyWith(stage: '生成打印任务…');
+      debugPrint('Generating print jobs for ${activePrinters.length} printers');
+      _logger.info('Generating print jobs for ${activePrinters.length} printers');
       final results = await _service.enqueuePrintJobs(
         document: doc,
         printers: activePrinters,
@@ -102,6 +105,7 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
         );
       }
     } catch (e, stack) {
+      debugPrint('Print failed: $e');
       _logger.warning('Print failed', e, stack);
       if (mounted) {
         state = state.copyWith(error: '打印失败: $e', completed: true);
