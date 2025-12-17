@@ -1,5 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_printer_plus/flutter_printer_plus.dart' as printerPlus;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:print_image_generate_tool/print_image_generate_tool.dart';
+import 'package:shop_staff/core/config/print_info.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../../../core/router/app_router.dart';
@@ -19,12 +24,16 @@ class EntryPage extends ConsumerStatefulWidget {
 }
 
 class _EntryPageState extends ConsumerState<EntryPage> {
+
+  final printerController = printerPlus.PrinterJobController();
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref.read(cashMachineCheckControllerProvider.notifier).maybePromptOnEntry();
+      ref
+          .read(cashMachineCheckControllerProvider.notifier)
+          .maybePromptOnEntry();
     });
   }
 
@@ -39,110 +48,174 @@ class _EntryPageState extends ConsumerState<EntryPage> {
     final dateText = _formatDate(now);
 
     return CashMachineDialogPortal(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-            child: Column(
-              children: [
-                _buildTopBar(context, ref, timeText, dateText),
-                const SizedBox(height: 40),
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 960),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            t.entryTitle,
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            t.entrySubtitle,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.72),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 36),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final isNarrow = constraints.maxWidth < 720;
-                              final options = [
-                                _EntryOptionButton(
-                                  title: t.entryDineInTitle,
-                                  subtitle: t.entryDineInSubtitle,
-                                  icon: Icons.restaurant_menu_rounded,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF22D3EE),
-                                      Color(0xFF6366F1),
-                                    ],
-                                  ),
-                                  onTap: () => _startOrder(ref, 'dine_in'),
+      child: PrintImageGenerateWidget(
+        onPictureGenerated: _onPictureGenerated,
+        contentBuilder: (context) {
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                ),
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 24,
+                  ),
+                  child: Column(
+                    children: [
+                      _buildTopBar(context, ref, timeText, dateText),
+                      const SizedBox(height: 40),
+                      Expanded(
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 960),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  t.entryTitle,
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                _EntryOptionButton(
-                                  title: t.entryTakeoutTitle,
-                                  subtitle: t.entryTakeoutSubtitle,
-                                  icon: Icons.shopping_bag_rounded,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFFF97316),
-                                      Color(0xFFF43F5E),
-                                    ],
+                                const SizedBox(height: 12),
+                                Text(
+                                  t.entrySubtitle,
+                                  style: theme.textTheme.bodyLarge?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.72),
                                   ),
-                                  onTap: () => _startOrder(ref, 'take_out'),
+                                  textAlign: TextAlign.center,
                                 ),
-                              ];
-                              if (isNarrow) {
-                                return Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    options[0],
-                                    const SizedBox(height: 20),
-                                    options[1],
-                                  ],
-                                );
-                              }
-                              return Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Expanded(child: options[0]),
-                                  const SizedBox(width: 24),
-                                  Expanded(child: options[1]),
-                                ],
-                              );
-                            },
+                                const SizedBox(height: 36),
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final isNarrow = constraints.maxWidth < 720;
+                                    final options = [
+                                      _EntryOptionButton(
+                                        title: t.entryDineInTitle,
+                                        subtitle: t.entryDineInSubtitle,
+                                        icon: Icons.restaurant_menu_rounded,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFF22D3EE),
+                                            Color(0xFF6366F1),
+                                          ],
+                                        ),
+                                        onTap: () =>
+                                            _startOrder(ref, 'dine_in'),
+                                      ),
+                                      _EntryOptionButton(
+                                        title: t.entryTakeoutTitle,
+                                        subtitle: t.entryTakeoutSubtitle,
+                                        icon: Icons.shopping_bag_rounded,
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFFF97316),
+                                            Color(0xFFF43F5E),
+                                          ],
+                                        ),
+                                        onTap: () =>
+                                            _startOrder(ref, 'take_out'),
+                                      ),
+                                    ];
+                                    if (isNarrow) {
+                                      return Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          options[0],
+                                          const SizedBox(height: 20),
+                                          options[1],
+                                        ],
+                                      );
+                                    }
+                                    return Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Expanded(child: options[0]),
+                                        const SizedBox(width: 24),
+                                        Expanded(child: options[1]),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
-        ),
-      );
+    );
     
   }
+
+      //打印图层生成成功
+  Future<void> _onPictureGenerated(PicGenerateResult imgData) async {
+    //final imageBytes = imgdata.data;
+      final printTask = imgData.taskItem;
+
+    //指定的打印机
+      final printerInfo = printTask.params as PrinterInfo;
+      //print('printerInfo: $printerInfo');
+      //打印票据类型（标签、小票）
+      final printTypeEnum = printTask.printTypeEnum;
+
+      final imageBytes =
+          await imgData.convertUint8List(imageByteFormat: ImageByteFormat.rawRgba);
+      //也可以使用 ImageByteFormat.png
+      final argbWidth = imgData.imageWidth;
+      final argbHeight = imgData.imageHeight;
+      if (imageBytes == null) {
+        return;
+      }
+
+      var printData = await printerPlus.PrinterCommandTool.generatePrintCmd(
+        imgData: imageBytes,
+        printType: printTypeEnum,
+        argbWidthPx: argbWidth,
+        argbHeightPx: argbHeight,
+      );
+
+      if (printerInfo.isUsbPrinter) {
+        // usb 打印
+        final conn = printerPlus.UsbConn(printerInfo.usbDevice!);
+        conn.writeMultiBytes(printData, 1024 * 8);
+      } else if (printerInfo.isNetPrinter) {
+        // 网络 打印
+        // final conn = printerPlus.NetConn(printerInfo.ip!);
+        // conn.writeMultiBytes(printData);
+        debugPrint('开始网络打印，IP：${printerInfo.ip}');
+
+        try {
+          await printerController.enqueue(printerInfo.ip!, printData, timeout: Duration(seconds: 12));
+          // final conn = printerPlus.NetConn(printerInfo.ip!);
+          // conn.writeMultiBytes(printData);
+        } catch (e) {
+          debugPrint('打印失败: $e');
+          throw Exception('打印失败: $e');
+        }
+      }
+
+      // // 网络 打印
+      // final conn = printerPlus.NetConn(printerInfo.ip!);
+      // conn.writeMultiBytes(printData);
+    }
 
   Widget _buildTopBar(
     BuildContext context,
