@@ -20,6 +20,11 @@ class PrintRepositoryImpl implements PrintRepository {
         'printType': printType,
       };
       final response = await _remote.printInfo(payload);
-      return PrintInfoDocument.fromJson(response);
+      // Backend wraps payload in { msg, code, data }, unwrap to the actual print info map.
+      final data = response is Map<String, dynamic> ? response['data'] : null;
+      if (data is! Map<String, dynamic>) {
+        throw StateError('打印信息解析失败: data 字段缺失或格式错误');
+      }
+      return PrintInfoDocument.fromJson(data);
   }
 }
