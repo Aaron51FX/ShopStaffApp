@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:print_image_generate_tool/print_image_generate_tool.dart';
 import 'package:flutter_printer_plus/flutter_printer_plus.dart' as printerPlus;
 import 'package:shop_staff/core/config/print_info.dart';
@@ -52,28 +53,36 @@ class ShopStaffApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
     final locale = ref.watch(localeControllerProvider);
-    return MaterialApp.router(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      locale: locale,
-      supportedLocales: supportedLocales,
-      localizationsDelegates: [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      theme: AppTheme.light,
-      routerConfig: router,
-      debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        return GlobalDialogHost(
-          child: 
-            PrintImageGenerateWidget(
-            contentBuilder: (context) {
-              return child ?? const SizedBox.shrink();
-            },
-            onPictureGenerated: _onPictureGenerated,
-          ));
+    return ScreenUtilInit(
+      designSize: const Size(1920, 1080),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (context, _) {
+        return MaterialApp.router(
+          //useInheritedMediaQuery: true,
+          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+          locale: locale,
+          supportedLocales: supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: AppTheme.light,
+          routerConfig: router,
+          debugShowCheckedModeBanner: false,
+          builder: (context, child) {
+            return GlobalDialogHost(
+              child: PrintImageGenerateWidget(
+                contentBuilder: (context) {
+                  return child ?? const SizedBox.shrink();
+                },
+                onPictureGenerated: _onPictureGenerated,
+              ),
+            );
+          },
+        );
       },
     );
   }
