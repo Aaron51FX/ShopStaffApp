@@ -22,6 +22,8 @@ class PrintServiceImpl implements PrintService {
       return results;
     }
 
+    final isTakeOut = info.orderType != 'Shop_In';
+
     for (final entry in info.orderLinesMap.entries) {
       final typeKey = int.tryParse(entry.key);
       if (typeKey == null) continue;
@@ -46,6 +48,28 @@ class PrintServiceImpl implements PrintService {
       results.add(PrintJobResult(printer: printer));
     }
 
+    // Center consolidated receipt (type 11) when enabled and takeout
+    final centerPrinter = printers.firstWhere(
+      (p) => p.type == 11 && p.isOn && (p.printIp?.isNotEmpty ?? false),
+      orElse: () => const PrinterSettings(name: '', type: -1),
+    );
+
+    if (centerPrinter.type == 11 && isTakeOut) {
+      final allLines = _linesFromMap(info);
+      if (allLines.isNotEmpty) {
+        final items = _toLegacyItems(allLines);
+        _printContinuous(
+          info: info,
+          items: items,
+          printer: centerPrinter,
+          rotate: centerPrinter.direction,
+          isTakeOut: isTakeOut,
+          isCenterPrint: true,
+        );
+        results.add(PrintJobResult(printer: centerPrinter));
+      }
+    }
+
     return results;
   }
 
@@ -54,7 +78,8 @@ class PrintServiceImpl implements PrintService {
     if (info == null) return;
     final rotate = printer.direction;
     final isTakeOut = info.orderType != 'Shop_In';
-    final items = _toLegacyItems(info.orderLines);
+    final mappedLines = _linesFromMap(info);
+    final items = _toLegacyItems(mappedLines);
     if (items.isEmpty) return;
 
     if (printer.continuous) {
@@ -182,6 +207,10 @@ Map<String, List<Map<String, dynamic>>> _toLegacyOptions(
   });
 }
 
+List<PrintOrderLine> _linesFromMap(PrintTicketInfo info) {
+  return info.orderLinesMap.values.expand((e) => e).toList(growable: false);
+}
+
 int _labelMaxLine(int height) {
   if (height <= 0) return 2;
   // Mirror legacy heuristic: assume line height ~ 225 * 0.25.
@@ -194,6 +223,7 @@ void _printContinuous({
   required PrinterSettings printer,
   required bool rotate,
   required bool isTakeOut,
+  bool isCenterPrint = false,
 }) {
   final widget = ReceiptConstrainedBox(
     Transform(
@@ -208,7 +238,7 @@ void _printContinuous({
             info.fromPlate,
             isTakeOut: isTakeOut,
             continuous: true,
-            isCenterPrint: false,
+            isCenterPrint: isCenterPrint,
           ),
           ...items.map((item) {
             return menuItem(
@@ -602,14 +632,14 @@ Widget receiptTitle(
                 if (isTakeOut && !isCenterPrint)
                   const Icon(
                     Icons.shopping_bag_outlined,
-                    size: 50,
+                    size: 30,
                     color: Colors.black,
                   ),
                 if (isTakeOut && isCenterPrint)
                   Text(
                     '$fromPlate # ',
                     style: const TextStyle(
-                      fontSize: 50,
+                      fontSize: 30,
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
@@ -617,7 +647,7 @@ Widget receiptTitle(
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 50,
+                    fontSize: 30,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
@@ -627,7 +657,7 @@ Widget receiptTitle(
             if (categoryName.isNotEmpty)
               AutoSizeText(
                 '[$categoryName]',
-                style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.black),
+                style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.black),
               ),
           ],
         ),
@@ -810,9 +840,7 @@ class LabelConstrainedBox extends StatelessWidget with ATempWidget {
 List<PrintOrderLine> _expandLinesForLabels(PrintInfoDocument document) {
   final info = document.printInfo;
   if (info == null) return const <PrintOrderLine>[];
-  final source = info.orderLines.isNotEmpty
-      ? info.orderLines
-      : info.orderLinesMap.values.expand((e) => e).toList();
+  final source = info.orderLinesMap.values.expand((e) => e).toList();
   final expanded = <PrintOrderLine>[];
   for (final line in source) {
     final qty = line.qty <= 0 ? 1 : line.qty;
