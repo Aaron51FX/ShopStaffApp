@@ -42,11 +42,8 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
     if (_running) return;
     _running = true;
     final activePrinters = request.printers.where((p) => p.isOn).toList();
-    final jobs = activePrinters
-        .map((p) => PrintJobStateItem(name: p.name))
-        .toList(growable: true);
     if (mounted) {
-      state = state.copyWith(stage: '拉取打印内容…', jobs: jobs, error: null, completed: false);
+      state = state.copyWith(stage: '拉取打印内容…', jobs: const [], error: null, completed: false);
     }
 
     if (request.machineCode.isEmpty) {
@@ -79,28 +76,23 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
         document: doc,
         printers: activePrinters,
       );
-
-      final updatedJobs = <PrintJobStateItem>[];
-      for (var i = 0; i < jobs.length; i++) {
-        final printer = activePrinters[i];
-        final match = results.firstWhere(
-          (r) => r.printer.name == printer.name,
-          orElse: () => PrintJobResult(printer: printer, error: '未生成任务'),
-        );
-        updatedJobs.add(
-          jobs[i].copyWith(
-            status: match.isSuccess ? PrintJobStatus.success : PrintJobStatus.failure,
-            error: match.error,
-          ),
-        );
-      }
+      final updatedJobs = results
+          .map(
+            (r) => PrintJobStateItem(
+              name: r.printer.name,
+              status: r.isSuccess ? PrintJobStatus.success : PrintJobStatus.failure,
+              error: r.error,
+            ),
+          )
+          .toList(growable: false);
 
       if (mounted) {
         state = state.copyWith(
           stage: updatedJobs.any((j) => j.status == PrintJobStatus.failure)
               ? '部分打印失败'
-              : '打印任务已发送',
+              : (updatedJobs.isEmpty ? '未生成打印任务' : '打印任务已发送'),
           jobs: updatedJobs,
+          error: updatedJobs.isEmpty ? '未生成打印任务' : null,
           completed: true,
         );
       }
