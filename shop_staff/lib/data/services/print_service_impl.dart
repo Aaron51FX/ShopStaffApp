@@ -326,7 +326,7 @@ void _printSingle({
               alignment: Alignment.centerRight,
               child: Text(
                 info.orderTime,
-                style: const TextStyle(fontSize: 40),
+                style: const TextStyle(fontSize: 24),
               ),
             ),
           ],
@@ -496,7 +496,7 @@ Widget headReceiptWidget(
                       textAlign: TextAlign.left,
                       maxLines: 2,
                       style: const TextStyle(
-                        fontSize: 50,
+                        fontSize: 30,
                         color: Colors.black,
                         fontWeight: FontWeight.bold,
                       ),
@@ -601,13 +601,12 @@ Widget optionList(Map<String, List<Map<String, dynamic>>> options, int maxLines)
 }
 
 String optionItem(String optionName, List<Map<String, dynamic>> optionValues) {
-  return "$optionName: " +
-      optionValues.map((option) {
+  return "$optionName: ${optionValues.map((option) {
         final optionDetail = option['name']?.toString() ?? '';
         final optionQty = option['qty'] as int? ?? 1;
         final optionQtyString = optionQty == 1 ? '' : 'x $optionQty';
         return "$optionDetail $optionQtyString";
-      }).join(', ');
+      }).join(', ')}";
 }
 
 Widget receiptTitle(
@@ -632,14 +631,14 @@ Widget receiptTitle(
                 if (isTakeOut && !isCenterPrint)
                   const Icon(
                     Icons.shopping_bag_outlined,
-                    size: 30,
+                    size: 28,
                     color: Colors.black,
                   ),
                 if (isTakeOut && isCenterPrint)
                   Text(
                     '$fromPlate # ',
                     style: const TextStyle(
-                      fontSize: 30,
+                      fontSize: 28,
                       color: Colors.black,
                       fontWeight: FontWeight.bold,
                     ),
@@ -647,7 +646,7 @@ Widget receiptTitle(
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 30,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
@@ -657,7 +656,7 @@ Widget receiptTitle(
             if (categoryName.isNotEmpty)
               AutoSizeText(
                 '[$categoryName]',
-                style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.black),
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black),
               ),
           ],
         ),
@@ -690,7 +689,7 @@ Widget menuItem(
         if (categoryName != null && categoryName.isNotEmpty && isContinuous)
           Text(
             '【$categoryName】',
-            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.black),
+            style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black),
           ),
         const SizedBox(height: 10),
         Row(
@@ -700,7 +699,7 @@ Widget menuItem(
               child: Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 40,
+                  fontSize: 24,
                   color: Colors.black,
                 ),
               ),
@@ -708,7 +707,7 @@ Widget menuItem(
             Text(
               optionQtyString,
               style: const TextStyle(
-                fontSize: 40,
+                fontSize: 24,
                 color: Colors.black,
               ),
             ),
@@ -727,7 +726,7 @@ Widget menuItem(
                   children: [
                     Text(
                       '  $optionName',
-                      style: const TextStyle(fontSize: 36),
+                      style: const TextStyle(fontSize: 24),
                     ),
                     Expanded(
                       child: Column(
@@ -739,7 +738,7 @@ Widget menuItem(
                           return Text(
                             '    $optionDetail $optionQtyString',
                             maxLines: 3,
-                            style: const TextStyle(fontSize: 36),
+                            style: const TextStyle(fontSize: 24),
                           );
                         }).toList(),
                       ),
@@ -766,7 +765,7 @@ Widget remarkTitle(String content) {
   return Text(
     content,
     style: const TextStyle(
-      fontSize: 32,
+      fontSize: 28,
       color: Colors.black,
     ),
   );

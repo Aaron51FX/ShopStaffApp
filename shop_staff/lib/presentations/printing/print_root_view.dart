@@ -49,6 +49,7 @@ class _PrintRootViewState extends ConsumerState<PrintRootView> {
 			argbWidthPx: argbWidth,
 			argbHeightPx: argbHeight,
 		);
+    debugPrint('Printing to IP: ${printerInfo.ip}');
 
 		if (printerInfo.isUsbPrinter) {
 			final conn = printerPlus.UsbConn(printerInfo.usbDevice!);
