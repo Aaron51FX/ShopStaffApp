@@ -9,6 +9,7 @@ import '../../presentations/splash/pages/splash_page.dart';
 import '../../presentations/pos/pages/suspended_orders_page.dart';
 import '../../presentations/payment/pages/payment_flow_page.dart';
 import '../../presentations/entry/pages/entry_page.dart';
+import '../../presentations/customer/pages/customer_page.dart';
 import '../../presentations/printing/print_root_view.dart';
 import '../storage/key_value_store.dart';
 
@@ -31,6 +32,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       print('[RouterRedirect] hasCode=$hasCode location=$loc');
       final protectedPaths = {
         '/entry',
+        '/customer',
         '/pos',
         '/pos/suspended',
         '/settings',
@@ -60,6 +62,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/entry',
             name: 'entry',
             builder: (context, state) => const EntryPage(),
+          ),
+          GoRoute(
+            path: '/customer',
+            name: 'customer',
+            builder: (context, state) => const CustomerPage(),
           ),
           GoRoute(
             path: '/pos',

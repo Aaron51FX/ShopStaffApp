@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../data/providers.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/app_role.dart';
 
 /// SplashPage: 每次启动重新获取 ShopInfo / 做后续健康检查入口
 class SplashPage extends ConsumerStatefulWidget {
@@ -34,9 +35,11 @@ class _SplashPageState extends ConsumerState<SplashPage> {
       }
       ref.read(shopInfoProvider.notifier).state = result.shopInfo;
       ref.read(appSettingsSnapshotProvider.notifier).state = result.settings;
+      final role = await ref.read(appRoleServiceProvider).loadRole();
+      ref.read(appRoleProvider.notifier).state = role;
       _error = null;
-      debugPrint('[Splash] resume success, navigating to /entry');
-      context.go('/entry');
+      debugPrint('[Splash] resume success, navigating to role=${role.name}');
+      context.go(role == AppRole.customer ? '/customer' : '/entry');
     } catch (e) {
       String msg;
       if (e is ApiException) {

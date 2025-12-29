@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
+import '../../../core/app_role.dart';
+import '../../../data/providers.dart';
+import '../../../main.dart';
 
 import '../../../domain/settings/app_settings_models.dart';
 import '../viewmodels/settings_viewmodel.dart';
@@ -395,10 +398,66 @@ class _SystemSettingsView extends ConsumerWidget {
     final vm = ref.read(settingsViewModelProvider.notifier);
     final cashCheckState = ref.watch(cashMachineCheckControllerProvider);
     final cashCheckController = ref.read(cashMachineCheckControllerProvider.notifier);
+    final currentRole = ref.watch(appRoleProvider);
+
+    Future<void> onRoleSelected(AppRole target) async {
+      if (target == currentRole) return;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('切换角色'),
+            content: Text('切换到“${target.label}”需要重启应用以加载对应界面，是否立即重启？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(t.dialogCancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text(t.dialogConfirm),
+              ),
+            ],
+          );
+        },
+      );
+      if (confirmed != true) return;
+      await ref.read(appRoleServiceProvider).saveRole(target);
+      ref.read(appRoleProvider.notifier).state = target;
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('正在重启以切换到${target.label}...'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 160));
+      RestartableApp.restart(context);
+    }
 
     return _RefreshableScroll(
       onRefresh: onRefresh,
       children: [
+        _SectionCard(
+          title: '角色选择',
+          subtitle: '选择设备扮演的端，保存后会重启并进入对应界面',
+          children: [
+            _RoleSelector(
+              current: currentRole,
+              onSelect: onRoleSelected,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '店员端用于收银与管理；顾客端用于商品展示与下单。',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.68),
+                  ),
+            ),
+          ],
+        ),
         _SectionCard(
           title: t.settingsLanguageSectionTitle,
           subtitle: t.settingsLanguageSectionSubtitle,
@@ -550,6 +609,54 @@ class _SystemSettingsView extends ConsumerWidget {
               : [_PrinterGrid(printers: printers)],
         ),
       ],
+    );
+  }
+}
+
+class _RoleSelector extends StatelessWidget {
+  const _RoleSelector({required this.current, required this.onSelect});
+
+  final AppRole current;
+  final Future<void> Function(AppRole role) onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Wrap(
+      spacing: 12,
+      runSpacing: 10,
+      children: AppRole.values.map((role) {
+        final active = role == current;
+        final label = role == AppRole.staff ? '店员端' : '顾客端';
+        final icon = role == AppRole.staff ? Icons.badge_rounded : Icons.tv_rounded;
+        final color = active
+            ? theme.colorScheme.primary
+            : theme.colorScheme.onSurface.withValues(alpha: 0.64);
+        return ChoiceChip(
+          selected: active,
+          onSelected: active ? null : (_) => onSelect(role),
+          labelPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          label: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: color),
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          backgroundColor:
+              theme.colorScheme.surfaceVariant.withValues(alpha: 0.32),
+          selectedColor: theme.colorScheme.primary.withValues(alpha: 0.16),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        );
+      }).toList(),
     );
   }
 }

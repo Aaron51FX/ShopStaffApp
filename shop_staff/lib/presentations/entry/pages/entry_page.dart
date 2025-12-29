@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../../../core/router/app_router.dart';
+import '../../../core/app_role.dart';
+import '../../../data/providers.dart';
 import '../../pos/viewmodels/pos_viewmodel.dart';
 import '../viewmodels/entry_viewmodels.dart';
 import '../../cash_machine/widgets/cash_machine_check_dialog.dart';
@@ -162,6 +164,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
   ) {
     final router = ref.read(appRouterProvider);
     final t = AppLocalizations.of(context);
+    final role = ref.watch(appRoleProvider);
     return Row(
       children: [
         FilledButton.icon(
@@ -201,6 +204,8 @@ class _EntryPageState extends ConsumerState<EntryPage> {
             ],
           ),
         ),
+        _CustomerStatusChip(role: role),
+        const SizedBox(width: 12),
         IconButton.filledTonal(
           onPressed: () => router.push('/settings'),
           icon: const Icon(Icons.settings_rounded),
@@ -298,6 +303,40 @@ class _EntryOptionButton extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _CustomerStatusChip extends StatelessWidget {
+  const _CustomerStatusChip({required this.role});
+
+  final AppRole role;
+
+  @override
+  Widget build(BuildContext context) {
+    final isCustomer = role == AppRole.customer;
+    final color = isCustomer ? const Color(0xFF22D3EE) : const Color(0xFFF59E0B);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.sensors_rounded, size: 18, color: color),
+          const SizedBox(width: 8),
+          Text(
+            '顾客端: ${role.label}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

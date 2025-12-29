@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/services/startup_service.dart';
+import '../../../core/app_role.dart';
 // shopInfoProviders imported via data/providers.dart already
 
 class ActivationState {
@@ -53,10 +54,12 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
       final result = await _startupService.activate(mc);
       _ref.read(shopInfoProvider.notifier).state = result.shopInfo;
       _ref.read(appSettingsSnapshotProvider.notifier).state = result.settings;
+      final role = await _ref.read(appRoleServiceProvider).loadRole();
+      _ref.read(appRoleProvider.notifier).state = role;
       debugPrint('[Activation] backend success, writing storage');
       if (context.mounted) {
-        debugPrint('[Activation] navigating to /entry');
-        context.go('/entry');
+        debugPrint('[Activation] navigating to role=${role.name}');
+        context.go(role == AppRole.customer ? '/customer' : '/entry');
       }
     } catch (e) {
       debugPrint('[Activation] error: $e');

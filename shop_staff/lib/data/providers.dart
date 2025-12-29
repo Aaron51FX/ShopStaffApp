@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:shop_staff/data/services/cash_machine_service_impl.dart';
 import 'package:shop_staff/domain/repositories/activation_repository.dart';
 import 'package:shop_staff/domain/services/cash_machine_service.dart';
+import '../core/app_role.dart';
 import '../core/network/app_environment.dart';
 import '../core/network/dio_client.dart';
 import '../core/storage/key_value_store.dart';
@@ -21,6 +22,7 @@ import 'services/payment_flows/card_payment_flow.dart';
 import 'services/payment_flows/cash_payment_flow.dart';
 import 'services/payment_flows/qr_payment_flow.dart';
 import 'services/key_value_app_settings_service.dart';
+import 'services/app_role_service_impl.dart';
 import 'services/pos_card_payment_gateway.dart';
 import 'services/pos_payment_orchestrator.dart';
 import 'services/pos_payment_service_impl.dart';
@@ -34,6 +36,7 @@ import '../domain/services/pos_payment_service.dart';
 import '../domain/services/payment_orchestrator.dart';
 import '../domain/services/print_service.dart';
 import '../domain/services/app_settings_service.dart';
+import '../domain/services/app_role_service.dart';
 import '../domain/services/startup_service.dart';
 import '../data/models/shop_info_models.dart';
 import 'services/startup_service_impl.dart';
@@ -113,6 +116,11 @@ final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
   return KeyValueAppSettingsService(store, logger: Logger('AppSettingsService'));
 });
 
+final appRoleServiceProvider = Provider<AppRoleService>((ref) {
+  final store = ref.watch(keyValueStoreProvider);
+  return AppRoleServiceImpl(store, logger: Logger('AppRoleService'));
+});
+
 final cashMachineServiceProvider = Provider<CashMachineService>((ref) {
   final service = CashMachineServiceImpl(Logger('CashMachine'));
   ref.onDispose(service.dispose);
@@ -183,6 +191,9 @@ final suspendedOrderLocalDataSourceProvider = Provider<SuspendedOrderLocalDataSo
 final shopInfoProvider = StateProvider<ShopInfoModel?>((_) => null);
 
 final appSettingsSnapshotProvider = StateProvider<AppSettingsSnapshot?>((_) => null);
+
+// Current app role (staff/customer). Default to staff until loaded from storage.
+final appRoleProvider = StateProvider<AppRole>((_) => AppRole.staff);
 
 // Optional language override (user-chosen) distinct from backend default
 final languageOverrideProvider = StateProvider<String?>((_) => null);

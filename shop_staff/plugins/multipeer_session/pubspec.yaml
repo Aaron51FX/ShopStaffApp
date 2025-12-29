@@ -1,0 +1,24 @@
+name: multipeer_session
+description: Lightweight P2P bridge (Multipeer Connectivity on iOS, stub on Android) for in-app dual-screen ordering.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: MultipeerSessionPlugin
+      android:
+        package: com.example.multipeer_session
+        pluginClass: MultipeerSessionPlugin

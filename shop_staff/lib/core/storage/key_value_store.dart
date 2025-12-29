@@ -38,4 +38,5 @@ class AppStorageKeys {
   static const settingsBasic = 'settings_basic';
   static const settingsPosTerminal = 'settings_pos_terminal';
   static const settingsPrinter = 'settings_printer';
+  static const appRole = 'app_role';
 }

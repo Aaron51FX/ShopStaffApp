@@ -39,7 +39,36 @@ Future<void> main() async {
   // }
 
   await Hive.initFlutter();
-  runApp(const ProviderScope(child: ShopStaffApp()));
+  runApp(const RestartableApp());
+}
+
+class RestartableApp extends StatefulWidget {
+  const RestartableApp({super.key});
+
+  static void restart(BuildContext context) {
+    context.findAncestorStateOfType<_RestartableAppState>()?.restart();
+  }
+
+  @override
+  State<RestartableApp> createState() => _RestartableAppState();
+}
+
+class _RestartableAppState extends State<RestartableApp> {
+  int _restartCounter = 0;
+
+  void restart() {
+    setState(() {
+      _restartCounter++;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ProviderScope(
+      key: ValueKey('provider-scope-$_restartCounter'),
+      child: ShopStaffApp(key: ValueKey('shop-staff-$_restartCounter')),
+    );
+  }
 }
 
 class ShopStaffApp extends ConsumerWidget {

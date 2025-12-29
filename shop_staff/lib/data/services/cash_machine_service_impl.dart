@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:cash_changer/cash_changer.dart';
+import 'package:cash_changer/cash_changer_define.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:shop_staff/domain/services/cash_machine_service.dart';
-import 'package:shop_staff/plugins/cash_changer/lib/cash_changer.dart';
-import 'package:shop_staff/plugins/cash_changer/lib/cash_changer_define.dart';
 
 /// Emits granular cash-machine states and orchestrates hardware operations.
 class CashMachineServiceImpl implements CashMachineService {
