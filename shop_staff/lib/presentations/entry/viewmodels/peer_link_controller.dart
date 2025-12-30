@@ -114,7 +114,7 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
     await MultipeerSession.send(message);
   }
 
-  void clearLocalDisplay() {
+  void clearLocalMessage() {
     state = state.copyWith(clearMessage: true, messageSeq: state.messageSeq + 1);
   }
 

@@ -297,7 +297,12 @@ class _MessageOverlay extends StatelessWidget {
         child: _TypedOverlay(
           key: currentKey,
           type: message!.type,
-          child: _OverlayCard(message: message!),
+              child: GestureDetector(
+                onLongPress: () => ProviderScope.containerOf(context, listen: false)
+                    .read(customerPeerLinkControllerProvider.notifier)
+                    .clearLocalMessage(),
+                child: _OverlayCard(message: message!),
+              ),
         ),
       ),
     );
@@ -338,15 +343,9 @@ class _OverlayCard extends StatelessWidget {
       heightFactor: 0.9,
       child: Material(
         color: Colors.white.withValues(alpha: 0.0),
-        child: GestureDetector(
-          onLongPress: () {
-          
-            
-          },
-          child: Center(
+        child: Center(
             child: content,
           ),
-        ),
       ),
     );
   }
