@@ -171,6 +171,72 @@ class PosViewModel extends StateNotifier<PosState> {
     SimpleToast.successGlobal('已推送到顾客端');
   }
 
+  Future<void> _sendOptionsToCustomer({required Product product, required List<SelectedOption> options}) async {
+    final controller = _ref.read(peerLinkControllerProvider.notifier);
+    final connected = _ref.read(peerLinkControllerProvider).isConnected;
+    if (!connected) {
+      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      return;
+    }
+    final basePrice = product.price;
+    final optionsExtra = options.fold<double>(0, (p, e) => p + e.extraPrice * e.quantity);
+    final total = basePrice + optionsExtra;
+    final payload = {
+      'id': product.id,
+      'name': product.name,
+      'image': product.imageUrl,
+      'basePrice': basePrice,
+      'totalPrice': total,
+      'options': options
+          .map((o) => {
+                'groupCode': o.groupCode,
+                'groupName': o.groupName,
+                'optionCode': o.optionCode,
+                'optionName': o.optionName,
+                'extraPrice': o.extraPrice,
+                'quantity': o.quantity,
+              })
+          .toList(),
+    };
+    await controller.sendMessage(PeerMessage(type: 'product_options', payload: payload));
+    SimpleToast.successGlobal('已推送当前配置到顾客端');
+  }
+
+  Future<void> _sendOptionGroupToCustomer({required Product product, required OptionGroupEntity group, required Map<String, int> selected}) async {
+    final controller = _ref.read(peerLinkControllerProvider.notifier);
+    final connected = _ref.read(peerLinkControllerProvider).isConnected;
+    if (!connected) {
+      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      return;
+    }
+    final payload = {
+      'productId': product.id,
+      'productName': product.name,
+      'productImage': product.imageUrl,
+      'groupCode': group.groupCode,
+      'groupName': group.groupName,
+      'multiple': group.multiple,
+      'minSelect': group.minSelect,
+      'maxSelect': group.maxSelect,
+      'options': group.options
+          .map(
+            (o) {
+              final qty = selected[o.code] ?? 0;
+              return {
+                'optionCode': o.code,
+                'optionName': o.name,
+                'selected': qty > 0,
+                'quantity': qty,
+                'extraPrice': o.extraPrice,
+              };
+            },
+          )
+          .toList(),
+    };
+    await controller.sendMessage(PeerMessage(type: 'option_group', payload: payload));
+    SimpleToast.successGlobal('已推送分组选项给顾客');
+  }
+
   Future<void> clearCustomerDisplay() async {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
@@ -649,6 +715,27 @@ class PosViewModel extends StateNotifier<PosState> {
     );
   }
 
+  List<SelectedOption> _buildSelectedOptions(Product product, Map<String, Map<String, int>> selected) {
+    final selectedOptions = <SelectedOption>[];
+    for (final g in product.optionGroups) {
+      final map = selected[g.groupCode] ?? const {};
+      map.forEach((code, qty) {
+        final opt = g.options.firstWhere((o) => o.code == code);
+        selectedOptions.add(
+          SelectedOption(
+            groupCode: g.groupCode,
+            groupName: g.groupName,
+            optionCode: opt.code,
+            optionName: opt.name,
+            extraPrice: opt.extraPrice,
+            quantity: qty,
+          ),
+        );
+      });
+    }
+    return selectedOptions;
+  }
+
   // ================= Option Dialog Core =================
   void _openOptionDialog(
     BuildContext context,
@@ -728,6 +815,14 @@ class PosViewModel extends StateNotifier<PosState> {
                                   ),
                                 ),
                                 IconButton(
+                                  icon: const Icon(Icons.send_rounded, color: Colors.white),
+                                  onPressed: () {
+                                    final selectedOptions = _buildSelectedOptions(product, selected);
+                                    _sendOptionsToCustomer(product: product, options: selectedOptions);
+                                  },
+                                  tooltip: '发送当前选项到顾客端',
+                                ),
+                                IconButton(
                                   icon: const Icon(
                                     Icons.close,
                                     color: Colors.white,
@@ -771,6 +866,13 @@ class PosViewModel extends StateNotifier<PosState> {
                                             okText: '知道了',
                                             cancelText: '关闭',
                                           );
+                                    },
+                                    onSendGroup: (g, selections) {
+                                      _sendOptionGroupToCustomer(
+                                        product: product,
+                                        group: g,
+                                        selected: selections,
+                                      );
                                     },
                                   ),
                                   const Divider(height: 28),
@@ -819,26 +921,7 @@ class PosViewModel extends StateNotifier<PosState> {
                                         return;
                                       }
                                       final selectedOptions =
-                                          <SelectedOption>[];
-                                      for (final g in product.optionGroups) {
-                                        final map =
-                                            selected[g.groupCode] ?? const {};
-                                        map.forEach((code, qty) {
-                                          final opt = g.options.firstWhere(
-                                            (o) => o.code == code,
-                                          );
-                                          selectedOptions.add(
-                                            SelectedOption(
-                                              groupCode: g.groupCode,
-                                              groupName: g.groupName,
-                                              optionCode: opt.code,
-                                              optionName: opt.name,
-                                              extraPrice: opt.extraPrice,
-                                              quantity: qty,
-                                            ),
-                                          );
-                                        });
-                                      }
+                                          _buildSelectedOptions(product, selected);
                                       if (existing != null) {
                                         updateCartItemOptions(
                                           oldId: existing.id,

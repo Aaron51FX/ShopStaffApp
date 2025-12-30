@@ -7,7 +7,8 @@ class OptionGroupWidget extends StatefulWidget {
   final Map<String, int> selected; // optionCode -> quantity
   final ValueChanged<Map<String, int>> onChanged;
   final VoidCallback? onMaxReached; // 当尝试超过最大可选时触发
-  const OptionGroupWidget({super.key, required this.group, required this.selected, required this.onChanged, this.onMaxReached});
+  final void Function(OptionGroupEntity group, Map<String, int> selected)? onSendGroup;
+  const OptionGroupWidget({super.key, required this.group, required this.selected, required this.onChanged, this.onMaxReached, this.onSendGroup});
   @override
   State<OptionGroupWidget> createState() => _OptionGroupWidgetState();
 }
@@ -99,6 +100,13 @@ class _OptionGroupWidgetState extends State<OptionGroupWidget> {
             children: [
               Expanded(child: Text(g.groupName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15))),
               if (sub != null) Text(sub, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              if (widget.onSendGroup != null)
+                IconButton(
+                  icon: const Icon(Icons.send_rounded, size: 18),
+                  color: AppColors.amberPrimary,
+                  tooltip: '发送此分组给顾客',
+                  onPressed: () => widget.onSendGroup!(g, Map<String, int>.from(_local)),
+                ),
             ],
           ),
         ),
@@ -171,18 +179,19 @@ class OptionChoiceTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: bg,
               borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: selected ? AppColors.amberPrimary : AppColors.stone300),
+              border: Border.all(color: selected ? AppColors.amberPrimary : AppColors.stone300),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  hasExtra ? '${option.name} +${option.extraPrice.toStringAsFixed(0)}' : option.name,
+                  style: TextStyle(color: fg, fontSize: 13, fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.center,
                 ),
-                child: 
-                    // 上部：标签区域 (保持原样式)
-                    Text(
-                      hasExtra ? '${option.name} +${option.extraPrice.toStringAsFixed(0)}' : option.name,
-                      style: TextStyle(color: fg, fontSize: 13, fontWeight: FontWeight.w500),
-                      textAlign: TextAlign.center,
-                    ),
-                  
-              ),
-            
+              ],
+            ),
+          ),
         ),
         if (showQtyControls) ...[
               const SizedBox(height: 8),
