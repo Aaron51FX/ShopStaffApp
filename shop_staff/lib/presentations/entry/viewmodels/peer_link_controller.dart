@@ -102,6 +102,7 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
         return;
       }
       state = state.copyWith(
+        status: PeerLinkStatus.connected,
         lastMessage: msg,
         messageSeq: state.messageSeq + 1,
         clearError: true,
