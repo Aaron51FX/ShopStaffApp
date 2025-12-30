@@ -54,51 +54,69 @@ class ProductGrid extends ConsumerWidget {
                       clipBehavior: Clip.antiAlias,
                       child: InkWell(
                         onTap: () => onTapProduct(p),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                        child: Stack(
                           children: [
-                            // Image area
-                            AspectRatio(
-                              aspectRatio: 1.5,
-                              child: _ProductImage(url: p.imageUrl),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Image area
+                                AspectRatio(
+                                  aspectRatio: 1.5,
+                                  child: _ProductImage(url: p.imageUrl),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                                    child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Expanded(
-                                          child: Text(
-                                            p.name,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                                          ),
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                p.name,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                                              ),
+                                            ),
+                                            GestureDetector(
+                                              onTap: () => vm.toggleFavorite(p),
+                                              child: Icon(
+                                                fav ? Icons.favorite : Icons.favorite_border,
+                                                color: fav ? Colors.redAccent : AppColors.stone400,
+                                                size: 18,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        GestureDetector(
-                                          onTap: () => vm.toggleFavorite(p),
-                                          child: Icon(
-                                            fav ? Icons.favorite : Icons.favorite_border,
-                                            color: fav ? Colors.redAccent : AppColors.stone400,
-                                            size: 18,
+                                        const Spacer(),
+                                        Text(
+                                          '¥${p.price.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.amberPrimary,
                                           ),
                                         ),
                                       ],
                                     ),
-                                    const Spacer(),
-                                    Text(
-                                      '¥${p.price.toStringAsFixed(2)}',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.amberPrimary,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Positioned(
+                              bottom: 1,
+                              right: 1,
+                              child: Material(
+                                color: Colors.white.withAlpha(220),
+                                shape: const CircleBorder(),
+                                child: IconButton(
+                                  tooltip: '推送到顾客端',
+                                  icon: const Icon(Icons.send_rounded),
+                                  color: AppColors.amberPrimary,
+                                  onPressed: () => vm.pushProductToCustomer(p, quantity: 1),
                                 ),
                               ),
                             ),

@@ -1,7 +1,13 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:multipeer_session/multipeer_session.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
+import 'package:shop_staff/presentations/customer/widgets/pill_view.dart';
+import 'package:shop_staff/presentations/customer/widgets/product_content_view.dart';
+import 'package:shop_staff/presentations/customer/widgets/status_card.dart';
 
 import '../../../core/app_role.dart';
 import '../../../data/providers.dart';
@@ -148,115 +154,197 @@ class _CustomerPageState extends ConsumerState<CustomerPage> {
     final label = isConnected
         ? '已连接: ${"${role.oppositeLabel} ${linkState.peerName ?? ''}"}'
         : '未连接: ${role.oppositeLabel}';
+    final message = linkState.lastMessage;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF0EA5E9), Color(0xFF312E81)],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
-            child: Column(
-              children: [
-                Row(
+    return Stack(
+      children: [
+        Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF0EA5E9), Color(0xFF312E81)],
+              ),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 18, 24, 28),
+                child: Column(
                   children: [
-                    _Pill(label: '顾客端', icon: Icons.tv_rounded),
-                    const Spacer(),
-                    // _RoleBadge(role: role),
-                    // const SizedBox(width: 12),
-                    FilledButton.tonalIcon(
-                      onPressed: _showSearchDialog,
-                      icon: Icon(icon, color: color),
-                      label: Text(label),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.12),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    IconButton.filledTonal(
-                      onPressed: () => router.push('/settings'),
-                      icon: const Icon(Icons.settings_rounded),
-                      tooltip: t.entrySettingsTooltip,
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white.withValues(alpha: 0.12),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.all(14),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 28),
-                _StatusCard(state: linkState),
-                const SizedBox(height: 28),
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 880),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '欢迎使用自助点餐屏',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.3,
-                            ),
-                            textAlign: TextAlign.center,
+                    Row(
+                      children: [
+                        Pill(label: '顾客端', icon: Icons.tv_rounded),
+                        const Spacer(),
+                        FilledButton.tonalIcon(
+                          onPressed: _showSearchDialog,
+                          icon: Icon(icon, color: color),
+                          label: Text(label),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(alpha: 0.12),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            '请在店员端完成配对后开始浏览菜单和下单。',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              height: 1.45,
-                            ),
-                            textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(width: 12),
+                        IconButton.filledTonal(
+                          onPressed: () => router.push('/settings'),
+                          icon: const Icon(Icons.settings_rounded),
+                          tooltip: t.entrySettingsTooltip,
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(alpha: 0.12),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.all(14),
                           ),
-                          const SizedBox(height: 32),
-                          Wrap(
-                            spacing: 18,
-                            runSpacing: 18,
-                            alignment: WrapAlignment.center,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+                    //StatusCard(state: linkState),
+                    const SizedBox(height: 28),
+                    Expanded(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 880),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              _HighlightCard(
-                                icon: Icons.wifi_tethering_rounded,
-                                title: '等待连接',
-                                description: isConnected
-                                    ? '已连接店员端，可开始浏览菜单。'
-                                    : '请保持设备靠近店员端，等待连接成功提示。',
+                              Text(
+                                'いらっしゃいませ',
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.3,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              const _HighlightCard(
-                                icon: Icons.touch_app_rounded,
-                                title: '轻触选品',
-                                description: '点击商品卡片查看详情，确认后加入订单。',
+                              const SizedBox(height: 12),
+                              Text(
+                                '店員端でペアリングを完了してから、メニューの閲覧と注文を開始してください。',
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  height: 1.45,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
-                              _HighlightCard(
-                                icon: isConnected
-                                    ? Icons.cloud_done_rounded
-                                    : Icons.receipt_long_rounded,
-                                title: isConnected ? '实时同步中' : '实时同步',
-                                description: isConnected
-                                    ? '订单、优惠与支付进度正在同步至店员端。'
-                                    : '订单、优惠与支付进度将实时同步至店员端。',
-                              ),
+                              const SizedBox(height: 32),
+                              Spacer(),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
+          ),
+        ),
+        _MessageOverlay(message: message, sequence: linkState.messageSeq),
+      ],
+    );
+  }
+}
+
+
+class _MessageOverlay extends StatelessWidget {
+  const _MessageOverlay({required this.message, required this.sequence});
+
+  final PeerMessage? message;
+  final int sequence;
+
+  @override
+  Widget build(BuildContext context) {
+    if (message == null || message?.payload == null) return const SizedBox.shrink();
+    final currentKey = ValueKey(sequence);
+    return Align(
+      alignment: Alignment.center,
+      child: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 320),
+        transitionBuilder: (child, animation) {
+          if (child is! _TypedOverlay) return child;
+          final type = child.type;
+          final isEntering = child.key == currentKey;
+          debugPrint('Overlay transition: type=$type, entering=$isEntering');
+
+          Offset enterOffset;
+          Offset exitOffset;
+
+          if (type == 'category_grid') {
+            enterOffset = const Offset(0, 1); // bottom in
+            exitOffset = const Offset(0, -1); // keep moving up on exit
+          } else if (type == 'product_preview') {
+            enterOffset = const Offset(1, 0); // right in
+            exitOffset = const Offset(-1, 0); // keep moving left on exit
+          } else {
+            enterOffset = Offset.zero;
+            exitOffset = Offset.zero;
+          }
+
+          final tween = isEntering
+              ? Tween<Offset>(begin: enterOffset, end: Offset.zero)
+              : Tween<Offset>(begin: exitOffset, end: Offset.zero);
+
+          return FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: tween.animate(animation),
+              child: child,
+            ),
+          );
+        },
+        child: _TypedOverlay(
+          key: currentKey,
+          type: message!.type,
+          child: _OverlayCard(message: message!),
+        ),
+      ),
+    );
+  }
+}
+
+class _TypedOverlay extends StatelessWidget {
+  const _TypedOverlay({super.key, required this.type, required this.child});
+
+  final String type;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => child;
+}
+
+class _OverlayCard extends StatelessWidget {
+  const _OverlayCard({super.key, required this.message});
+
+  final PeerMessage message;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget content;
+    switch (message.type) {
+      case 'category_grid':
+        content = _CategoryGridContent(payload: message.payload);
+        break;
+      case 'product_preview':
+        content = ProductPreviewContent(payload: message.payload);
+        break;
+      default:
+        content = _UnknownContent(type: message.type);
+    }
+
+    return FractionallySizedBox(
+      widthFactor: 0.9,
+      heightFactor: 0.9,
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.0),
+        child: GestureDetector(
+          onLongPress: () {
+          
+            
+          },
+          child: Center(
+            child: content,
           ),
         ),
       ),
@@ -264,244 +352,127 @@ class _CustomerPageState extends ConsumerState<CustomerPage> {
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({required this.label, required this.icon});
+class _CategoryGridContent extends StatelessWidget {
+  const _CategoryGridContent({required this.payload});
 
-  final String label;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RoleBadge extends StatelessWidget {
-  const _RoleBadge({required this.role});
-
-  final AppRole role;
+  final Map<String, dynamic> payload;
 
   @override
   Widget build(BuildContext context) {
-    final isCustomer = role == AppRole.customer;
-    final color = isCustomer ? const Color(0xFF22D3EE) : const Color(0xFFFCD34D);
+    final items = (payload['categories'] as List?)
+            ?.whereType<Map>()
+            .map((e) => e.cast<String, dynamic>())
+            .toList() ??
+        const [];
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.6),
-                  blurRadius: 8,
-                  spreadRadius: 0.5,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            '当前模式: ${role.label}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.2,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusCard extends StatelessWidget {
-  const _StatusCard({required this.state});
-
-  final PeerLinkState state;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    final (icon, title, description, accent, showSpinner) = switch (state.status) {
-      PeerLinkStatus.connected => (
-          Icons.cloud_done_rounded,
-          '已连接店员端',
-          '同步中: ${state.peerName ?? '店员端'}',
-          const Color(0xFF22D3EE),
-          false),
-      PeerLinkStatus.searching => (
-          Icons.wifi_tethering_rounded,
-          '正在搜索店员端…',
-          '请确保店员端已打开连接且设备靠近。',
-          const Color(0xFFFCD34D),
-          true),
-      PeerLinkStatus.error => (
-          Icons.error_outline_rounded,
-          '连接异常',
-          state.lastError ?? '请重试或检查网络。',
-          const Color(0xFFFFA94D),
-          false),
-      PeerLinkStatus.idle => (
-          Icons.link_off_rounded,
-          '未开始连接',
-          '点击上方“连接店员端”开始配对。',
-          Colors.white70,
-          false),
-    };
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: accent, size: 26),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    if (showSpinner) ...[
-                      const SizedBox(width: 10),
-                      const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2.2),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  description,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.82),
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HighlightCard extends StatelessWidget {
-  const _HighlightCard({
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      width: 260,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 18,
-            offset: Offset(0, 12),
-          ),
+          BoxShadow(color: Color(0x33000000), blurRadius: 24, offset: Offset(0, 18)),
+        ],
+      ),
+      padding: const EdgeInsets.all(18),
+      child: GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          mainAxisSpacing: 12,
+          crossAxisSpacing: 12,
+          childAspectRatio: 1,
+        ),
+        itemCount: items.length.clamp(0, 12).toInt(),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          final name = (item['name'] ?? '') as String? ?? '';
+          final image = (item['image'] ?? '') as String? ?? '';
+          return _CategoryCard(name: name, image: image);
+        },
+      ),
+    );
+  }
+}
+
+class _CategoryCard extends StatelessWidget {
+  const _CategoryCard({required this.name, required this.image});
+
+  final String name;
+  final String image;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x22000000), blurRadius: 10, offset: Offset(0, 6)),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: Colors.white, size: 22),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: _networkImage(image),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            description,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.82),
-              height: 1.4,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w700),
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _networkImage(String url) {
+    if (url.isEmpty) {
+      return _placeholder();
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Image.network(
+        url,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _placeholder(icon: Icons.broken_image_outlined),
+      ),
+    );
+  }
+
+  Widget _placeholder({IconData icon = Icons.image_outlined}) => Container(
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, size: 32, color: Colors.grey.shade400),
+      );
 }
+
+
+class _UnknownContent extends StatelessWidget {
+  const _UnknownContent({required this.type});
+  final String type;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.1)),
+      ),
+      child: Text('收到未知消息: $type'),
+    );
+  }
+}
+
+

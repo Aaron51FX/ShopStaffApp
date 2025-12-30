@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:multipeer_session/multipeer_session.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
@@ -16,6 +17,7 @@ import 'package:shop_staff/domain/repositories/order_repository.dart'; // ensure
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/pos/widgets/option_dialog_widgets.dart';
 import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
+import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
 import 'pos_state.dart';
 import 'package:shop_staff/presentations/pos/widgets/payment_selection_dialog.dart';
 
@@ -121,6 +123,7 @@ class PosViewModel extends StateNotifier<PosState> {
         currentCategory: firstCat,
         products: const [],
       );
+      _broadcastCategories(cats);
       if (firstCat.isNotEmpty) {
         await _fetchCategoryProducts(firstCat, initial: true);
       } else {
@@ -130,6 +133,50 @@ class PosViewModel extends StateNotifier<PosState> {
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());
     }
+  }
+
+  // ---- Customer display push helpers ----
+  Future<void> _broadcastCategories(List<CategoryModel> categories) async {
+    final controller = _ref.read(peerLinkControllerProvider.notifier);
+    final connected = _ref.read(peerLinkControllerProvider).isConnected;
+    if (!connected) return;
+    final payload = {
+      'categories': categories
+          .map((c) => {
+                'code': c.categoryCode,
+                'name': c.categoryName,
+                'image': c.image,
+              })
+          .toList(),
+    };
+    await controller.sendMessage(PeerMessage(type: 'category_grid', payload: payload));
+  }
+
+  Future<void> pushProductToCustomer(Product product, {int quantity = 1}) async {
+    final controller = _ref.read(peerLinkControllerProvider.notifier);
+    final connected = _ref.read(peerLinkControllerProvider).isConnected;
+    if (!connected) {
+      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      return;
+    }
+    final payload = {
+      'id': product.id,
+      'name': product.name,
+      'price': product.price,
+      'image': product.imageUrl,
+      'categoryId': product.categoryId,
+      'quantity': quantity,
+    };
+    await controller.sendMessage(PeerMessage(type: 'product_preview', payload: payload));
+    SimpleToast.successGlobal('已推送到顾客端');
+  }
+
+  Future<void> clearCustomerDisplay() async {
+    final controller = _ref.read(peerLinkControllerProvider.notifier);
+    final connected = _ref.read(peerLinkControllerProvider).isConnected;
+    if (!connected) return;
+    await controller.sendMessage(const PeerMessage(type: 'reset_display', payload: {}));
+    SimpleToast.successGlobal('已清除顾客端展示');
   }
 
   // 选择分类: 异步请求该分类商品

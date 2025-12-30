@@ -31,6 +31,11 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 ),
               ),
             ),
+            IconButton(
+              tooltip: '清除顾客端展示',
+              onPressed: vm.clearCustomerDisplay,
+              icon: const Icon(Icons.close_fullscreen_rounded),
+            ),
             // IconButton(
             //   tooltip: '设置',
             //   onPressed: vm.navToSettings,
