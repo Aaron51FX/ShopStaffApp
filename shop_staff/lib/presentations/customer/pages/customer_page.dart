@@ -7,7 +7,6 @@ import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/customer/widgets/pill_view.dart';
 import 'package:shop_staff/presentations/customer/widgets/product_content_view.dart';
-import 'package:shop_staff/presentations/customer/widgets/status_card.dart';
 
 import '../../../core/app_role.dart';
 import '../../../data/providers.dart';
@@ -205,40 +204,38 @@ class _CustomerPageState extends ConsumerState<CustomerPage> {
                     const SizedBox(height: 28),
                     Expanded(
                       child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 880),
-                          child: Column(
+                        child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 'いらっしゃいませ',
-                                style: theme.textTheme.headlineMedium?.copyWith(
+                                style: theme.textTheme.displayLarge?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
                                   letterSpacing: 0.3,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                '店員端でペアリングを完了してから、メニューの閲覧と注文を開始してください。',
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  height: 1.45,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 32),
-                              Spacer(),
+
+                              SizedBox(height: 200),
+                          
                             ],
                           ),
-                        ),
+                        
                       ),
                     ),
                   ],
                 ),
               ),
             ),
+          ),
+        ),
+        //高斯模糊层 有消息显示
+        if (message != null)
+        BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 6.0, sigmaY: 6.0),
+          child: Container(
+            color: Colors.black.withValues(alpha: 0.12),
           ),
         ),
         _MessageOverlay(message: message, sequence: linkState.messageSeq),
