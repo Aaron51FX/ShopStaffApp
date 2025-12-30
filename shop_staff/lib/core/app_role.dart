@@ -12,5 +12,6 @@ AppRole parseAppRole(String? raw) {
 
 extension AppRoleLabel on AppRole {
   String get label => this == AppRole.staff ? '店员端' : '顾客端';
+  String get oppositeLabel => this == AppRole.staff ? '顾客端' : '店员端';
   String get storageValue => name;
 }

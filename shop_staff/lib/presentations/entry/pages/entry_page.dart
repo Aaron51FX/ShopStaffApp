@@ -7,6 +7,7 @@ import '../../../core/app_role.dart';
 import '../../../data/providers.dart';
 import '../../pos/viewmodels/pos_viewmodel.dart';
 import '../viewmodels/entry_viewmodels.dart';
+import '../viewmodels/peer_link_controller.dart';
 import '../../cash_machine/widgets/cash_machine_check_dialog.dart';
 
 final _clockProvider = StreamProvider<DateTime>((ref) {
@@ -21,7 +22,6 @@ class EntryPage extends ConsumerStatefulWidget {
 }
 
 class _EntryPageState extends ConsumerState<EntryPage> {
-
   @override
   void initState() {
     super.initState();
@@ -30,7 +30,114 @@ class _EntryPageState extends ConsumerState<EntryPage> {
       ref
           .read(cashMachineCheckControllerProvider.notifier)
           .maybePromptOnEntry();
+      ref.read(peerLinkControllerProvider.notifier).start();
+      ref.listen<PeerLinkState>(peerLinkControllerProvider, (prev, next) {
+        final wasConnected = prev?.isConnected ?? false;
+        if (wasConnected && !next.isConnected) {
+          _showDisconnectDialog();
+        }
+      });
     });
+  }
+
+  Future<void> _showDisconnectDialog() async {
+    final t = AppLocalizations.of(context);
+    final controller = ref.read(peerLinkControllerProvider.notifier);
+    final reconnect = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('顾客端已断开'),
+          content: const Text('是否重新搜索并尝试连接顾客端？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(t.dialogCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text('重新连接'),
+            ),
+          ],
+        );
+      },
+    );
+    if (reconnect == true) {
+      await controller.restart();
+      if (mounted) _showSearchDialog();
+    } else {
+      await controller.stop();
+    }
+  }
+
+  Future<void> _showSearchDialog() async {
+    final controller = ref.read(peerLinkControllerProvider.notifier);
+    await controller.start();
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Consumer(
+          builder: (context, ref, _) {
+            final state = ref.watch(peerLinkControllerProvider);
+            final statusLabel = switch (state.status) {
+              PeerLinkStatus.connected => '已连接: ${state.peerName ?? '顾客端'}',
+              PeerLinkStatus.searching => '正在搜索附近的顾客端…',
+              PeerLinkStatus.error => '连接异常: ${state.lastError ?? '未知错误'}',
+              PeerLinkStatus.idle => '未开始连接',
+            };
+            final showSpinner =
+                state.status == PeerLinkStatus.searching ||
+                state.status == PeerLinkStatus.idle;
+            return AlertDialog(
+              title: const Text('连接顾客端'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (showSpinner)
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2.4),
+                          ),
+                          SizedBox(width: 12),
+                          Text('搜索中…'),
+                        ],
+                      ),
+                    )
+                  else
+                    const SizedBox(height: 8),
+                  Text(statusLabel),
+                  if (state.lastError != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      state.lastError!,
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
+                  ],
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => controller.restart(),
+                  child: const Text('重启搜索'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(state.isConnected ? '完成' : '关闭'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -40,120 +147,113 @@ class _EntryPageState extends ConsumerState<EntryPage> {
     final now = ref
         .watch(_clockProvider)
         .maybeWhen(data: (value) => value, orElse: DateTime.now);
+    final linkState = ref.watch(peerLinkControllerProvider);
     final timeText = _formatTime(now);
     final dateText = _formatDate(now);
 
     return CashMachineDialogPortal(
       child: Scaffold(
-            backgroundColor: Colors.transparent,
-            body: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 24,
-                  ),
-                  child: Column(
-                    children: [
-                      _buildTopBar(context, ref, timeText, dateText),
-                      const SizedBox(height: 40),
-                      Expanded(
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 960),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  t.entryTitle,
-                                  style: theme.textTheme.headlineMedium
-                                      ?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  t.entrySubtitle,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.72),
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 36),
-                                LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    final isNarrow = constraints.maxWidth < 720;
-                                    final options = [
-                                      _EntryOptionButton(
-                                        title: t.entryDineInTitle,
-                                        subtitle: t.entryDineInSubtitle,
-                                        icon: Icons.restaurant_menu_rounded,
-                                        gradient: const LinearGradient(
-                                          colors: [
-                                            Color(0xFF22D3EE),
-                                            Color(0xFF6366F1),
-                                          ],
-                                        ),
-                                        onTap: () =>
-                                            _startOrder(ref, 'dine_in'),
-                                      ),
-                                      _EntryOptionButton(
-                                        title: t.entryTakeoutTitle,
-                                        subtitle: t.entryTakeoutSubtitle,
-                                        icon: Icons.shopping_bag_rounded,
-                                        gradient: const LinearGradient(
-                                          colors: [
-                                            Color(0xFFF97316),
-                                            Color(0xFFF43F5E),
-                                          ],
-                                        ),
-                                        onTap: () =>
-                                            _startOrder(ref, 'take_out'),
-                                      ),
-                                    ];
-                                    if (isNarrow) {
-                                      return Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          options[0],
-                                          const SizedBox(height: 20),
-                                          options[1],
-                                        ],
-                                      );
-                                    }
-                                    return Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Expanded(child: options[0]),
-                                        const SizedBox(width: 24),
-                                        Expanded(child: options[1]),
-                                      ],
-                                    );
-                                  },
-                                ),
-                              ],
+        backgroundColor: Colors.transparent,
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+            ),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+              child: Column(
+                children: [
+                  _buildTopBar(context, ref, timeText, dateText, linkState),
+                  const SizedBox(height: 40),
+                  Expanded(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 960),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              t.entryTitle,
+                              style: theme.textTheme.headlineMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                          ),
+                            const SizedBox(height: 12),
+                            Text(
+                              t.entrySubtitle,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.72),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 36),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isNarrow = constraints.maxWidth < 720;
+                                final options = [
+                                  _EntryOptionButton(
+                                    title: t.entryDineInTitle,
+                                    subtitle: t.entryDineInSubtitle,
+                                    icon: Icons.restaurant_menu_rounded,
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFF22D3EE),
+                                        Color(0xFF6366F1),
+                                      ],
+                                    ),
+                                    onTap: () => _startOrder(ref, 'dine_in'),
+                                  ),
+                                  _EntryOptionButton(
+                                    title: t.entryTakeoutTitle,
+                                    subtitle: t.entryTakeoutSubtitle,
+                                    icon: Icons.shopping_bag_rounded,
+                                    gradient: const LinearGradient(
+                                      colors: [
+                                        Color(0xFFF97316),
+                                        Color(0xFFF43F5E),
+                                      ],
+                                    ),
+                                    onTap: () => _startOrder(ref, 'take_out'),
+                                  ),
+                                ];
+                                if (isNarrow) {
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      options[0],
+                                      const SizedBox(height: 20),
+                                      options[1],
+                                    ],
+                                  );
+                                }
+                                return Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Expanded(child: options[0]),
+                                    const SizedBox(width: 24),
+                                    Expanded(child: options[1]),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
+        ),
+      ),
     );
-    
   }
 
   Widget _buildTopBar(
@@ -161,6 +261,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
     WidgetRef ref,
     String timeText,
     String dateText,
+    PeerLinkState linkState,
   ) {
     final router = ref.read(appRouterProvider);
     final t = AppLocalizations.of(context);
@@ -204,7 +305,18 @@ class _EntryPageState extends ConsumerState<EntryPage> {
             ],
           ),
         ),
-        _CustomerStatusChip(role: role),
+        _CustomerStatusChip(role: role, linkState: linkState, toTouch: _showSearchDialog),
+        const SizedBox(width: 12),
+        // FilledButton.tonalIcon(
+        //   onPressed: _showSearchDialog,
+        //   icon: const Icon(Icons.wifi_tethering_rounded),
+        //   label: const Text('搜索连接'),
+        //   style: FilledButton.styleFrom(
+        //     backgroundColor: Colors.white.withValues(alpha: 0.12),
+        //     foregroundColor: Colors.white,
+        //     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        //   ),
+        // ),
         const SizedBox(width: 12),
         IconButton.filledTonal(
           onPressed: () => router.push('/settings'),
@@ -309,34 +421,47 @@ class _EntryOptionButton extends StatelessWidget {
 }
 
 class _CustomerStatusChip extends StatelessWidget {
-  const _CustomerStatusChip({required this.role});
+  const _CustomerStatusChip({
+    required this.role,
+    required this.linkState,
+    required this.toTouch,
+  });
 
   final AppRole role;
+  final PeerLinkState linkState;
+  final VoidCallback toTouch;
 
   @override
   Widget build(BuildContext context) {
-    final isCustomer = role == AppRole.customer;
-    final color = isCustomer ? const Color(0xFF22D3EE) : const Color(0xFFF59E0B);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.sensors_rounded, size: 18, color: color),
-          const SizedBox(width: 8),
-          Text(
-            '顾客端: ${role.label}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
+    final connected = linkState.isConnected;
+    final color = connected ? const Color(0xFF22D3EE) : const Color(0xFFEF4444);
+    final icon = connected ? Icons.sensors_rounded : Icons.sensors_off_rounded;
+    final label = connected
+        ? '已连接: ${"${role.oppositeLabel} ${linkState.peerName ?? ''}"}'
+        : '未连接: ${role.oppositeLabel}';
+    return GestureDetector(
+      onTap: toTouch,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18, color: color),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

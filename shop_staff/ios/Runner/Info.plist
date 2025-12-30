@@ -28,6 +28,13 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>允许在本地网络中发现并连接到顾客/店员设备。</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<!-- serviceType = shop-staff → _shop-staff._tcp -->
+		<string>_shop-staff._tcp</string>
+	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
