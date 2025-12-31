@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import '../../../core/app_role.dart';
@@ -422,17 +423,21 @@ class _SystemSettingsView extends ConsumerWidget {
         },
       );
       if (confirmed != true) return;
-      await ref.read(appRoleServiceProvider).saveRole(target);
-      ref.read(appRoleProvider.notifier).state = target;
+      if (!context.mounted) return;
+      final container = ProviderScope.containerOf(context);
+      await container.read(appRoleServiceProvider).saveRole(target);
+      container.read(appRoleProvider.notifier).state = target;
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('正在重启以切换到${target.label}...'),
+          content: Text('已切换为${target.label}，即将跳转...'),
           duration: const Duration(seconds: 1),
         ),
       );
-      await Future.delayed(const Duration(milliseconds: 160));
-      RestartableApp.restart(context);
+      await Future.delayed(const Duration(milliseconds: 200));
+      final router = container.read(appRouterProvider);
+      final targetPath = target == AppRole.customer ? '/customer' : '/entry';
+      router.go(targetPath);
     }
 
     return _RefreshableScroll(

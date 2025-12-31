@@ -80,9 +80,9 @@ class _OptionGroupWidgetState extends State<OptionGroupWidget> {
 
   String? _subtitle(OptionGroupEntity g, int total) {
     final parts = <String>[];
+    parts.add(g.multiple ? '可多选 当前$total' : '单选');
     if (g.minSelect > 0) parts.add('最少${g.minSelect}');
     if (g.maxSelect != null) parts.add('最多${g.maxSelect}');
-    parts.add(g.multiple ? '可多选 当前$total' : '单选');
     return parts.join(' · ');
   }
 
@@ -98,8 +98,8 @@ class _OptionGroupWidgetState extends State<OptionGroupWidget> {
           padding: const EdgeInsets.only(top: 8.0, bottom: 4),
           child: Row(
             children: [
-              Expanded(child: Text(g.groupName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15))),
-              if (sub != null) Text(sub, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              Expanded(child: Text(g.groupName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 17))),
+              if (sub != null) Text(sub, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
               if (widget.onSendGroup != null)
                 IconButton(
                   icon: const Icon(Icons.send_rounded, size: 18),
@@ -163,58 +163,93 @@ class OptionChoiceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasExtra = option.extraPrice > 0;
-  // 显示数量操作区域条件: 多选 + 有附加价 + 已选中 + 不是“最后一个 slot 未选”场景 + (可继续增加 或 当前数量>1 可减少)
-  final showQtyControls = hasExtra && selected && (!isLastSlotSingle) && (canAddMore || quantity > 1);
-    final bg = selected ? AppColors.amberPrimary : AppColors.stone100;
-    final fg = selected ? Colors.white : AppColors.stone600;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(18),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: selected ? AppColors.amberPrimary : AppColors.stone300),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  hasExtra ? '${option.name} +${option.extraPrice.toStringAsFixed(0)}' : option.name,
-                  style: TextStyle(color: fg, fontSize: 13, fontWeight: FontWeight.w500),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+    final gradient = selected
+        ? const LinearGradient(
+            colors: [AppColors.amberPrimaryHover, AppColors.amberPrimary],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          )
+        : LinearGradient(
+            colors: [Colors.white.withOpacity(0.9), Colors.white.withOpacity(0.72)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          );
+    final borderColor = selected ? Colors.white.withOpacity(0.5) : Colors.black.withOpacity(0.06);
+    final textColor = selected ? Colors.white : Colors.black87;
+    final showQtyControls = group.multiple && selected && (!isLastSlotSingle);
+
+    return SizedBox(
+      width: 150,
+      height: 150,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: gradient,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor),
+            boxShadow: const [
+              BoxShadow(color: Color(0x22000000), blurRadius: 12, offset: Offset(0, 8)),
+            ],
           ),
-        ),
-        if (showQtyControls) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                decoration: BoxDecoration(
-                  color: bg, // 稍微淡一点的背景条
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                option.name,
+                style: TextStyle(color: textColor, fontSize: 16, fontWeight: FontWeight.w800),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Spacer(),
+              if (showQtyControls)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _QtyButton(icon: Icons.remove, enabled: quantity > 0, onPressed: quantity > 0 ? onDec : null, fg: fg),
+                    _QtyButton(icon: Icons.remove, enabled: quantity > 0, onPressed: quantity > 0 ? onDec : null, fg: textColor),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      child: Text('$quantity', style: TextStyle(color: fg, fontSize: 13, fontWeight: FontWeight.bold)),
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Text('$quantity', style: TextStyle(fontSize: 20, color: textColor, fontWeight: FontWeight.w800)),
                     ),
-                    _QtyButton(icon: Icons.add, enabled: canAddMore, onPressed: canAddMore ? onInc : null, fg: fg),
+                    _QtyButton(icon: Icons.add, enabled: canAddMore, onPressed: canAddMore ? onInc : null, fg: textColor),
                   ],
                 ),
+              const Spacer(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Icon(selected ? Icons.check_circle_rounded : Icons.radio_button_unchecked, size: 18, color: selected ? Colors.white : AppColors.amberPrimary),
+
+                  if (hasExtra)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      '+¥${(option.extraPrice * (quantity > 0 ? quantity : 1)).toStringAsFixed(0)}',
+                      style: TextStyle(color: selected ? Colors.white : AppColors.amberPrimary, fontWeight: FontWeight.w700, fontSize: 14),
+                    ),
+                  ),
+                  // if (quantity > 0)
+                  //   Padding(
+                  //     padding: const EdgeInsets.only(left: 6.0),
+                  //     child: Container(
+                  //       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  //       decoration: BoxDecoration(
+                  //         color: selected ? Colors.white.withOpacity(0.18) : Colors.black.withOpacity(0.05),
+                  //         borderRadius: BorderRadius.circular(12),
+                  //       ),
+                  //       child: Text('x$quantity', style: TextStyle(color: textColor, fontWeight: FontWeight.w700, fontSize: 12)),
+                  //     ),
+                  //   ),
+                  
+                ],
               ),
             ],
-      ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -228,16 +263,16 @@ class _QtyButton extends StatelessWidget {
       opacity: enabled ? 1 : 0.35,
       child: InkWell(
         onTap: enabled ? onPressed : null,
-        borderRadius: BorderRadius.circular(12),
+        //borderRadius: BorderRadius.circular(12),
         child: Container(
-          width: 26,
-          height: 26,
+          // width: 26,
+          // height: 26,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: enabled ? fg.withAlpha(38) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(2),
           ),
-          child: Icon(icon, size: 14, color: fg),
+          child: Icon(icon, size: 36, color: fg),
         ),
       ),
     );

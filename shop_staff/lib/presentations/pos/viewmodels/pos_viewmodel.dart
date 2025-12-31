@@ -916,10 +916,11 @@ class PosViewModel extends StateNotifier<PosState> {
             child: Center(
               child: StatefulBuilder(
                 builder: (ctx, setState) {
+                  final size = MediaQuery.of(ctx).size;
                   return ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: 520,
-                      maxHeight: 640,
+                    constraints: BoxConstraints(
+                      maxWidth: size.width * 0.8,
+                      maxHeight: size.height * 0.9,
                     ),
                     child: Material(
                       color: Colors.white,
@@ -944,7 +945,7 @@ class PosViewModel extends StateNotifier<PosState> {
                                     product.name,
                                     style: const TextStyle(
                                       color: Colors.white,
-                                      fontSize: 18,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),

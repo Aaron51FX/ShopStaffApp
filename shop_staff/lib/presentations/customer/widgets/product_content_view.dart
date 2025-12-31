@@ -56,6 +56,7 @@ class ProductPreviewContent extends StatelessWidget {
                   const SizedBox(height: 10),
                   Row(
                     children: [
+                      const Spacer(),
                       Text(
                         '¥${price.toStringAsFixed(2)}',
                         style: const TextStyle(
@@ -64,21 +65,21 @@ class ProductPreviewContent extends StatelessWidget {
                           color: AppColors.amberPrimary,
                         ),
                       ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.amberPrimary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '数量: $quantity',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.amberPrimary,
-                          ),
-                        ),
-                      ),
+                      
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      //   decoration: BoxDecoration(
+                      //     color: AppColors.amberPrimary.withValues(alpha: 0.12),
+                      //     borderRadius: BorderRadius.circular(12),
+                      //   ),
+                      //   child: Text(
+                      //     '数量: $quantity',
+                      //     style: const TextStyle(
+                      //       fontWeight: FontWeight.w700,
+                      //       color: AppColors.amberPrimary,
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ],
