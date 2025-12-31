@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multipeer_session/multipeer_session.dart';
 import 'package:shop_staff/core/router/app_router.dart';
+import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/customer/widgets/pill_view.dart';
 import 'package:shop_staff/presentations/customer/widgets/product_content_view.dart';
@@ -265,7 +266,6 @@ class _MessageOverlay extends StatelessWidget {
           if (child is! _TypedOverlay) return child;
           final type = child.type;
           final isEntering = child.key == currentKey;
-          debugPrint('Overlay transition: type=$type, entering=$isEntering');
 
           Offset enterOffset;
           Offset exitOffset;
@@ -396,7 +396,7 @@ class _OptionsContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AspectRatio(
-                  aspectRatio: 4 / 3,
+                  aspectRatio: 1.0,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: image.isEmpty
@@ -411,14 +411,14 @@ class _OptionsContent extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   name,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+                  style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 6),
                 Text(
                   '基础价 ¥${basePrice.toStringAsFixed(2)}',
-                  style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: 20, color: Colors.grey, fontWeight: FontWeight.w700),
                 ),
               ],
             ),
@@ -431,11 +431,12 @@ class _OptionsContent extends StatelessWidget {
               children: [
                 const Text(
                   '已选配料',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 24),
                 ),
                 const SizedBox(height: 10),
                 Expanded(
-                  child: Container(
+                  child: 
+                  Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade50,
@@ -459,7 +460,7 @@ class _OptionsContent extends StatelessWidget {
                                 children: [
                                   Text(
                                     groupName,
-                                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.grey),
+                                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20, color: Colors.grey),
                                   ),
                                   const SizedBox(height: 4),
                                   Row(
@@ -467,12 +468,12 @@ class _OptionsContent extends StatelessWidget {
                                       Expanded(
                                         child: Text(
                                           optName,
-                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
                                         ),
                                       ),
-                                      Text('x$qty', style: const TextStyle(color: Colors.grey)),
+                                      Text('x$qty', style: const TextStyle(color: Colors.black, fontSize: 18)),
                                       const SizedBox(width: 8),
-                                      Text('+¥${line.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF0EA5E9))),
+                                      Text('+¥${line.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Color(0xFF0EA5E9))),
                                     ],
                                   ),
                                 ],
@@ -484,11 +485,11 @@ class _OptionsContent extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Text('当前总价', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                    const Text('当前总价', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 24)),
                     const Spacer(),
                     Text(
                       '¥${totalPrice.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: Color(0xFFEF4444)),
+                      style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800, color: Color(0xFFEF4444)),
                     ),
                   ],
                 ),
@@ -508,7 +509,7 @@ class _OptionGroupContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final productName = (payload['productName'] ?? '') as String? ?? '';
+    //final productName = (payload['productName'] ?? '') as String? ?? '';
     final groupName = (payload['groupName'] ?? '') as String? ?? '';
     final multiple = payload['multiple'] as bool? ?? false;
     final minSelect = (payload['minSelect'] as num?)?.toInt();
@@ -520,9 +521,9 @@ class _OptionGroupContent extends StatelessWidget {
         const [];
 
     final subtitleParts = <String>[];
+    subtitleParts.add(multiple ? '可多选' : '单选');
     if (minSelect != null && minSelect > 0) subtitleParts.add('最少$minSelect');
     if (maxSelect != null) subtitleParts.add('最多$maxSelect');
-    subtitleParts.add(multiple ? '可多选' : '单选');
     final subtitle = subtitleParts.join(' · ');
 
     const accent = Color(0xFF0EA5E9);
@@ -542,36 +543,45 @@ class _OptionGroupContent extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (productName.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: accent.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: accent.withOpacity(0.2)),
-                  ),
-                  child: Text(
-                    productName,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: accent),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+              SizedBox(
+                width: 48,
+                height: 48,
+                child: Icon(
+                  multiple ? Icons.checklist_rtl_rounded : Icons.list_rounded,
+                  color: Colors.white,
+                  size: 32,
                 ),
-              if (productName.isNotEmpty) const SizedBox(width: 12),
+              ),
+              // if (productName.isNotEmpty)
+              //   Container(
+              //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              //     decoration: BoxDecoration(
+              //       color: accent.withOpacity(0.12),
+              //       borderRadius: BorderRadius.circular(12),
+              //       border: Border.all(color: accent.withOpacity(0.2)),
+              //     ),
+              //     child: Text(
+              //       productName,
+              //       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+              //       maxLines: 1,
+              //       overflow: TextOverflow.ellipsis,
+              //     ),
+              //   ),
+              // if (productName.isNotEmpty) const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       groupName,
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                      style: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 0.3),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
                     Text(
                       subtitle,
-                      style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: Colors.white.withOpacity(0.7), fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -590,7 +600,7 @@ class _OptionGroupContent extends StatelessWidget {
                         final name = (opt['optionName'] ?? '') as String? ?? '';
                         final selected = opt['selected'] as bool? ?? false;
                         final qty = (opt['quantity'] as num?)?.toInt() ?? 0;
-                        final extra = (opt['extraPrice'] as num?)?.toDouble() ?? 0;
+                        final extra = ((opt['extraPrice'] as num?)?.toDouble() ?? 0) * qty;
                         final hasQty = qty > 0;
 
                         final gradient = selected
@@ -737,7 +747,7 @@ class _CartContent extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('订单 #$orderNumber', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text('订单 #$orderNumber', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
               const SizedBox(width: 12),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -748,6 +758,7 @@ class _CartContent extends StatelessWidget {
                 child: Text(
                   orderMode == 'take_out' ? '外带' : '堂食',
                   style: TextStyle(
+                    fontSize: 18,
                     color: orderMode == 'take_out' ? const Color(0xFFF97316) : const Color(0xFF0284C7),
                     fontWeight: FontWeight.w700,
                   ),
@@ -794,15 +805,15 @@ class _CartContent extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                                Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
                                 if (optionText.isNotEmpty)
                                   Padding(
-                                    padding: const EdgeInsets.only(top: 4.0),
-                                    child: Text(optionText, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                    padding: const EdgeInsets.only(top: 6.0),
+                                    child: Text(optionText, style: const TextStyle(color: AppColors.stone500, fontSize: 16)),
                                   ),
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 4.0),
-                                  child: Text('单价 ¥${unitPrice.toStringAsFixed(2)}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                  padding: const EdgeInsets.only(top: 6.0),
+                                  child: Text('单价 ¥${unitPrice.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.amberPrimary, fontSize: 16)),
                                 ),
                               ],
                             ),
@@ -810,11 +821,11 @@ class _CartContent extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('x$qty', style: const TextStyle(fontWeight: FontWeight.w700)),
+                              Text('x$qty', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
                               const SizedBox(height: 6),
                               Text(
                                 '¥${lineTotal.toStringAsFixed(2)}',
-                                style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w800),
+                                style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.amberPrimary),
                               ),
                             ],
                           ),
@@ -844,7 +855,7 @@ class _SummaryLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = TextStyle(
-      fontSize: emphasized ? 18 : 14,
+      fontSize: emphasized ? 24 : 18,
       fontWeight: emphasized ? FontWeight.w800 : FontWeight.w600,
       color: muted ? Colors.grey : null,
     );
