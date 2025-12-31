@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multipeer_session/multipeer_session.dart';
@@ -49,6 +51,10 @@ final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((
       }
     }
   });
+
+  ref.listen<PeerLinkState>(peerLinkControllerProvider, (prev, next) {
+    vm.handlePeerMessage(next, prev);
+  });
   return vm;
 });
 
@@ -62,6 +68,7 @@ class PosViewModel extends StateNotifier<PosState> {
           orderMode: initialMode == 'take_out' ? 'take_out' : 'dine_in',
         ),
       );
+  int _lastPeerMessageSeq = 0;
   String? _lastCategoryFetchKey; // machineCode|language|takeout
 
   // 当前分类的商品列表 (不再一次性加载所有分类的全部商品)
@@ -281,6 +288,41 @@ class PosViewModel extends StateNotifier<PosState> {
 
     await controller.sendMessage(PeerMessage(type: 'cart_snapshot', payload: payload));
     SimpleToast.successGlobal('已将购物车发送到顾客端');
+  }
+
+  Future<void> _sendPaymentSelectionToCustomer(ShopInfoModel shop, double total) async {
+    final controller = _ref.read(peerLinkControllerProvider.notifier);
+    if (!_ref.read(peerLinkControllerProvider).isConnected) {
+      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      return;
+    }
+
+    bool flag(String key) {
+      final v = (shop.linePayChannelMap ?? const {})[key];
+      if (v == null) return false;
+      if (v is bool) return v;
+      if (v is num) return v != 0;
+      if (v is String) return v.toLowerCase() == 'true' || v == '1' || v.toLowerCase() == 'y';
+      return false;
+    }
+
+    final hasQr = ['qr', 'LinePay', 'PayPay', 'Alipay', 'Wechat', 'm_Pay', 'R_Pay', 'au_Pay', 'd_Pay', 'famiPay']
+        .any(flag);
+    final hasCard = ['VISA', 'MASTER', 'JCB', 'AMERICAN_EXPRESS', 'Diners_Club', 'Discover', 'UnionPay'].any(flag);
+
+    final payload = {
+      'orderNumber': state.orderNumber,
+      'total': total,
+      'options': [
+        {'group': 'cash', 'code': 'cash', 'label': '现金', 'enabled': true},
+        {'group': 'qr', 'code': 'qr', 'label': '二维码', 'enabled': hasQr},
+        {'group': 'card', 'code': 'card', 'label': '信用卡', 'enabled': hasCard},
+      ],
+    };
+
+    debugPrint('Sending payment selection to customer: $payload');
+
+    await controller.sendMessage(PeerMessage(type: 'payment_selection', payload: payload));
   }
 
   Future<void> clearCustomerDisplay() async {
@@ -683,6 +725,7 @@ class PosViewModel extends StateNotifier<PosState> {
       if (shop != null) {
         final ctx = rootNavigatorKey.currentContext;
         if (ctx != null) {
+          unawaited(_sendPaymentSelectionToCustomer(shop, total));
           await showPaymentSelectionDialog(
             context: ctx,
             shop: shop,
@@ -702,12 +745,58 @@ class PosViewModel extends StateNotifier<PosState> {
                 SimpleToast.errorGlobal(e.toString());
               }
             },
+            onPushToCustomer: () => _sendPaymentSelectionToCustomer(shop, total),
           );
         }
       }
     } catch (e) {
       state = state.copyWith(error: '下单失败: $e');
       SimpleToast.errorGlobal('下单失败');
+    }
+  }
+
+  void _handlePaymentChoiceFromCustomer(PeerMessage message) {
+    final payload = message.payload;
+    final group = (payload['group'] ?? '') as String? ?? '';
+    final code = (payload['code'] ?? '') as String? ?? '';
+    final label = (payload['label'] ?? '') as String?;
+
+    final shop = _ref.read(shopInfoProvider);
+    final machineCode = _ref.read(machineCodeProvider);
+    final result = state.lastOrderResult;
+    if (shop == null || machineCode == null || machineCode.isEmpty || result == null) {
+      SimpleToast.errorGlobal('当前没有可支付的订单');
+      return;
+    }
+    //close any open dialogs
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx != null) {
+      Navigator.of(ctx, rootNavigator: true).popUntil((route) => route.isFirst);
+    }
+
+    try {
+      final args = _buildPaymentArgs(
+        order: result,
+        shop: shop,
+        machineCode: machineCode,
+        group: group,
+        code: code,
+        label: label,
+      );
+      _ref.read(appRouterProvider).push('/payment', extra: args);
+    } catch (e) {
+      debugPrint('Failed to start payment from customer choice: $e');
+      SimpleToast.errorGlobal(e.toString());
+    }
+  }
+
+  void handlePeerMessage(PeerLinkState next, PeerLinkState? prev) {
+    if (next.messageSeq == _lastPeerMessageSeq) return;
+    _lastPeerMessageSeq = next.messageSeq;
+    final msg = next.lastMessage;
+    if (msg == null) return;
+    if (msg.type == 'payment_choice') {
+      _handlePaymentChoiceFromCustomer(msg);
     }
   }
 

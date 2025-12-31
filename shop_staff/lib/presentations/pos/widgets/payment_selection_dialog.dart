@@ -3,6 +3,7 @@ import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 
 typedef OnPaymentSelected = void Function(String group, String code, String? label);
+typedef PaymentPushCallback = Future<void> Function();
 
 // A large, vertical payment selection dialog. First row shows Cash and QR payments,
 // second row Credit Cards, third row Transit/IC and E-money. Scrolls if overflow.
@@ -10,6 +11,7 @@ Future<void> showPaymentSelectionDialog({
   required BuildContext context,
   required ShopInfoModel shop,
   required OnPaymentSelected onSelected,
+  PaymentPushCallback? onPushToCustomer,
 }) async {
   final m = shop.linePayChannelMap ?? const {};
 
@@ -97,6 +99,12 @@ Future<void> showPaymentSelectionDialog({
                           const Expanded(
                             child: Text('选择支付方式', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
+                          if (onPushToCustomer != null)
+                            IconButton(
+                              icon: const Icon(Icons.send_rounded, color: Colors.white),
+                              tooltip: '推送支付方式到顾客端',
+                              onPressed: () => onPushToCustomer(),
+                            ),
                           IconButton(
                             icon: const Icon(Icons.close, color: Colors.white),
                             onPressed: () => Navigator.of(ctx).pop(),
