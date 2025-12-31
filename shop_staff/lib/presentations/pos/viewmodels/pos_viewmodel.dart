@@ -237,6 +237,52 @@ class PosViewModel extends StateNotifier<PosState> {
     SimpleToast.successGlobal('已推送分组选项给顾客');
   }
 
+  Future<void> sendCartToCustomer() async {
+    final controller = _ref.read(peerLinkControllerProvider.notifier);
+    final connected = _ref.read(peerLinkControllerProvider).isConnected;
+    if (!connected) {
+      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      return;
+    }
+    if (state.cart.isEmpty) {
+      SimpleToast.errorGlobal('购物车为空，无法推送');
+      return;
+    }
+
+    final payload = {
+      'orderNumber': state.orderNumber,
+      'orderMode': state.orderMode,
+      'subtotal': state.subtotal,
+      'discount': state.discount,
+      'total': state.total,
+      'items': state.cart
+          .map(
+            (c) => {
+              'id': c.id,
+              'productId': c.product.id,
+              'name': c.product.name,
+              'quantity': c.quantity,
+              'unitPrice': c.unitPrice,
+              'lineTotal': c.lineTotal,
+              'options': c.options
+                  .map(
+                    (o) => {
+                      'groupName': o.groupName,
+                      'optionName': o.optionName,
+                      'quantity': o.quantity,
+                      'extraPrice': o.extraPrice,
+                    },
+                  )
+                  .toList(),
+            },
+          )
+          .toList(),
+    };
+
+    await controller.sendMessage(PeerMessage(type: 'cart_snapshot', payload: payload));
+    SimpleToast.successGlobal('已将购物车发送到顾客端');
+  }
+
   Future<void> clearCustomerDisplay() async {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;

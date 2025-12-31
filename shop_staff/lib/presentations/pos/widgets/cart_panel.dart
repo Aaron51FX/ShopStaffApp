@@ -40,6 +40,14 @@ class CartPanel extends ConsumerWidget {
             const Text('订单号:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(width: 6),
             Text('#$orderNumber', style: const TextStyle(color: AppColors.amberPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
+            IconButton(
+              icon: const Icon(Icons.send_rounded, size: 20, color: AppColors.amberPrimary),
+              tooltip: '推送购物车到顾客端',
+              onPressed: cart.isEmpty ? null : vm.sendCartToCustomer,
+              padding: const EdgeInsets.all(6),
+              constraints: const BoxConstraints(),
+              splashRadius: 18,
+            ),
             const Spacer(),
             //only display order mode
             Container(
