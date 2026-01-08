@@ -27,6 +27,7 @@ import 'services/pos_card_payment_gateway.dart';
 import 'services/pos_payment_orchestrator.dart';
 import 'services/pos_payment_service_impl.dart';
 import 'services/print_service_impl.dart';
+import 'package:shop_staff/presentations/printing/printing_providers.dart';
 
 // Public repository interfaces
 import '../domain/repositories/menu_repository.dart';
@@ -94,7 +95,8 @@ final printRepositoryProvider = Provider<PrintRepository>((ref) {
 });
 
 final printServiceProvider = Provider<PrintService>((ref) {
-  return PrintServiceImpl();
+  final renderer = ref.watch(receiptRendererProvider);
+  return PrintServiceImpl(renderer: renderer);
 });
 
 final dialogDrivenQrScannerProvider = ChangeNotifierProvider<DialogDrivenQrScannerService>((ref) {
