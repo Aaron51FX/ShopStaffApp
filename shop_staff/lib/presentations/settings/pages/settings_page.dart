@@ -464,39 +464,55 @@ class _SystemSettingsView extends ConsumerWidget {
           ],
         ),
         _SectionCard(
-          title: t.settingsLanguageSectionTitle,
-          subtitle: t.settingsLanguageSectionSubtitle,
+          title: '现金支付',
+          subtitle: '检测现金机以启用或验证现金支付能力',
           children: [
-            _LanguageOptionTile(
-              label: t.settingsLanguageSystem,
-              value: null,
-              groupValue: selectedLocale,
-              onSelect: (_) => controller.useSystemLocale(),
+            _InfoRow(
+              icon: Icons.payments_rounded,
+              label: '当前状态',
+              value: cashCheckState.isSupported
+                  ? (cashCheckState.isEnabled ? '已启用' : '未启用')
+                  : '未授权或不支持现金支付',
             ),
-            const SizedBox(height: 8),
-            _LanguageOptionTile(
-              label: t.settingsLanguageChinese,
-              value: const Locale('zh'),
-              groupValue: selectedLocale,
-              onSelect: (_) => controller.update(const Locale('zh')),
-            ),
-            const SizedBox(height: 8),
-            _LanguageOptionTile(
-              label: t.settingsLanguageJapanese,
-              value: const Locale('ja'),
-              groupValue: selectedLocale,
-              onSelect: (_) => controller.update(const Locale('ja')),
-            ),
-            const SizedBox(height: 8),
-            _LanguageOptionTile(
-              label: t.settingsLanguageEnglish,
-              value: const Locale('en'),
-              groupValue: selectedLocale,
-              onSelect: (_) => controller.update(const Locale('en')),
+            if (cashCheckState.lastError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                '最近一次检测失败: ${cashCheckState.lastError}',
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Colors.redAccent),
+              ),
+            ],
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                FilledButton.icon(
+                  onPressed: (!cashCheckState.isSupported || cashCheckState.isChecking)
+                      ? null
+                      : () => cashCheckController.start(auto: false),
+                  icon: cashCheckState.isChecking
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.fact_check_rounded),
+                  label: Text(cashCheckState.isChecking ? '检测中…' : '立即检测'),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: cashCheckState.isChecking
+                      ? null
+                      : () => cashCheckController.skip(),
+                  child: const Text('跳过本次'),
+                ),
+              ],
             ),
           ],
         ),
-        _SectionCard(
+
+                _SectionCard(
           title: 'POS终端网络',
           subtitle: '确保终端与刷卡设备保持在同一网络',
           children: [
@@ -558,60 +574,47 @@ class _SystemSettingsView extends ConsumerWidget {
             ),
           ],
         ),
-        _SectionCard(
-          title: '现金支付',
-          subtitle: '检测现金机以启用或验证现金支付能力',
-          children: [
-            _InfoRow(
-              icon: Icons.payments_rounded,
-              label: '当前状态',
-              value: cashCheckState.isSupported
-                  ? (cashCheckState.isEnabled ? '已启用' : '未启用')
-                  : '未授权或不支持现金支付',
-            ),
-            if (cashCheckState.lastError != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                '最近一次检测失败: ${cashCheckState.lastError}',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.redAccent),
-              ),
-            ],
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                FilledButton.icon(
-                  onPressed: (!cashCheckState.isSupported || cashCheckState.isChecking)
-                      ? null
-                      : () => cashCheckController.start(auto: false),
-                  icon: cashCheckState.isChecking
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.fact_check_rounded),
-                  label: Text(cashCheckState.isChecking ? '检测中…' : '立即检测'),
-                ),
-                const SizedBox(width: 12),
-                TextButton(
-                  onPressed: cashCheckState.isChecking
-                      ? null
-                      : () => cashCheckController.skip(),
-                  child: const Text('跳过本次'),
-                ),
-              ],
-            ),
-          ],
-        ),
+        
         _SectionCard(
           title: '打印机配置',
           subtitle: '控制小票、标签及厨房打印',
           children: printers.isEmpty
               ? const [_EmptyPlaceholder(message: '暂无打印机配置，可在后台新增')]
               : [_PrinterGrid(printers: printers)],
+        ),
+
+                _SectionCard(
+          title: t.settingsLanguageSectionTitle,
+          subtitle: t.settingsLanguageSectionSubtitle,
+          children: [
+            _LanguageOptionTile(
+              label: t.settingsLanguageSystem,
+              value: null,
+              groupValue: selectedLocale,
+              onSelect: (_) => controller.useSystemLocale(),
+            ),
+            const SizedBox(height: 8),
+            _LanguageOptionTile(
+              label: t.settingsLanguageChinese,
+              value: const Locale('zh'),
+              groupValue: selectedLocale,
+              onSelect: (_) => controller.update(const Locale('zh')),
+            ),
+            const SizedBox(height: 8),
+            _LanguageOptionTile(
+              label: t.settingsLanguageJapanese,
+              value: const Locale('ja'),
+              groupValue: selectedLocale,
+              onSelect: (_) => controller.update(const Locale('ja')),
+            ),
+            const SizedBox(height: 8),
+            _LanguageOptionTile(
+              label: t.settingsLanguageEnglish,
+              value: const Locale('en'),
+              groupValue: selectedLocale,
+              onSelect: (_) => controller.update(const Locale('en')),
+            ),
+          ],
         ),
       ],
     );
