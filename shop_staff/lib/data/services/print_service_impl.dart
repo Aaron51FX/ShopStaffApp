@@ -23,6 +23,16 @@ class PrintServiceImpl implements PrintService {
 
     final isTakeOut = info.orderType != 'Shop_In';
 
+    final loaclPrinter = printers.firstWhere(
+      (p) => p.type == 10 && p.isOn && (p.printIp?.isNotEmpty ?? false),
+      orElse: () => const PrinterSettings(name: '', type: -1),
+    );
+
+    if (loaclPrinter.type == 10) {
+      _printReceipt(document, loaclPrinter);
+      results.add(PrintJobResult(printer: loaclPrinter));
+    }
+
     for (final entry in info.orderLinesMap.entries) {
       final typeKey = int.tryParse(entry.key);
       if (typeKey == null) continue;
@@ -61,7 +71,51 @@ class PrintServiceImpl implements PrintService {
     return results;
   }
 
-    void _enqueueReceipt(PrintInfoDocument document, PrinterSettings printer, {bool forceContinuous = false}) {
+  void _printReceipt(PrintInfoDocument document, PrinterSettings printer) {
+    final info = document.printInfo;
+    if (info == null) return;
+    final isTakeOut = document.takeOut;
+    final mappedLines = _linesFromMap(info);
+    final items = _toLegacyItems(mappedLines);
+    if (items.isEmpty) return;
+
+    final hReceiptWidget = _renderer.buildHReceipt(
+      number: document.serialNumber ?? '',
+      items: items,
+      timeStamp: document.orderDate,
+    );
+
+    _submitTask(hReceiptWidget, printer, PrintTypeEnum.receipt);
+
+
+    final receiptWidget = _renderer.buildReceipt(
+      shopName: document.shopName,
+      shopIcon: '',
+      address: document.address,
+      orderSnCode: document.order,
+      telephone: document.telNo,
+      number: document.serialNumber ?? '',
+      items: items,
+      timeStamp: document.orderDate,
+      isTakeOut: isTakeOut,
+      payPrice: document.price.toString(),
+      change: document.change.toString(),
+      paymentMethod: document.payMethod,
+      tax1: document.tax1.toString(),
+      baseTax1: document.baseTax1.toString(),
+      tax2: document.tax2.toString(),
+      baseTax2: document.baseTax2.toString(),
+      total: document.price.toString(),
+      discount: document.discount.toString(),
+      cardNumber: document.memberNo ?? '',
+    );
+
+    _submitTask(receiptWidget, printer, PrintTypeEnum.receipt);
+
+    
+  }
+
+  void _enqueueReceipt(PrintInfoDocument document, PrinterSettings printer, {bool forceContinuous = false}) {
     final info = document.printInfo;
     if (info == null) return;
     final rotate = printer.direction;
@@ -99,6 +153,7 @@ List<Map<String, dynamic>> _toLegacyItems(List<PrintOrderLine> lines) {
       .map((line) => {
             'qty': line.qty,
             'name': line.name,
+            'price': line.price,
             'options': _toLegacyOptions(line.options),
             'categoryName': line.categoryName,
           })

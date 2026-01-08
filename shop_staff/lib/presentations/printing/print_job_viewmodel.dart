@@ -43,7 +43,7 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
     _running = true;
     final activePrinters = request.printers.where((p) => p.isOn).toList();
     if (mounted) {
-      state = state.copyWith(stage: '拉取打印内容…', jobs: const [], error: null, completed: false);
+      state = state.copyWith(stage: '获取打印内容…', jobs: const [], error: null, completed: false);
     }
 
     if (request.machineCode.isEmpty) {
