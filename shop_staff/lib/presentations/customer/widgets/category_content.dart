@@ -98,10 +98,10 @@ class _CategoryCard extends StatelessWidget {
   }
 
   Widget _placeholder({IconData icon = Icons.image_outlined}) => Container(
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        // decoration: BoxDecoration(
+        //   color: Colors.grey.shade100,
+        //   borderRadius: BorderRadius.circular(12),
+        // ),
         child: Icon(icon, size: 32, color: Colors.grey.shade400),
       );
 }
