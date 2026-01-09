@@ -9,7 +9,7 @@ import '../../../data/providers.dart';
 import '../../../domain/settings/app_settings_models.dart';
 import '../../../domain/services/app_settings_service.dart';
 
-enum SettingsSection {systemSettings, machineInfo }//businessInfo, 
+enum SettingsSection { systemSettings, machineInfo, businessInfo }
 
 class SettingsState {
   const SettingsState({

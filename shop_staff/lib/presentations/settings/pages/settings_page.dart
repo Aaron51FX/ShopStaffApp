@@ -6,7 +6,6 @@ import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import '../../../core/app_role.dart';
 import '../../../data/providers.dart';
-import '../../../main.dart';
 
 import '../../../domain/settings/app_settings_models.dart';
 import '../viewmodels/settings_viewmodel.dart';
@@ -310,8 +309,8 @@ class _SettingsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (state.selected) {
-      // case SettingsSection.businessInfo:
-      //   return _BusinessInfoView(state: state, onRefresh: onRefresh);
+      case SettingsSection.businessInfo:
+        return _BusinessInfoView(state: state, onRefresh: onRefresh);
       case SettingsSection.systemSettings:
         return _SystemSettingsView(state: state, onRefresh: onRefresh, t: t);
       case SettingsSection.machineInfo:
@@ -1494,8 +1493,8 @@ class _LanguageOptionTile extends StatelessWidget {
 extension SettingsSectionLocalization on SettingsSection {
   String localizedTitle(AppLocalizations t) {
     switch (this) {
-      // case SettingsSection.businessInfo:
-      //   return t.settingsSectionBusinessTitle;
+      case SettingsSection.businessInfo:
+        return t.settingsSectionBusinessTitle;
       case SettingsSection.systemSettings:
         return t.settingsSectionSystemTitle;
       case SettingsSection.machineInfo:
@@ -1505,8 +1504,8 @@ extension SettingsSectionLocalization on SettingsSection {
 
   String localizedSubtitle(AppLocalizations t) {
     switch (this) {
-      // case SettingsSection.businessInfo:
-      //   return t.settingsSectionBusinessSubtitle;
+      case SettingsSection.businessInfo:
+        return t.settingsSectionBusinessSubtitle;
       case SettingsSection.systemSettings:
         return t.settingsSectionSystemSubtitle;
       case SettingsSection.machineInfo:
@@ -1517,8 +1516,8 @@ extension SettingsSectionLocalization on SettingsSection {
 
 IconData _sectionIcon(SettingsSection section) {
   switch (section) {
-    // case SettingsSection.businessInfo:
-    //   return Icons.storefront_rounded;
+    case SettingsSection.businessInfo:
+      return Icons.storefront_rounded;
     case SettingsSection.systemSettings:
       return Icons.settings_applications_rounded;
     case SettingsSection.machineInfo:
