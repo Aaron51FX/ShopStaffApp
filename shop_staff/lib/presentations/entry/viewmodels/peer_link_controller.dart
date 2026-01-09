@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:multipeer_session/multipeer_session.dart';
 
 enum PeerLinkStatus { idle, searching, connected, error }
@@ -61,7 +64,68 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
     _started = true;
     state = state.copyWith(status: PeerLinkStatus.searching, clearError: true);
     _sub = MultipeerSession.events().listen(_onEvent);
+
+    final ok = await _ensureAndroidPermissions();
+    if (!ok) {
+      state = state.copyWith(status: PeerLinkStatus.error);
+      _started = false;
+      return;
+    }
+
     await MultipeerSession.start(role: role, serviceName: serviceName);
+  }
+
+  Future<bool> _ensureAndroidPermissions() async {
+    if (!Platform.isAndroid) return true;
+
+    try {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      final sdkInt = androidInfo.version.sdkInt;
+
+      final permissionsToRequest = <Permission>{
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+      };
+
+      if (sdkInt >= 33) {
+        permissionsToRequest.add(Permission.nearbyWifiDevices);
+        // Some devices still require coarse location in addition to Nearby.
+        permissionsToRequest.add(Permission.locationWhenInUse);
+      } else {
+        // Pre-Android 13 typically still needs location for Nearby discovery.
+        permissionsToRequest.add(Permission.locationWhenInUse);
+      }
+
+      final results = await permissionsToRequest.toList().request();
+
+      final required = <Permission>{
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+        if (sdkInt >= 33) Permission.nearbyWifiDevices,
+        Permission.locationWhenInUse,
+      };
+
+      final denied = <Permission>[];
+      for (final p in required) {
+        final status = results[p] ?? await p.status;
+        if (!status.isGranted) denied.add(p);
+      }
+
+      if (denied.isNotEmpty) {
+        state = state.copyWith(
+          status: PeerLinkStatus.error,
+          lastError: '需要授予权限: ${denied.map((e) => e.toString()).join(', ')}',
+        );
+        return false;
+      }
+
+      return true;
+    } catch (e) {
+      state = state.copyWith(status: PeerLinkStatus.error, lastError: '权限检查失败: $e');
+      return false;
+    }
   }
 
   Future<void> restart() async {

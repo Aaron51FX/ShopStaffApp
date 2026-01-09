@@ -31,12 +31,6 @@ class _EntryPageState extends ConsumerState<EntryPage> {
           .read(cashMachineCheckControllerProvider.notifier)
           .maybePromptOnEntry();
       ref.read(peerLinkControllerProvider.notifier).start();
-      ref.listen<PeerLinkState>(peerLinkControllerProvider, (prev, next) {
-        final wasConnected = prev?.isConnected ?? false;
-        if (wasConnected && !next.isConnected) {
-          _showDisconnectDialog();
-        }
-      });
     });
   }
 
@@ -142,6 +136,13 @@ class _EntryPageState extends ConsumerState<EntryPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<PeerLinkState>(peerLinkControllerProvider, (prev, next) {
+      final wasConnected = prev?.isConnected ?? false;
+      if (wasConnected && !next.isConnected) {
+        _showDisconnectDialog();
+      }
+    });
+
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
     final now = ref

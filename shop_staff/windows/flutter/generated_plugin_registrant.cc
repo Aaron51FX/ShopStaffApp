@@ -8,6 +8,7 @@
 
 #include <cash_changer/cash_changer_plugin_c_api.h>
 #include <flutter_secure_storage_windows/flutter_secure_storage_windows_plugin.h>
+#include <permission_handler_windows/permission_handler_windows_plugin.h>
 #include <r_get_ip/r_get_ip_plugin.h>
 #include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
 #include <window_manager/window_manager_plugin.h>
@@ -17,6 +18,8 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("CashChangerPluginCApi"));
   FlutterSecureStorageWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("FlutterSecureStorageWindowsPlugin"));
+  PermissionHandlerWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
   RGetIpPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("RGetIpPlugin"));
   ScreenRetrieverWindowsPluginCApiRegisterWithRegistrar(
