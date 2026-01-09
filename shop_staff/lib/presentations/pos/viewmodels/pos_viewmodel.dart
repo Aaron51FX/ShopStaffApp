@@ -735,7 +735,9 @@ class PosViewModel extends StateNotifier<PosState> {
       if (shop != null) {
         final ctx = rootNavigatorKey.currentContext;
         if (ctx != null) {
-          unawaited(_sendPaymentSelectionToCustomer(shop, total));
+          if (peerLinkEnabled()){
+            unawaited(_sendPaymentSelectionToCustomer(shop, total));
+          }
           await showPaymentSelectionDialog(
             context: ctx,
             shop: shop,
