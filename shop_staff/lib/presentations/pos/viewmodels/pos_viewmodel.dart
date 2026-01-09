@@ -79,6 +79,19 @@ class PosViewModel extends StateNotifier<PosState> {
   // Exposed for provider-level listener sanity checks (not part of public API for widgets)
   bool get debugHasCategories => state.categories.isNotEmpty;
 
+  bool peerLinkEnabled() {
+    final snapshot = _ref.read(appSettingsSnapshotProvider);
+    return snapshot?.basic.peerLinkEnabled ?? true;
+  }
+
+  bool _ensurePeerLinkEnabled({bool toast = true}) {
+    final enabled = peerLinkEnabled();
+    if (!enabled && toast) {
+      SimpleToast.errorGlobal('顾客端同步已关闭');
+    }
+    return enabled;
+  }
+
   Future<void> bootstrap() async {
     debugPrint('Bootstrapping POS ViewModel...');
     state = state.copyWith(loading: true, error: null);
@@ -143,10 +156,26 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   // ---- Customer display push helpers ----
-  Future<void> _broadcastCategories(List<CategoryModel> categories) async {
+  Future<void> broadcastCategories() async {
+    if (!_ensurePeerLinkEnabled()) return;
+    final categories = state.categories
+        .where((c) => c.categoryCode != favoritesCategoryCode)
+        .toList();
+
+    await _broadcastCategories(categories, toastOnDisabled: true);
+  }
+
+  Future<void> _broadcastCategories(
+    List<CategoryModel> categories, {
+    bool toastOnDisabled = false,
+  }) async {
+    if (!_ensurePeerLinkEnabled(toast: toastOnDisabled)) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
-    if (!connected) return;
+    if (!connected) {
+      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      return;
+    }
     final payload = {
       'categories': categories
           .map((c) => {
@@ -160,6 +189,7 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   Future<void> pushProductToCustomer(Product product, {int quantity = 1}) async {
+    if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
@@ -179,6 +209,7 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   Future<void> _sendOptionsToCustomer({required Product product, required List<SelectedOption> options}) async {
+    if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
@@ -210,6 +241,7 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   Future<void> _sendOptionGroupToCustomer({required Product product, required OptionGroupEntity group, required Map<String, int> selected}) async {
+    if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
@@ -245,6 +277,7 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   Future<void> sendCartToCustomer() async {
+    if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
@@ -291,6 +324,7 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   Future<void> _sendPaymentSelectionToCustomer(ShopInfoModel shop, double total) async {
+    if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     if (!_ref.read(peerLinkControllerProvider).isConnected) {
       SimpleToast.errorGlobal('顾客端未连接，推送失败');
@@ -326,6 +360,7 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   Future<void> clearCustomerDisplay() async {
+    if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) return;
@@ -496,31 +531,6 @@ class PosViewModel extends StateNotifier<PosState> {
         .confirm(title: '清空购物车', message: '确认要清空购物车吗？', destructive: true);
     if (ok) {
       state = state.copyWith(cart: []);
-    }
-  }
-
-  void logout() async {
-    final ok = await _ref
-        .read(dialogControllerProvider.notifier)
-        .confirm(title: '注销', message: '确认要注销吗？', destructive: true);
-    if (ok) {
-      try {
-        // 清空购物车与本地状态
-        state = PosState.initial();
-        // 清理仓库缓存
-        _menuRepository.clearCache();
-        // 删除激活码与本地设置
-        await _ref.read(startupServiceProvider).clear();
-        // 清空全局店铺信息与设置快照
-        _ref.read(shopInfoProvider.notifier).state = null;
-        _ref.read(appSettingsSnapshotProvider.notifier).state = null;
-        _ref.read(orderModeSelectionProvider.notifier).state = 'dine_in';
-        // 跳转登录
-        final router = _ref.read(appRouterProvider);
-        router.go('/login');
-      } catch (e) {
-        debugPrint('Logout failed: $e');
-      }
     }
   }
 
@@ -745,7 +755,7 @@ class PosViewModel extends StateNotifier<PosState> {
                 SimpleToast.errorGlobal(e.toString());
               }
             },
-            onPushToCustomer: () => _sendPaymentSelectionToCustomer(shop, total),
+            onPushToCustomer: peerLinkEnabled() ? () => _sendPaymentSelectionToCustomer(shop, total) : null,
           );
         }
       }
@@ -950,6 +960,7 @@ class PosViewModel extends StateNotifier<PosState> {
                                     ),
                                   ),
                                 ),
+                                if (peerLinkEnabled())
                                 IconButton(
                                   icon: const Icon(Icons.send_rounded, color: Colors.white),
                                   onPressed: () {
@@ -1003,13 +1014,15 @@ class PosViewModel extends StateNotifier<PosState> {
                                             cancelText: '关闭',
                                           );
                                     },
-                                    onSendGroup: (g, selections) {
+                                    onSendGroup: 
+                                    peerLinkEnabled() ? 
+                                    (g, selections) {
                                       _sendOptionGroupToCustomer(
                                         product: product,
                                         group: g,
                                         selected: selections,
                                       );
-                                    },
+                                    } : null,
                                   ),
                                   const Divider(height: 28),
                                 ],

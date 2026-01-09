@@ -106,6 +106,7 @@ class ProductGrid extends ConsumerWidget {
                                 ),
                               ],
                             ),
+                            if (vm.peerLinkEnabled())
                             Positioned(
                               bottom: 1,
                               right: 1,

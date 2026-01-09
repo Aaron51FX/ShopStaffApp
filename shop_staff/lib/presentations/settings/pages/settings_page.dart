@@ -310,8 +310,8 @@ class _SettingsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (state.selected) {
-      case SettingsSection.businessInfo:
-        return _BusinessInfoView(state: state, onRefresh: onRefresh);
+      // case SettingsSection.businessInfo:
+      //   return _BusinessInfoView(state: state, onRefresh: onRefresh);
       case SettingsSection.systemSettings:
         return _SystemSettingsView(state: state, onRefresh: onRefresh, t: t);
       case SettingsSection.machineInfo:
@@ -320,16 +320,17 @@ class _SettingsContent extends StatelessWidget {
   }
 }
 
-class _BusinessInfoView extends StatelessWidget {
+class _BusinessInfoView extends ConsumerWidget {
   const _BusinessInfoView({required this.state, required this.onRefresh});
 
   final SettingsState state;
   final Future<void> Function() onRefresh;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final basic = state.snapshot.basic;
     final shop = state.shopInfo;
+    final vm = ref.read(settingsViewModelProvider.notifier);
     return _RefreshableScroll(
       onRefresh: onRefresh,
       children: [
@@ -375,6 +376,21 @@ class _BusinessInfoView extends StatelessWidget {
             ),
           ],
         ),
+        //log out button
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+          child: ElevatedButton.icon(
+            onPressed: () {
+              vm.logout();
+            },
+            icon: const Icon(Icons.exit_to_app_rounded),
+            label: const Text('退出登录'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -395,6 +411,7 @@ class _SystemSettingsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pos = state.snapshot.posTerminal;
     final printers = state.snapshot.printers;
+    final basic = state.snapshot.basic;
     final selectedLocale = ref.watch(localeControllerProvider);
     final controller = ref.read(localeControllerProvider.notifier);
     final vm = ref.read(settingsViewModelProvider.notifier);
@@ -447,6 +464,12 @@ class _SystemSettingsView extends ConsumerWidget {
         _SectionCard(
           title: '角色选择',
           subtitle: '选择设备扮演的端，保存后会重启并进入对应界面',
+          trailing: Switch.adaptive(
+            value: basic.peerLinkEnabled,
+            onChanged: (enabled) => vm.saveBasicSettings(
+              basic.copyWith(peerLinkEnabled: enabled),
+            ),
+          ),
           children: [
             _RoleSelector(
               current: currentRole,
@@ -467,6 +490,12 @@ class _SystemSettingsView extends ConsumerWidget {
         _SectionCard(
           title: '现金支付',
           subtitle: '检测现金机以启用或验证现金支付能力',
+          trailing: Switch.adaptive(
+            value: cashCheckState.isEnabled,
+            onChanged: (enabled) async {
+              await cashCheckController.setEnabled(enabled);
+            },
+          ),
           children: [
             _InfoRow(
               icon: Icons.payments_rounded,
@@ -900,11 +929,13 @@ class _SectionCard extends StatelessWidget {
   const _SectionCard({
     required this.title,
     this.subtitle,
+    this.trailing,
     required this.children,
   });
 
   final String title;
   final String? subtitle;
+  final Widget? trailing;
   final List<Widget> children;
 
   @override
@@ -920,11 +951,19 @@ class _SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (trailing != null) trailing!,
+              ],
             ),
             if (subtitle != null) ...[
               const SizedBox(height: 6),
@@ -1455,8 +1494,8 @@ class _LanguageOptionTile extends StatelessWidget {
 extension SettingsSectionLocalization on SettingsSection {
   String localizedTitle(AppLocalizations t) {
     switch (this) {
-      case SettingsSection.businessInfo:
-        return t.settingsSectionBusinessTitle;
+      // case SettingsSection.businessInfo:
+      //   return t.settingsSectionBusinessTitle;
       case SettingsSection.systemSettings:
         return t.settingsSectionSystemTitle;
       case SettingsSection.machineInfo:
@@ -1466,8 +1505,8 @@ extension SettingsSectionLocalization on SettingsSection {
 
   String localizedSubtitle(AppLocalizations t) {
     switch (this) {
-      case SettingsSection.businessInfo:
-        return t.settingsSectionBusinessSubtitle;
+      // case SettingsSection.businessInfo:
+      //   return t.settingsSectionBusinessSubtitle;
       case SettingsSection.systemSettings:
         return t.settingsSectionSystemSubtitle;
       case SettingsSection.machineInfo:
@@ -1478,8 +1517,8 @@ extension SettingsSectionLocalization on SettingsSection {
 
 IconData _sectionIcon(SettingsSection section) {
   switch (section) {
-    case SettingsSection.businessInfo:
-      return Icons.storefront_rounded;
+    // case SettingsSection.businessInfo:
+    //   return Icons.storefront_rounded;
     case SettingsSection.systemSettings:
       return Icons.settings_applications_rounded;
     case SettingsSection.machineInfo:

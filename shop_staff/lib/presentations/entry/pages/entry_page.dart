@@ -5,6 +5,7 @@ import 'package:shop_staff/l10n/app_localizations.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/app_role.dart';
 import '../../../data/providers.dart';
+import '../../../domain/settings/app_settings_models.dart';
 import '../../pos/viewmodels/pos_viewmodel.dart';
 import '../viewmodels/entry_viewmodels.dart';
 import '../viewmodels/peer_link_controller.dart';
@@ -30,8 +31,15 @@ class _EntryPageState extends ConsumerState<EntryPage> {
       ref
           .read(cashMachineCheckControllerProvider.notifier)
           .maybePromptOnEntry();
-      ref.read(peerLinkControllerProvider.notifier).start();
+      if (_peerLinkEnabled()) {
+        ref.read(peerLinkControllerProvider.notifier).start();
+      }
     });
+  }
+
+  bool _peerLinkEnabled() {
+    final snapshot = ref.read(appSettingsSnapshotProvider);
+    return snapshot?.basic.peerLinkEnabled ?? true;
   }
 
   Future<void> _showDisconnectDialog() async {
@@ -136,7 +144,20 @@ class _EntryPageState extends ConsumerState<EntryPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AppSettingsSnapshot?>(appSettingsSnapshotProvider, (prev, next) {
+      final wasEnabled = prev?.basic.peerLinkEnabled ?? true;
+      final isEnabled = next?.basic.peerLinkEnabled ?? true;
+      if (wasEnabled == isEnabled) return;
+      final controller = ref.read(peerLinkControllerProvider.notifier);
+      if (isEnabled) {
+        controller.start();
+      } else {
+        controller.stop();
+      }
+    });
+
     ref.listen<PeerLinkState>(peerLinkControllerProvider, (prev, next) {
+      if (!_peerLinkEnabled()) return;
       final wasConnected = prev?.isConnected ?? false;
       if (wasConnected && !next.isConnected) {
         _showDisconnectDialog();
@@ -168,7 +189,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
               child: Column(
                 children: [
-                  _buildTopBar(context, ref, timeText, dateText, linkState),
+                  _buildTopBar(context, ref, timeText, dateText, linkState, _peerLinkEnabled()),
                   const SizedBox(height: 40),
                   Expanded(
                     child: Center(
@@ -263,6 +284,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
     String timeText,
     String dateText,
     PeerLinkState linkState,
+    bool peerLinkEnabled,
   ) {
     final router = ref.read(appRouterProvider);
     final t = AppLocalizations.of(context);
@@ -306,6 +328,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
             ],
           ),
         ),
+        if (peerLinkEnabled)
         _CustomerStatusChip(role: role, linkState: linkState, toTouch: _showSearchDialog),
         const SizedBox(width: 12),
         // FilledButton.tonalIcon(

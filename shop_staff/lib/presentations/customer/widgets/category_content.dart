@@ -23,10 +23,10 @@ class CategoryGridContent extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(18),
       child: GridView.builder(
-        physics: const NeverScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         shrinkWrap: true,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 4,
+          crossAxisCount: 5,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
           childAspectRatio: 1,

@@ -106,13 +106,13 @@ class CashMachineCheckController extends StateNotifier<CashMachineCheckState> {
 		_autoPrompted = true;
 		_syncSupport();
 		_syncEnabled();
-		if (state.isSupported) {
+		if (state.isSupported && state.isEnabled) {
 			start(auto: true);
 		}
 	}
 
 	Future<void> start({bool auto = false}) async {
-		if (!state.isSupported || state.isChecking) return;
+		if (!state.isSupported || !state.isEnabled || state.isChecking) return;
 		_dialogSuppressed = false;
 		final message = auto ? '正在检测现金机状态…' : '正在重新检测现金机…';
 		state = state.copyWith(
@@ -160,11 +160,18 @@ class CashMachineCheckController extends StateNotifier<CashMachineCheckState> {
 		state = state.copyWith(
 			dialog: const CashMachineDialogState.hidden(),
 			isChecking: false,
+			isEnabled: state.isEnabled,
 		);
 	}
 
 	void dismissDialog() {
 		state = state.copyWith(dialog: const CashMachineDialogState.hidden());
+	}
+
+	Future<void> setEnabled(bool enabled) async {
+		_dialogSuppressed = !enabled;
+		await _persistEnabled(enabled);
+		state = state.copyWith(isEnabled: enabled, dialog: const CashMachineDialogState.hidden());
 	}
 
 	Future<void> _persistEnabled(bool enabled) async {

@@ -1,16 +1,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/core/dialog/dialog_service.dart';
+import 'package:shop_staff/core/router/app_router.dart';
+import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 
 import '../../../data/models/shop_info_models.dart';
 import '../../../data/providers.dart';
 import '../../../domain/settings/app_settings_models.dart';
 import '../../../domain/services/app_settings_service.dart';
 
-enum SettingsSection { businessInfo, systemSettings, machineInfo }
+enum SettingsSection {systemSettings, machineInfo }//businessInfo, 
 
 class SettingsState {
   const SettingsState({
-    this.selected = SettingsSection.businessInfo,
+    this.selected = SettingsSection.systemSettings,
     this.loading = false,
     this.error,
     this.snapshot = const AppSettingsSnapshot(),
@@ -42,7 +45,7 @@ class SettingsState {
 }
 
 class SettingsViewModel extends StateNotifier<SettingsState> {
-  SettingsViewModel({
+  SettingsViewModel(this._ref, {
     required AppSettingsService appSettingsService,
     required AppSettingsSnapshot? initialSnapshot,
     required ShopInfoModel? initialShopInfo,
@@ -59,6 +62,7 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
   final AppSettingsService _appSettingsService;
   final void Function(AppSettingsSnapshot snapshot) _updateSharedSnapshot;
   bool _initialized = false;
+  final Ref _ref;
 
   Future<void> initialize() async {
     if (_initialized) return;
@@ -91,12 +95,63 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     state = state.copyWith(selected: section);
   }
 
+  Future<void> saveBasicSettings(BasicSettings basic) async {
+    final previousSnapshot = state.snapshot;
+    if (mapEquals(previousSnapshot.basic.toJson(), basic.toJson())) {
+      return;
+    }
+
+    final updatedSnapshot = AppSettingsSnapshot(
+      basic: basic,
+      posTerminal: previousSnapshot.posTerminal,
+      printers: previousSnapshot.printers,
+    );
+
+    state = state.copyWith(snapshot: updatedSnapshot, clearError: true);
+    _updateSharedSnapshot(updatedSnapshot);
+
+    try {
+      await _appSettingsService.saveBasicSettings(basic);
+    } catch (e) {
+      state = state.copyWith(
+        snapshot: previousSnapshot,
+        error: '保存基础设置失败: $e',
+      );
+      _updateSharedSnapshot(previousSnapshot);
+    }
+  }
+
   void updateSnapshot(AppSettingsSnapshot snapshot) {
     state = state.copyWith(snapshot: snapshot);
   }
 
   void updateShopInfo(ShopInfoModel? info) {
     state = state.copyWith(shopInfo: info);
+  }
+
+  void logout() async {
+    final ok = await _ref
+        .read(dialogControllerProvider.notifier)
+        .confirm(title: '注销', message: '确认要注销吗？', destructive: true);
+    if (ok) {
+      try {
+        // 清空购物车与本地状态
+        //state = PosState.initial();
+        // // 清理仓库缓存
+        // _menuRepository.clearCache();
+        // 删除激活码与本地设置
+        await _ref.read(startupServiceProvider).clear();
+        // 清空全局店铺信息与设置快照
+        _ref.read(shopInfoProvider.notifier).state = null;
+        _ref.read(appSettingsSnapshotProvider.notifier).state = null;
+        _ref.read(orderModeSelectionProvider.notifier).state = 'dine_in';
+        // 跳转登录
+        final router = _ref.read(appRouterProvider);
+        router.go('/login');
+      } catch (e) {
+        debugPrint('Logout failed: $e');
+      }
+    }
   }
 
   Future<void> savePosTerminal(PosTerminalSettings settings) async {
@@ -190,6 +245,7 @@ final settingsViewModelProvider =
       }
 
       final vm = SettingsViewModel(
+        ref,
         appSettingsService: service,
         initialSnapshot: ref.read(appSettingsSnapshotProvider),
         initialShopInfo: ref.read(shopInfoProvider),

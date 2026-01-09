@@ -9,6 +9,7 @@ class BasicSettings {
     this.contactNumber,
     this.address,
     this.cashMachineEnabled,
+    this.peerLinkEnabled = true,
   });
 
   final String? shopName;
@@ -17,6 +18,7 @@ class BasicSettings {
   final String? contactNumber;
   final String? address;
   final bool? cashMachineEnabled;
+  final bool peerLinkEnabled;
 
   BasicSettings copyWith({
     String? shopName,
@@ -25,6 +27,7 @@ class BasicSettings {
     String? contactNumber,
     String? address,
     bool? cashMachineEnabled,
+    bool? peerLinkEnabled,
   }) {
     return BasicSettings(
       shopName: shopName ?? this.shopName,
@@ -33,6 +36,7 @@ class BasicSettings {
       contactNumber: contactNumber ?? this.contactNumber,
       address: address ?? this.address,
       cashMachineEnabled: cashMachineEnabled ?? this.cashMachineEnabled,
+      peerLinkEnabled: peerLinkEnabled ?? this.peerLinkEnabled,
     );
   }
 
@@ -44,6 +48,7 @@ class BasicSettings {
       'contactNumber': contactNumber,
       'address': address,
       'cashMachineEnabled': cashMachineEnabled,
+      'peerLinkEnabled': peerLinkEnabled,
     }..removeWhere((key, value) => value == null);
   }
 
@@ -55,6 +60,7 @@ class BasicSettings {
       contactNumber: json['contactNumber'] as String?,
       address: json['address'] as String?,
       cashMachineEnabled: _readBool(json['cashMachineEnabled']) ?? false,
+      peerLinkEnabled: _readBool(json['peerLinkEnabled']) ?? true,
     );
   }
 }

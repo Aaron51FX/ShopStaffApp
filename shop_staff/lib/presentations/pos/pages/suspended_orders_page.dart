@@ -119,7 +119,7 @@ class _OrderTile extends StatelessWidget {
               width: 54,
               height: 54,
               decoration: BoxDecoration(
-                color: AppColors.stone100,
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
               ),
               alignment: Alignment.center,

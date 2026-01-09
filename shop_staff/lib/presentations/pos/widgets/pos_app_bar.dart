@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 
 class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -8,6 +9,8 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final vm = ref.read(posViewModelProvider.notifier);
+    final settings = ref.watch(appSettingsSnapshotProvider);
+    final peerLinkEnabled = settings?.basic.peerLinkEnabled ?? true;
     return AppBar(
       toolbarHeight: 64,
       elevation: 6, // stronger shadow
@@ -31,26 +34,18 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
                 ),
               ),
             ),
-            IconButton(
-              tooltip: '清除顾客端展示',
-              onPressed: vm.clearCustomerDisplay,
-              icon: const Icon(Icons.close_fullscreen_rounded),
-            ),
-            // IconButton(
-            //   tooltip: '设置',
-            //   onPressed: vm.navToSettings,
-            //   icon: const Icon(Icons.settings_outlined),
-            // ),
-            // IconButton(
-            //   tooltip: '取单',
-            //   onPressed: vm.navToSuspendedOrder,
-            //   icon: const Icon(Icons.history_sharp),
-            // ),
-            IconButton(
-              tooltip: '退出',
-              onPressed: vm.logout,
-              icon: const Icon(Icons.exit_to_app),
-            ),
+            if (peerLinkEnabled) ...[
+              IconButton(
+                tooltip: '清除顾客端展示',
+                onPressed: vm.clearCustomerDisplay,
+                icon: const Icon(Icons.close_fullscreen_rounded),
+              ),
+              IconButton(
+                tooltip: 'share',
+                onPressed: () => vm.broadcastCategories(),
+                icon: const Icon(Icons.send_rounded, size: 20, color: AppColors.amberPrimary),
+              ),
+            ],
           ],
         ),
       ),
