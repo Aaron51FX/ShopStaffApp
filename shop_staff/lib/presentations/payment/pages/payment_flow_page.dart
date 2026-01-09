@@ -138,6 +138,11 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
             return CancelDialog(
               state: state,
               onClose: () {
+                final navigator = Navigator.of(context, rootNavigator: true);
+                if (navigator.canPop()) {
+                  navigator.pop();
+                }
+                if (!mounted) return;
                 ref.read(provider.notifier).goEntryPage();
               },
             );

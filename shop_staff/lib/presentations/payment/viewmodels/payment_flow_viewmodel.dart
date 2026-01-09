@@ -324,13 +324,17 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     );
   }
 
-  Future<void> _teardownActiveSession({bool releaseQrScanner = false}) async {
+  Future<void> _teardownActiveSession({
+    bool releaseQrScanner = false,
+    PaymentFlowState? snapshot,
+  }) async {
     await _statusSubscription?.cancel();
     _statusSubscription = null;
-    final sessionId = state.sessionId;
+    final current = snapshot ?? state;
+    final sessionId = current.sessionId;
     final shouldReleaseScanner = releaseQrScanner && _args.channelGroup == PaymentChannels.qr;
 
-    if (sessionId != null && !state.isFinished) {
+    if (sessionId != null && !current.isFinished) {
       try {
         await _orchestrator.cancel(sessionId);
       } catch (error, stack) {
@@ -351,7 +355,8 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
 
   @override
   void dispose() {
-    unawaited(_teardownActiveSession(releaseQrScanner: true));
+    final snapshot = state;
+    unawaited(_teardownActiveSession(releaseQrScanner: true, snapshot: snapshot));
     super.dispose();
   }
 }
