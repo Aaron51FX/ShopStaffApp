@@ -50,6 +50,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           title: Text('設置'),
         ),
         body: SafeArea(
+          top: false,
           child: Row(
           children: [
             _SettingsSidebar(
@@ -574,7 +575,7 @@ class _SystemSettingsView extends ConsumerWidget {
             ),
           ],
         ),
-        
+
         _SectionCard(
           title: '打印机配置',
           subtitle: '控制小票、标签及厨房打印',

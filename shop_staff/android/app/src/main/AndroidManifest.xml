@@ -3,6 +3,7 @@
         android:label="shop_staff"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:theme="@style/NormalTheme"
         android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
