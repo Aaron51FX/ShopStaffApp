@@ -27,7 +27,7 @@ class OptionVoModel {
   final String? group; // group code reference
   final String? groupName;
   final String mainTitle;
-  final String? subTitle;
+  final List<String>? subTitle;
   final String printText;
   final String? extend1;
   @JsonKey(fromJson: _toIntOrNull) final int? price; // legacy price, can be null (string/int)

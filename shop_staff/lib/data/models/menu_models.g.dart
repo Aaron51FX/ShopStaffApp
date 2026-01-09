@@ -12,7 +12,9 @@ OptionVoModel _$OptionVoModelFromJson(Map<String, dynamic> json) =>
       group: json['group'] as String?,
       groupName: json['groupName'] as String?,
       mainTitle: json['mainTitle'] as String,
-      subTitle: json['subTitle'] as String?,
+      subTitle: (json['subTitle'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       printText: json['printText'] as String,
       extend1: json['extend1'] as String?,
       price: _toIntOrNull(json['price']),
