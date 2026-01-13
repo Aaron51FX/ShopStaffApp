@@ -5,7 +5,11 @@ import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
 
+import 'pos_dialog_state.dart';
+
 class PosState {
+  static const Object _unset = Object();
+
   final List<CategoryModel> categories; // category list with name/code
   final String currentCategory; // categoryCode
   final List<Product> products; // filtered list per category or search
@@ -20,6 +24,7 @@ class PosState {
   final String orderMode; // dine_in / take_out
   final double discount; // 未来可扩展多种优惠, 先简单一个数值
   final OrderSubmissionResult? lastOrderResult; // 最近一次下单结果
+  final PosDialogState? posDialog;
 
   const PosState({
     required this.categories,
@@ -35,7 +40,8 @@ class PosState {
     required this.favoriteProductIds,
     required this.orderMode,
     required this.discount,
-  required this.lastOrderResult,
+    required this.lastOrderResult,
+    required this.posDialog,
   });
 
   factory PosState.initial() => const PosState(
@@ -52,7 +58,8 @@ class PosState {
       favoriteProductIds: {},
       orderMode: 'dine_in',
       discount: 0,
-  lastOrderResult: null,
+      lastOrderResult: null,
+      posDialog: null,
     );
 
   double get subtotal => cart.fold(0, (p, e) => p + e.lineTotal);
@@ -72,7 +79,8 @@ class PosState {
     Set<int>? favoriteProductIds,
     String? orderMode,
     double? discount,
-  OrderSubmissionResult? lastOrderResult,
+    OrderSubmissionResult? lastOrderResult,
+    Object? posDialog = _unset,
   }) {
     return PosState(
       categories: categories ?? this.categories,
@@ -88,7 +96,8 @@ class PosState {
       favoriteProductIds: favoriteProductIds ?? this.favoriteProductIds,
       orderMode: orderMode ?? this.orderMode,
       discount: discount ?? this.discount,
-  lastOrderResult: lastOrderResult ?? this.lastOrderResult,
+      lastOrderResult: lastOrderResult ?? this.lastOrderResult,
+      posDialog: identical(posDialog, _unset) ? this.posDialog : posDialog as PosDialogState?,
     );
   }
 }

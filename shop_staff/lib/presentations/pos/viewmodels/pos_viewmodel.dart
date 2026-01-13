@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multipeer_session/multipeer_session.dart';
 import 'package:shop_staff/application/pos/usecases/build_payment_flow_args_usecase.dart';
@@ -9,20 +9,16 @@ import 'package:shop_staff/application/pos/usecases/fetch_category_products_usec
 import 'package:shop_staff/application/pos/usecases/prepare_payment_selection_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/suspended_orders_usecases.dart';
-import 'package:shop_staff/core/dialog/dialog_service.dart';
-import 'package:shop_staff/core/router/app_router.dart';
-import 'package:shop_staff/core/toast/simple_toast.dart';
-import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
-import 'package:shop_staff/presentations/pos/widgets/option_dialog_widgets.dart';
-import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
 import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
 import 'pos_state.dart';
-import 'package:shop_staff/presentations/pos/widgets/payment_selection_dialog.dart';
+
+import 'pos_dialog_state.dart';
+import 'pos_effect.dart';
 
 final orderModeSelectionProvider = StateProvider<String>((ref) => 'dine_in');
 
@@ -67,6 +63,15 @@ class PosViewModel extends StateNotifier<PosState> {
   final FetchCategoryProductsUseCase _fetchCategoryProductsUseCase;
   final SuspendedOrdersUseCases _suspendedOrders;
   bool _bootstrapped = false;
+
+  final StreamController<PosEffect> _effects = StreamController<PosEffect>.broadcast();
+  Stream<PosEffect> get effects => _effects.stream;
+
+  void _emit(PosEffect effect) {
+    if (_effects.isClosed) return;
+    _effects.add(effect);
+  }
+
   PosViewModel(
     this._ref, {
     required String initialMode,
@@ -109,9 +114,19 @@ class PosViewModel extends StateNotifier<PosState> {
   bool _ensurePeerLinkEnabled({bool toast = true}) {
     final enabled = peerLinkEnabled();
     if (!enabled && toast) {
-      SimpleToast.errorGlobal('顾客端同步已关闭');
+      _emit(const PosToastEffect(message: '顾客端同步已关闭', isError: true));
     }
     return enabled;
+  }
+
+  void dismissPosDialog() {
+    if (state.posDialog != null) {
+      state = state.copyWith(posDialog: null);
+    }
+  }
+
+  bool canPushToCustomer() {
+    return peerLinkEnabled() && _ref.read(peerLinkControllerProvider).isConnected;
   }
 
   Future<void> bootstrap() async {
@@ -192,7 +207,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
       return;
     }
     final payload = {
@@ -212,7 +227,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
       return;
     }
     final payload = {
@@ -224,7 +239,7 @@ class PosViewModel extends StateNotifier<PosState> {
       'quantity': quantity,
     };
     await controller.sendMessage(PeerMessage(type: 'product_preview', payload: payload));
-    SimpleToast.successGlobal('已推送到顾客端');
+    _emit(const PosToastEffect(message: '已推送到顾客端'));
   }
 
   Future<void> _sendOptionsToCustomer({required Product product, required List<SelectedOption> options}) async {
@@ -232,7 +247,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
       return;
     }
     final basePrice = product.price;
@@ -256,7 +271,7 @@ class PosViewModel extends StateNotifier<PosState> {
           .toList(),
     };
     await controller.sendMessage(PeerMessage(type: 'product_options', payload: payload));
-    SimpleToast.successGlobal('已推送当前配置到顾客端');
+    _emit(const PosToastEffect(message: '已推送当前配置到顾客端'));
   }
 
   Future<void> _sendOptionGroupToCustomer({required Product product, required OptionGroupEntity group, required Map<String, int> selected}) async {
@@ -264,7 +279,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
       return;
     }
     final payload = {
@@ -292,7 +307,7 @@ class PosViewModel extends StateNotifier<PosState> {
           .toList(),
     };
     await controller.sendMessage(PeerMessage(type: 'option_group', payload: payload));
-    SimpleToast.successGlobal('已推送分组选项给顾客');
+    _emit(const PosToastEffect(message: '已推送分组选项给顾客'));
   }
 
   Future<void> sendCartToCustomer() async {
@@ -300,11 +315,11 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
       return;
     }
     if (state.cart.isEmpty) {
-      SimpleToast.errorGlobal('购物车为空，无法推送');
+      _emit(const PosToastEffect(message: '购物车为空，无法推送', isError: true));
       return;
     }
 
@@ -339,14 +354,14 @@ class PosViewModel extends StateNotifier<PosState> {
     };
 
     await controller.sendMessage(PeerMessage(type: 'cart_snapshot', payload: payload));
-    SimpleToast.successGlobal('已将购物车发送到顾客端');
+    _emit(const PosToastEffect(message: '已将购物车发送到顾客端'));
   }
 
   Future<void> _sendPaymentSelectionToCustomer(ShopInfoModel shop, double total) async {
     if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     if (!_ref.read(peerLinkControllerProvider).isConnected) {
-      SimpleToast.errorGlobal('顾客端未连接，推送失败');
+      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
       return;
     }
 
@@ -364,7 +379,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) return;
     await controller.sendMessage(const PeerMessage(type: 'reset_display', payload: {}));
-    SimpleToast.successGlobal('已清除顾客端展示');
+    _emit(const PosToastEffect(message: '已清除顾客端展示'));
   }
 
   // 选择分类: 异步请求该分类商品
@@ -526,21 +541,20 @@ class PosViewModel extends StateNotifier<PosState> {
     state = state.copyWith(cart: updated);
   }
 
-  void clearCart() async {
-    final ok = await _ref
-        .read(dialogControllerProvider.notifier)
-        .confirm(title: '清空购物车', message: '确认要清空购物车吗？', destructive: true);
-    if (ok) {
-      state = state.copyWith(cart: []);
-    }
+  void clearCart() {
+    _emit(const PosRequestClearCartConfirmEffect());
+  }
+
+  void confirmClearCart() {
+    state = state.copyWith(cart: []);
   }
 
   void navToSuspendedOrder() {
-    _ref.read(appRouterProvider).push('/pos/suspended');
+    _emit(const PosNavigateEffect(location: '/pos/suspended'));
   }
 
   void navToSettings() {
-    _ref.read(appRouterProvider).push('/settings');
+    _emit(const PosNavigateEffect(location: '/settings'));
   }
 
   void checkout() {
@@ -639,28 +653,24 @@ class PosViewModel extends StateNotifier<PosState> {
   void suspendCurrentOrder() {
     if (state.cart.isEmpty) return;
 
-    _ref
-        .read(dialogControllerProvider.notifier)
-        .confirm(title: '挂单', message: '确认要挂单吗？')
-        .then((ok) {
-          if (ok) {
-            final id =
-                'S${(state.suspendedCounter + 1).toString().padLeft(3, '0')}';
-            final suspendedOrder = SuspendedOrder(
-              id: id,
-              items: state.cart,
-              subtotal: state.subtotal,
-              createdAt: DateTime.now(),
-            );
-            state = state.copyWith(
-              suspended: [...state.suspended, suspendedOrder],
-              suspendedCounter: state.suspendedCounter + 1,
-              cart: [],
-            );
-            // persist
-            _suspendedOrders.save(suspendedOrder);
-          }
-        });
+    _emit(const PosRequestSuspendConfirmEffect());
+  }
+
+  void confirmSuspendCurrentOrder() {
+    if (state.cart.isEmpty) return;
+    final id = 'S${(state.suspendedCounter + 1).toString().padLeft(3, '0')}';
+    final suspendedOrder = SuspendedOrder(
+      id: id,
+      items: state.cart,
+      subtotal: state.subtotal,
+      createdAt: DateTime.now(),
+    );
+    state = state.copyWith(
+      suspended: [...state.suspended, suspendedOrder],
+      suspendedCounter: state.suspendedCounter + 1,
+      cart: [],
+    );
+    _suspendedOrders.save(suspendedOrder);
   }
 
   // 取单: 根据挂单 id 恢复
@@ -681,21 +691,6 @@ class PosViewModel extends StateNotifier<PosState> {
         .map((e) => '${e.groupCode}:${e.optionCode}')
         .join('|');
     return '${p.id}-$optionKey';
-  }
-
-  // ================= Option Dialog Public APIs =================
-  void addProductWithOptions(BuildContext context, Product product) {
-    if (!product.isCustomizable) {
-      addProduct(product);
-      return;
-    }
-    _openOptionDialog(context, product);
-  }
-
-  void editCartItemOptions(BuildContext context, CartItem item) {
-    final product = item.product;
-    if (!product.isCustomizable) return;
-    _openOptionDialog(context, product, existing: item);
   }
 
   Future<void> _submitOrder() async {
@@ -727,63 +722,31 @@ class PosViewModel extends StateNotifier<PosState> {
       debugPrint(
         'Order submitted: ${result.orderId} total=${result.total} tax1=${result.tax1} tax2=${result.tax2}',
       );
-      // SimpleToast.successGlobal('下单成功');
       // After successful order, present payment selection dialog
       final shop = _ref.read(shopInfoProvider);
       if (shop != null) {
-        final ctx = rootNavigatorKey.currentContext;
-        if (ctx != null) {
-          if (peerLinkEnabled()){
-            unawaited(_sendPaymentSelectionToCustomer(shop, total));
-          }
-          await showPaymentSelectionDialog(
-            context: ctx,
-            shop: shop,
-            onSelected: (group, code, label) {
-              try {
-                final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
-                final args = _buildPaymentFlowArgsUseCase.execute(
-                  order: result,
-                  shop: shop,
-                  machineCode: machineCode,
-                  group: group,
-                  code: code,
-                  label: label,
-                  posInfo: posInfo,
-                );
-                _ref.read(appRouterProvider).push('/payment', extra: args);
-              } catch (e) {
-                debugPrint('Failed to start payment flow: $e');
-                SimpleToast.errorGlobal(e.toString());
-              }
-            },
-            onPushToCustomer: peerLinkEnabled() ? () => _sendPaymentSelectionToCustomer(shop, total) : null,
-          );
+        if (peerLinkEnabled()) {
+          unawaited(_sendPaymentSelectionToCustomer(shop, total));
         }
+        state = state.copyWith(posDialog: PosDialogState.paymentSelection(shop: shop, total: total));
       }
     } catch (e) {
       state = state.copyWith(error: '下单失败: $e');
-      SimpleToast.errorGlobal('下单失败');
+      _emit(const PosToastEffect(message: '下单失败', isError: true));
     }
   }
 
-  void _handlePaymentChoiceFromCustomer(PeerMessage message) {
-    final payload = message.payload;
-    final group = (payload['group'] ?? '') as String? ?? '';
-    final code = (payload['code'] ?? '') as String? ?? '';
-    final label = (payload['label'] ?? '') as String?;
-
-    final shop = _ref.read(shopInfoProvider);
+  void startPaymentFlowFromDialog({
+    required ShopInfoModel shop,
+    required String group,
+    required String code,
+    required String? label,
+  }) {
     final machineCode = _ref.read(machineCodeProvider);
     final result = state.lastOrderResult;
-    if (shop == null || machineCode == null || machineCode.isEmpty || result == null) {
-      SimpleToast.errorGlobal('当前没有可支付的订单');
+    if (machineCode == null || machineCode.isEmpty || result == null) {
+      _emit(const PosToastEffect(message: '当前没有可支付的订单', isError: true));
       return;
-    }
-    //close any open dialogs
-    final ctx = rootNavigatorKey.currentContext;
-    if (ctx != null) {
-      Navigator.of(ctx, rootNavigator: true).popUntil((route) => route.isFirst);
     }
 
     try {
@@ -797,10 +760,53 @@ class PosViewModel extends StateNotifier<PosState> {
         label: label,
         posInfo: posInfo,
       );
-      _ref.read(appRouterProvider).push('/payment', extra: args);
+      dismissPosDialog();
+      _emit(PosNavigateEffect(location: '/payment', extra: args));
+    } catch (e) {
+      debugPrint('Failed to start payment flow: $e');
+      _emit(PosToastEffect(message: e.toString(), isError: true));
+    }
+  }
+
+  Future<void> pushPaymentSelectionFromDialog({
+    required ShopInfoModel shop,
+    required double total,
+  }) async {
+    await _sendPaymentSelectionToCustomer(shop, total);
+  }
+
+  void _handlePaymentChoiceFromCustomer(PeerMessage message) {
+    final payload = message.payload;
+    final group = (payload['group'] ?? '') as String? ?? '';
+    final code = (payload['code'] ?? '') as String? ?? '';
+    final label = (payload['label'] ?? '') as String?;
+
+    final shop = _ref.read(shopInfoProvider);
+    final machineCode = _ref.read(machineCodeProvider);
+    final result = state.lastOrderResult;
+    if (shop == null || machineCode == null || machineCode.isEmpty || result == null) {
+      _emit(const PosToastEffect(message: '当前没有可支付的订单', isError: true));
+      return;
+    }
+    dismissPosDialog();
+    // close any open dialogs/routes (UI layer handles actual pop)
+    _emit(const PosPopToRootEffect());
+
+    try {
+      final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
+      final args = _buildPaymentFlowArgsUseCase.execute(
+        order: result,
+        shop: shop,
+        machineCode: machineCode,
+        group: group,
+        code: code,
+        label: label,
+        posInfo: posInfo,
+      );
+      _emit(PosNavigateEffect(location: '/payment', extra: args));
     } catch (e) {
       debugPrint('Failed to start payment from customer choice: $e');
-      SimpleToast.errorGlobal(e.toString());
+      _emit(PosToastEffect(message: e.toString(), isError: true));
     }
   }
 
@@ -814,7 +820,49 @@ class PosViewModel extends StateNotifier<PosState> {
     }
   }
 
-  List<SelectedOption> _buildSelectedOptions(Product product, Map<String, Map<String, int>> selected) {
+  Map<String, Map<String, int>> buildInitialOptionSelection(
+    Product product, {
+    required CartItem? existing,
+  }) {
+    final selected = <String, Map<String, int>>{};
+    if (existing != null) {
+      for (final o in existing.options) {
+        selected.putIfAbsent(o.groupCode, () => <String, int>{})[o.optionCode] = o.quantity;
+      }
+      return selected;
+    }
+
+    for (final g in product.optionGroups) {
+      final defaults = g.options.where((o) => o.isDefault).toList();
+      if (defaults.isEmpty) continue;
+      final map = <String, int>{};
+      for (final d in defaults) {
+        map[d.code] = 1;
+      }
+      selected[g.groupCode] = map;
+    }
+    return selected;
+  }
+
+  List<String> validateMissingOptionGroups(
+    Product product,
+    Map<String, Map<String, int>> selected,
+  ) {
+    final missingGroups = <String>[];
+    for (final g in product.optionGroups) {
+      final map = selected[g.groupCode] ?? const {};
+      final total = map.values.fold(0, (p, e) => p + e);
+      if (g.minSelect > 0 && total < g.minSelect) {
+        missingGroups.add('${g.groupName}(至少${g.minSelect})');
+      }
+    }
+    return missingGroups;
+  }
+
+  List<SelectedOption> buildSelectedOptions(
+    Product product,
+    Map<String, Map<String, int>> selected,
+  ) {
     final selectedOptions = <SelectedOption>[];
     for (final g in product.optionGroups) {
       final map = selected[g.groupCode] ?? const {};
@@ -835,228 +883,24 @@ class PosViewModel extends StateNotifier<PosState> {
     return selectedOptions;
   }
 
-  // ================= Option Dialog Core =================
-  void _openOptionDialog(
-    BuildContext context,
-    Product product, {
-    CartItem? existing,
-  }) {
-    final Map<String, Map<String, int>> selected = {};
-    if (existing != null) {
-      for (final o in existing.options) {
-        selected.putIfAbsent(o.groupCode, () => <String, int>{})[o.optionCode] =
-            o.quantity;
-      }
-    } else {
-      for (final g in product.optionGroups) {
-        final defaults = g.options.where((o) => o.isDefault).toList();
-        if (defaults.isNotEmpty) {
-          final map = <String, int>{};
-          for (final d in defaults) {
-            map[d.code] = 1;
-          }
-          selected[g.groupCode] = map;
-        }
-      }
-    }
+  Future<void> pushSelectedOptionsToCustomer({
+    required Product product,
+    required List<SelectedOption> options,
+  }) async {
+    await _sendOptionsToCustomer(product: product, options: options);
+  }
 
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'options',
-      barrierColor: Colors.black.withAlpha(115),
-      transitionDuration: const Duration(milliseconds: 180),
-      pageBuilder: (_, __, ___) => const SizedBox.shrink(),
-      transitionBuilder: (ctx, anim, _, __) {
-        final curved = CurvedAnimation(
-          parent: anim,
-          curve: Curves.easeOutCubic,
-          reverseCurve: Curves.easeInCubic,
-        );
-        return FadeTransition(
-          opacity: curved,
-          child: ScaleTransition(
-            scale: Tween<double>(begin: 0.96, end: 1).animate(curved),
-            child: Center(
-              child: StatefulBuilder(
-                builder: (ctx, setState) {
-                  final size = MediaQuery.of(ctx).size;
-                  return ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: size.width * 0.8,
-                      maxHeight: size.height * 0.9,
-                    ),
-                    child: Material(
-                      color: Colors.white,
-                      elevation: 12,
-                      borderRadius: BorderRadius.circular(20),
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        children: [
-                          // Header
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 16,
-                            ),
-                            decoration: const BoxDecoration(
-                              color: AppColors.amberPrimary,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    product.name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                if (peerLinkEnabled())
-                                IconButton(
-                                  icon: const Icon(Icons.send_rounded, color: Colors.white),
-                                  onPressed: () {
-                                    final selectedOptions = _buildSelectedOptions(product, selected);
-                                    _sendOptionsToCustomer(product: product, options: selectedOptions);
-                                  },
-                                  tooltip: '发送当前选项到顾客端',
-                                ),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                  ),
-                                  onPressed: () => Navigator.of(ctx).pop(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Body
-                          Expanded(
-                            child: ListView(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 16,
-                              ),
-                              children: [
-                                for (final group in product.optionGroups) ...[
-                                  OptionGroupWidget(
-                                    group: group,
-                                    selected:
-                                        selected[group.groupCode] ?? const {},
-                                    onChanged: (map) {
-                                      setState(() {
-                                        if (map.isEmpty) {
-                                          selected.remove(group.groupCode);
-                                        } else {
-                                          selected[group.groupCode] = map;
-                                        }
-                                      });
-                                    },
-                                    onMaxReached: () {
-                                      _ref
-                                          .read(
-                                            dialogControllerProvider.notifier,
-                                          )
-                                          .confirm(
-                                            title: '已达到最大可选',
-                                            message:
-                                                '${group.groupName} 已达到最多可选数量',
-                                            okText: '知道了',
-                                            cancelText: '关闭',
-                                          );
-                                    },
-                                    onSendGroup: 
-                                    peerLinkEnabled() ? 
-                                    (g, selections) {
-                                      _sendOptionGroupToCustomer(
-                                        product: product,
-                                        group: g,
-                                        selected: selections,
-                                      );
-                                    } : null,
-                                  ),
-                                  const Divider(height: 28),
-                                ],
-                              ],
-                            ),
-                          ),
-                          // Footer
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                            decoration: const BoxDecoration(
-                              color: AppColors.stone100,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: PrimaryButton(
-                                    label: existing == null ? '确认添加' : '更新',
-                                    onTap: () {
-                                      final missingGroups = <String>[];
-                                      for (final g in product.optionGroups) {
-                                        final map =
-                                            selected[g.groupCode] ?? const {};
-                                        final total = map.values.fold(
-                                          0,
-                                          (p, e) => p + e,
-                                        );
-                                        if (g.minSelect > 0 &&
-                                            total < g.minSelect) {
-                                          missingGroups.add(
-                                            '${g.groupName}(至少${g.minSelect})',
-                                          );
-                                        }
-                                      }
-                                      if (missingGroups.isNotEmpty) {
-                                        _ref
-                                            .read(
-                                              dialogControllerProvider.notifier,
-                                            )
-                                            .confirm(
-                                              title: '缺少必选项',
-                                              message: missingGroups.join('\n'),
-                                              okText: '好的',
-                                              cancelText: '关闭',
-                                            );
-                                        return;
-                                      }
-                                      final selectedOptions =
-                                          _buildSelectedOptions(product, selected);
-                                      if (existing != null) {
-                                        updateCartItemOptions(
-                                          oldId: existing.id,
-                                          product: product,
-                                          newOptions: selectedOptions,
-                                        );
-                                      } else {
-                                        addProduct(
-                                          product,
-                                          options: selectedOptions,
-                                        );
-                                      }
-                                      Navigator.of(ctx).pop();
-                                    },
-                                    color: AppColors.amberPrimary,
-                                    textColor: Colors.white,
-                                    height: 48,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
-    );
+  Future<void> pushOptionGroupToCustomer({
+    required Product product,
+    required OptionGroupEntity group,
+    required Map<String, int> selected,
+  }) async {
+    await _sendOptionGroupToCustomer(product: product, group: group, selected: selected);
+  }
+
+  @override
+  void dispose() {
+    _effects.close();
+    super.dispose();
   }
 }
