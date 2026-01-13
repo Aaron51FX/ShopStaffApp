@@ -3,6 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multipeer_session/multipeer_session.dart';
+import 'package:shop_staff/application/pos/usecases/build_payment_flow_args_usecase.dart';
+import 'package:shop_staff/application/pos/usecases/fetch_categories_usecase.dart';
+import 'package:shop_staff/application/pos/usecases/fetch_category_products_usecase.dart';
+import 'package:shop_staff/application/pos/usecases/prepare_payment_selection_usecase.dart';
+import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
+import 'package:shop_staff/application/pos/usecases/suspended_orders_usecases.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
@@ -10,13 +16,8 @@ import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
-import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
-import 'package:shop_staff/domain/payments/payment_models.dart';
-import 'package:shop_staff/domain/repositories/menu_repository.dart';
-import 'package:shop_staff/domain/repositories/order_repository.dart'; // ensure type reference
-import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/pos/widgets/option_dialog_widgets.dart';
 import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
 import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
@@ -28,9 +29,8 @@ final orderModeSelectionProvider = StateProvider<String>((ref) => 'dine_in');
 final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((
   ref,
 ) {
-  final menuRepo = ref.watch(menuRepositoryProvider);
   final initialMode = ref.read(orderModeSelectionProvider);
-  final vm = PosViewModel(menuRepo, ref, initialMode: initialMode);
+  final vm = PosViewModel(ref, initialMode: initialMode);
   // fire-and-forget initial bootstrap (may early-exit if machineCode not yet ready)
   vm.bootstrap();
   // Listen for shopInfo becoming available after splash and trigger bootstrap once.
@@ -59,11 +59,33 @@ final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((
 });
 
 class PosViewModel extends StateNotifier<PosState> {
-  final MenuRepository _menuRepository;
   final Ref _ref;
+  final SubmitOrderUseCase _submitOrderUseCase;
+  final PreparePaymentSelectionUseCase _preparePaymentSelectionUseCase;
+  final BuildPaymentFlowArgsUseCase _buildPaymentFlowArgsUseCase;
+  final FetchCategoriesUseCase _fetchCategoriesUseCase;
+  final FetchCategoryProductsUseCase _fetchCategoryProductsUseCase;
+  final SuspendedOrdersUseCases _suspendedOrders;
   bool _bootstrapped = false;
-  PosViewModel(this._menuRepository, this._ref, {required String initialMode})
-    : super(
+  PosViewModel(
+    this._ref, {
+    required String initialMode,
+    SubmitOrderUseCase? submitOrderUseCase,
+    PreparePaymentSelectionUseCase? preparePaymentSelectionUseCase,
+    BuildPaymentFlowArgsUseCase? buildPaymentFlowArgsUseCase,
+    FetchCategoriesUseCase? fetchCategoriesUseCase,
+    FetchCategoryProductsUseCase? fetchCategoryProductsUseCase,
+    SuspendedOrdersUseCases? suspendedOrders,
+  })  : _submitOrderUseCase = submitOrderUseCase ?? _ref.read(submitOrderUseCaseProvider),
+        _preparePaymentSelectionUseCase =
+            preparePaymentSelectionUseCase ?? _ref.read(preparePaymentSelectionUseCaseProvider),
+        _buildPaymentFlowArgsUseCase =
+            buildPaymentFlowArgsUseCase ?? _ref.read(buildPaymentFlowArgsUseCaseProvider),
+        _fetchCategoriesUseCase = fetchCategoriesUseCase ?? _ref.read(fetchCategoriesUseCaseProvider),
+        _fetchCategoryProductsUseCase =
+            fetchCategoryProductsUseCase ?? _ref.read(fetchCategoryProductsUseCaseProvider),
+        _suspendedOrders = suspendedOrders ?? _ref.read(suspendedOrdersUseCasesProvider),
+        super(
         PosState.initial().copyWith(
           orderMode: initialMode == 'take_out' ? 'take_out' : 'dine_in',
         ),
@@ -97,8 +119,7 @@ class PosViewModel extends StateNotifier<PosState> {
     state = state.copyWith(loading: true, error: null);
     try {
       // load suspended orders from local storage (non-blocking for network)
-      final local = _ref.read(suspendedOrderLocalDataSourceProvider);
-      final loaded = await local.loadAll();
+      final loaded = await _suspendedOrders.loadAll();
       if (loaded.isNotEmpty) {
         state = state.copyWith(
           suspended: loaded,
@@ -113,10 +134,8 @@ class PosViewModel extends StateNotifier<PosState> {
       }
       final language = _ref.read(shopLanguageProvider);
       final takeout = state.orderMode == 'take_out';
-      final cats = await _menuRepository.fetchCategories(
-        machineCode: machineCode,
-        language: language,
-        takeout: takeout,
+      final cats = await _fetchCategoriesUseCase.execute(
+        FetchCategoriesInput(machineCode: machineCode, language: language, takeout: takeout),
       );
       _lastCategoryFetchKey = '$machineCode|$language|$takeout';
 
@@ -331,28 +350,8 @@ class PosViewModel extends StateNotifier<PosState> {
       return;
     }
 
-    bool flag(String key) {
-      final v = (shop.linePayChannelMap ?? const {})[key];
-      if (v == null) return false;
-      if (v is bool) return v;
-      if (v is num) return v != 0;
-      if (v is String) return v.toLowerCase() == 'true' || v == '1' || v.toLowerCase() == 'y';
-      return false;
-    }
-
-    final hasQr = ['qr', 'LinePay', 'PayPay', 'Alipay', 'Wechat', 'm_Pay', 'R_Pay', 'au_Pay', 'd_Pay', 'famiPay']
-        .any(flag);
-    final hasCard = ['VISA', 'MASTER', 'JCB', 'AMERICAN_EXPRESS', 'Diners_Club', 'Discover', 'UnionPay'].any(flag);
-
-    final payload = {
-      'orderNumber': state.orderNumber,
-      'total': total,
-      'options': [
-        {'group': 'cash', 'code': 'cash', 'label': '现金', 'enabled': true},
-        {'group': 'qr', 'code': 'qr', 'label': '二维码', 'enabled': hasQr},
-        {'group': 'card', 'code': 'card', 'label': '信用卡', 'enabled': hasCard},
-      ],
-    };
+    final selection = _preparePaymentSelectionUseCase.execute(shop: shop);
+    final payload = selection.toPayload(orderNumber: state.orderNumber, total: total);
 
     debugPrint('Sending payment selection to customer: $payload');
 
@@ -417,11 +416,13 @@ class PosViewModel extends StateNotifier<PosState> {
       }
       final language = _ref.read(shopLanguageProvider);
       final takeout = state.orderMode == 'take_out';
-      final products = await _menuRepository.fetchMenuByCategory(
-        machineCode: machineCode,
-        language: language,
-        takeout: takeout,
-        categoryCode: categoryId,
+      final products = await _fetchCategoryProductsUseCase.execute(
+        FetchCategoryProductsInput(
+          machineCode: machineCode,
+          language: language,
+          takeout: takeout,
+          categoryCode: categoryId,
+        ),
       );
       _categoryProducts = products;
       state = state.copyWith(
@@ -605,10 +606,8 @@ class PosViewModel extends StateNotifier<PosState> {
     final key = '$machineCode|$language|$takeout';
     if (!force && key == _lastCategoryFetchKey) return;
     try {
-      final cats = await _menuRepository.fetchCategories(
-        machineCode: machineCode,
-        language: language,
-        takeout: takeout,
+      final cats = await _fetchCategoriesUseCase.execute(
+        FetchCategoriesInput(machineCode: machineCode, language: language, takeout: takeout),
       );
       _lastCategoryFetchKey = key;
       final firstCat = cats.isNotEmpty
@@ -659,9 +658,7 @@ class PosViewModel extends StateNotifier<PosState> {
               cart: [],
             );
             // persist
-            _ref
-                .read(suspendedOrderLocalDataSourceProvider)
-                .save(suspendedOrder);
+            _suspendedOrders.save(suspendedOrder);
           }
         });
   }
@@ -674,7 +671,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final order = list.removeAt(idx);
     state = state.copyWith(cart: order.items, suspended: list);
     // remove from local
-    _ref.read(suspendedOrderLocalDataSourceProvider).delete(id);
+    _suspendedOrders.delete(id);
   }
 
   String _generateKey(Product p, List<SelectedOption> options) {
@@ -710,17 +707,18 @@ class PosViewModel extends StateNotifier<PosState> {
     }
     final language = _ref.read(shopLanguageProvider);
     final takeout = state.orderMode == 'take_out';
-    final total =
-        state.cart.fold<double>(0, (p, e) => p + e.lineTotal) - state.discount;
     try {
-      final OrderRepository orderRepo = _ref.read(orderRepositoryProvider);
-      final OrderSubmissionResult result = await orderRepo.submitOrder(
-        items: state.cart,
-        machineCode: machineCode,
-        language: language,
-        takeout: takeout,
-        total: total,
+      final output = await _submitOrderUseCase.execute(
+        SubmitOrderInput(
+          items: state.cart,
+          machineCode: machineCode,
+          language: language,
+          takeout: takeout,
+          discount: state.discount,
+        ),
       );
+      final result = output.order;
+      final total = output.total;
       state = state.copyWith(
         orderNumber: state.orderNumber + 1,
         cart: [],
@@ -743,13 +741,15 @@ class PosViewModel extends StateNotifier<PosState> {
             shop: shop,
             onSelected: (group, code, label) {
               try {
-                final args = _buildPaymentArgs(
+                final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
+                final args = _buildPaymentFlowArgsUseCase.execute(
                   order: result,
                   shop: shop,
                   machineCode: machineCode,
                   group: group,
                   code: code,
                   label: label,
+                  posInfo: posInfo,
                 );
                 _ref.read(appRouterProvider).push('/payment', extra: args);
               } catch (e) {
@@ -787,13 +787,15 @@ class PosViewModel extends StateNotifier<PosState> {
     }
 
     try {
-      final args = _buildPaymentArgs(
+      final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
+      final args = _buildPaymentFlowArgsUseCase.execute(
         order: result,
         shop: shop,
         machineCode: machineCode,
         group: group,
         code: code,
         label: label,
+        posInfo: posInfo,
       );
       _ref.read(appRouterProvider).push('/payment', extra: args);
     } catch (e) {
@@ -810,56 +812,6 @@ class PosViewModel extends StateNotifier<PosState> {
     if (msg.type == 'payment_choice') {
       _handlePaymentChoiceFromCustomer(msg);
     }
-  }
-
-  PaymentFlowPageArgs _buildPaymentArgs({
-    required OrderSubmissionResult order,
-    required ShopInfoModel shop,
-    required String machineCode,
-    required String group,
-    required String code,
-    String? label,
-  }) {
-    final config = Map<String, dynamic>.from(
-      shop.linePayChannelMap ?? const {},
-    );
-    config['selectedChannel'] = code;
-
-    final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
-
-    if (group == PaymentChannels.card) {
-      // final dynamic ipValue = config['posIp'] ?? config['ip'];
-      // final String ip = ipValue == null ? '' : ipValue.toString().trim();
-      // final dynamic portValue = config['posPort'] ?? config['port'];
-      // final String portString = portValue == null ? '' : portValue.toString().trim();
-
-      //pos setting from settings
-      final String ip = posInfo?.posIp ?? '';
-      final int portString = posInfo?.posPort ?? 0;
-      config['posIp'] = ip;
-      config['posPort'] = portString;
-
-      if (ip.isEmpty) {
-        throw StateError('未配置POS终端IP');
-      }
-      if (portString == 0) {
-        throw StateError('未配置POS终端端口');
-      }
-    }
-
-    final metadata = <String, dynamic>{
-      'machineCode': machineCode,
-      'shopCode': shop.shopCode,
-    };
-
-    return PaymentFlowPageArgs(
-      order: order,
-      channelGroup: group,
-      channelCode: code,
-      channelDisplayName: label,
-      channelConfig: config.isEmpty ? null : config,
-      metadata: metadata,
-    );
   }
 
   List<SelectedOption> _buildSelectedOptions(Product product, Map<String, Map<String, int>> selected) {

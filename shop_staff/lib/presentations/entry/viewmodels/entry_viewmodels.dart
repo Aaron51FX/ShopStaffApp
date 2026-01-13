@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:shop_staff/application/cash_machine/check_cash_machine_usecase.dart';
+
 import '../../../data/models/shop_info_models.dart';
 import '../../../data/providers.dart';
 import '../../../domain/services/app_settings_service.dart';
-import '../../../domain/services/cash_machine_service.dart';
 import '../../../domain/settings/app_settings_models.dart';
 
 enum CashMachineDialogStatus { hidden, checking, success, failure }
@@ -75,7 +76,7 @@ class CashMachineCheckState {
 class CashMachineCheckController extends StateNotifier<CashMachineCheckState> {
 	CashMachineCheckController(this._ref)
 			: _appSettingsService = _ref.read(appSettingsServiceProvider),
-				_cashService = _ref.read(cashMachineServiceProvider),
+				_checkCashMachine = _ref.read(checkCashMachineUseCaseProvider),
 				super(const CashMachineCheckState()) {
 		_syncSupport();
 		_syncEnabled();
@@ -83,7 +84,7 @@ class CashMachineCheckController extends StateNotifier<CashMachineCheckState> {
 
 	final Ref _ref;
 	final AppSettingsService _appSettingsService;
-	final CashMachineService _cashService;
+	final CheckCashMachineUseCase _checkCashMachine;
 	bool _autoPrompted = false;
 	bool _dialogSuppressed = false;
 
@@ -121,7 +122,7 @@ class CashMachineCheckController extends StateNotifier<CashMachineCheckState> {
 			clearError: true,
 		);
 		try {
-			final result = await _cashService.initialize();
+			final result = await _checkCashMachine.execute();
 			if (result.isReady) {
 				await _persistEnabled(true);
 				state = state.copyWith(
