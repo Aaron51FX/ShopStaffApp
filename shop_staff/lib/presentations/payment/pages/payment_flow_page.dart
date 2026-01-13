@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/data/providers.dart';
@@ -33,8 +36,8 @@ class PaymentFlowPage extends ConsumerStatefulWidget {
 
 class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   late final provider = paymentFlowViewModelProvider(widget.args);
-  ProviderSubscription<PaymentFlowState>? _stateSubscription;
   ProviderSubscription<CancelDialogState>? _cancelSubscription;
+  StreamSubscription<PaymentFlowEffect>? _effectSubscription;
   ValueNotifier<CancelDialogState>? _cancelDialogNotifier;
   bool _isCancelDialogVisible = false;
   ProviderSubscription<QrScanUiState>? _qrScanSubscription;
@@ -45,24 +48,37 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   @override
   void initState() {
     super.initState();
-    _stateSubscription = ref.listenManual<PaymentFlowState>(provider, (previous, next) {
-      if (previous?.result != next.result && next.result != null) {
-        final result = next.result!;
-        switch (result.status) {
-          case PaymentStatusType.success:
-            SimpleToast.successGlobal(result.message ?? '支付成功');
-            _startPrintFlow();
-            break;
-          case PaymentStatusType.cancelled:
-            //SimpleToast.successGlobal(result.message ?? '支付已取消');
-            break;
-          case PaymentStatusType.failure:
-          default:
-            SimpleToast.errorGlobal(result.message ?? '支付失败');
-            break;
+    _effectSubscription = ref
+        .read(provider.notifier)
+        .effects
+        .listen((effect) async {
+      if (!mounted) return;
+      if (effect is PaymentFlowToastEffect) {
+        if (effect.isError) {
+          SimpleToast.errorGlobal(effect.message);
+        } else {
+          SimpleToast.successGlobal(effect.message);
         }
+        return;
+      }
+      if (effect is PaymentFlowRequestCancelConfirmEffect) {
+        final ok = await ref.read(dialogControllerProvider.notifier).confirm(
+              title: effect.title,
+              message: effect.message,
+              destructive: effect.destructive,
+            );
+        if (!mounted) return;
+        if (ok) {
+          await ref.read(provider.notifier).confirmCancelPayment();
+        }
+        return;
+      }
+      if (effect is PaymentFlowStartPrintEffect) {
+        await _startPrintFlow();
+        return;
       }
     });
+
     _cancelSubscription = ref.listenManual<CancelDialogState>(
       provider.select((state) => state.cancelDialog),
       (previous, next) {
@@ -99,8 +115,8 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
 
   @override
   void dispose() {
-    _stateSubscription?.close();
     _cancelSubscription?.close();
+    _effectSubscription?.cancel();
     _cancelDialogNotifier?.dispose();
     _qrScanSubscription?.close();
     _qrDialogNotifier?.dispose();
@@ -126,6 +142,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
     }
 
     _cancelDialogNotifier = ValueNotifier<CancelDialogState>(dialogState);
+    final notifier = _cancelDialogNotifier!;
     _isCancelDialogVisible = true;
 
     showDialog<void>(
@@ -133,7 +150,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
       barrierDismissible: false,
       builder: (context) {
         return ValueListenableBuilder<CancelDialogState>(
-          valueListenable: _cancelDialogNotifier!,
+          valueListenable: notifier,
           builder: (context, state, _) {
             return CancelDialog(
               state: state,
@@ -143,7 +160,11 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
                   navigator.pop();
                 }
                 if (!mounted) return;
-                ref.read(provider.notifier).goEntryPage();
+                // Use the page context to navigate; the dialog context may be unmounted.
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  this.context.go('/entry');
+                });
               },
             );
           },
@@ -151,8 +172,10 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
       },
     ).whenComplete(() {
       _isCancelDialogVisible = false;
-      _cancelDialogNotifier?.dispose();
-      _cancelDialogNotifier = null;
+      if (identical(_cancelDialogNotifier, notifier)) {
+        _cancelDialogNotifier?.dispose();
+        _cancelDialogNotifier = null;
+      }
       if (mounted) {
         ref.read(provider.notifier).dismissCancelDialog();
       }

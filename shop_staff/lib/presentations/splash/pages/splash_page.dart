@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shop_staff/application/auth/login_flow_usecase.dart';
 import '../../../data/providers.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/app_role.dart';
@@ -26,20 +27,19 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     if (_inFlight) return;
     setState(() => _inFlight = true);
     try {
-      final startup = ref.read(startupServiceProvider);
-      final result = await startup.resume();
+      final login = ref.read(loginFlowUseCaseProvider);
+      final result = await login.resume();
       if (!mounted) return;
       if (result == null) {
         context.go('/login');
         return;
       }
-      ref.read(shopInfoProvider.notifier).state = result.shopInfo;
-      ref.read(appSettingsSnapshotProvider.notifier).state = result.settings;
-      final role = await ref.read(appRoleServiceProvider).loadRole();
-      ref.read(appRoleProvider.notifier).state = role;
+      ref.read(shopInfoProvider.notifier).state = result.startup.shopInfo;
+      ref.read(appSettingsSnapshotProvider.notifier).state = result.startup.settings;
+      ref.read(appRoleProvider.notifier).state = result.role;
       _error = null;
-      debugPrint('[Splash] resume success, navigating to role=${role.name}');
-      context.go(role == AppRole.customer ? '/customer' : '/entry');
+      debugPrint('[Splash] resume success, navigating to role=${result.role.name}');
+      context.go(result.role == AppRole.customer ? '/customer' : '/entry');
     } catch (e) {
       String msg;
       if (e is ApiException) {

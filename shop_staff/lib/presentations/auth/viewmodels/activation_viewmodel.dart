@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shop_staff/application/auth/login_flow_usecase.dart';
 import 'package:shop_staff/data/providers.dart';
-import 'package:shop_staff/domain/services/startup_service.dart';
 import '../../../core/app_role.dart';
 // shopInfoProviders imported via data/providers.dart already
 
@@ -27,10 +27,10 @@ class ActivationState {
 }
 
 class ActivationViewModel extends StateNotifier<ActivationState> {
-  final StartupService _startupService;
+  final LoginFlowUseCase _login;
   final Ref _ref;
   final TextEditingController machineCodeController = TextEditingController();
-  ActivationViewModel(this._startupService, this._ref)
+  ActivationViewModel(this._login, this._ref)
     : super(const ActivationState()) {
     machineCodeController.addListener(() {
       state = state.copyWith(
@@ -51,15 +51,14 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       debugPrint('[Activation] submit start machineCode=$mc');
-      final result = await _startupService.activate(mc);
-      _ref.read(shopInfoProvider.notifier).state = result.shopInfo;
-      _ref.read(appSettingsSnapshotProvider.notifier).state = result.settings;
-      final role = await _ref.read(appRoleServiceProvider).loadRole();
-      _ref.read(appRoleProvider.notifier).state = role;
+      final result = await _login.activate(mc);
+      _ref.read(shopInfoProvider.notifier).state = result.startup.shopInfo;
+      _ref.read(appSettingsSnapshotProvider.notifier).state = result.startup.settings;
+      _ref.read(appRoleProvider.notifier).state = result.role;
       debugPrint('[Activation] backend success, writing storage');
       if (context.mounted) {
-        debugPrint('[Activation] navigating to role=${role.name}');
-        context.go(role == AppRole.customer ? '/customer' : '/entry');
+        debugPrint('[Activation] navigating to role=${result.role.name}');
+        context.go(result.role == AppRole.customer ? '/customer' : '/entry');
       }
     } catch (e) {
       debugPrint('[Activation] error: $e');
@@ -78,6 +77,6 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
 
 final activationViewModelProvider =
     StateNotifierProvider<ActivationViewModel, ActivationState>((ref) {
-      final startupService = ref.read(startupServiceProvider);
-      return ActivationViewModel(startupService, ref);
+      final login = ref.read(loginFlowUseCaseProvider);
+      return ActivationViewModel(login, ref);
     });
