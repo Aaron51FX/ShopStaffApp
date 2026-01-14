@@ -9,6 +9,7 @@ import '../core/network/app_environment.dart';
 import '../core/network/dio_client.dart';
 import '../core/storage/key_value_store.dart';
 import 'datasources/local/suspended_order_local_data_source.dart';
+import 'datasources/local/local_order_local_data_source.dart';
 
 // Data source (unified export stub)
 import 'datasources/remote/pos_remote_datasource.dart';
@@ -187,6 +188,11 @@ final activationRepositoryProvider = Provider<ActivationRepository>((ref) {
 // Local data source for suspended orders (Hive)
 final suspendedOrderLocalDataSourceProvider = Provider<SuspendedOrderLocalDataSource>((ref) {
   return SuspendedOrderLocalDataSource();
+});
+
+// Local data source for submitted orders (Hive)
+final localOrderLocalDataSourceProvider = Provider<LocalOrderLocalDataSource>((ref) {
+  return LocalOrderLocalDataSource();
 });
 
 // Global in-memory ShopInfo (single source of truth after activation)

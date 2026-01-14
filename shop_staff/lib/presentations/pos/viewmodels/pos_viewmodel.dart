@@ -6,12 +6,14 @@ import 'package:multipeer_session/multipeer_session.dart';
 import 'package:shop_staff/application/pos/usecases/build_payment_flow_args_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_categories_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_category_products_usecase.dart';
+import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
 import 'package:shop_staff/application/pos/usecases/prepare_payment_selection_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/suspended_orders_usecases.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
+import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
 import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
@@ -57,6 +59,7 @@ final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((
 class PosViewModel extends StateNotifier<PosState> {
   final Ref _ref;
   final SubmitOrderUseCase _submitOrderUseCase;
+  final LocalOrdersUseCases _localOrdersUseCases;
   final PreparePaymentSelectionUseCase _preparePaymentSelectionUseCase;
   final BuildPaymentFlowArgsUseCase _buildPaymentFlowArgsUseCase;
   final FetchCategoriesUseCase _fetchCategoriesUseCase;
@@ -76,12 +79,14 @@ class PosViewModel extends StateNotifier<PosState> {
     this._ref, {
     required String initialMode,
     SubmitOrderUseCase? submitOrderUseCase,
+    LocalOrdersUseCases? localOrdersUseCases,
     PreparePaymentSelectionUseCase? preparePaymentSelectionUseCase,
     BuildPaymentFlowArgsUseCase? buildPaymentFlowArgsUseCase,
     FetchCategoriesUseCase? fetchCategoriesUseCase,
     FetchCategoryProductsUseCase? fetchCategoryProductsUseCase,
     SuspendedOrdersUseCases? suspendedOrders,
   })  : _submitOrderUseCase = submitOrderUseCase ?? _ref.read(submitOrderUseCaseProvider),
+      _localOrdersUseCases = localOrdersUseCases ?? _ref.read(localOrdersUseCasesProvider),
         _preparePaymentSelectionUseCase =
             preparePaymentSelectionUseCase ?? _ref.read(preparePaymentSelectionUseCaseProvider),
         _buildPaymentFlowArgsUseCase =
@@ -702,10 +707,11 @@ class PosViewModel extends StateNotifier<PosState> {
     }
     final language = _ref.read(shopLanguageProvider);
     final takeout = state.orderMode == 'take_out';
+    final itemsSnapshot = List<CartItem>.from(state.cart);
     try {
       final output = await _submitOrderUseCase.execute(
         SubmitOrderInput(
-          items: state.cart,
+          items: itemsSnapshot,
           machineCode: machineCode,
           language: language,
           takeout: takeout,
@@ -714,9 +720,30 @@ class PosViewModel extends StateNotifier<PosState> {
       );
       final result = output.order;
       final total = output.total;
+
+      // Save local order record (best-effort; should not block payment flow).
+      try {
+        await _localOrdersUseCases.save(
+          LocalOrderRecord(
+            orderId: result.orderId,
+            createdAt: DateTime.now(),
+            isPaid: false,
+            items: itemsSnapshot,
+            machineCode: machineCode,
+            language: language,
+            takeout: takeout,
+            discount: state.discount,
+            clientTotal: total,
+            orderResult: result,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Failed to save local order record: $e');
+        _emit(const PosToastEffect(message: '本地订单保存失败', isError: true));
+      }
+
       state = state.copyWith(
         orderNumber: state.orderNumber + 1,
-        cart: [],
         lastOrderResult: result,
       );
       debugPrint(
@@ -760,6 +787,7 @@ class PosViewModel extends StateNotifier<PosState> {
         label: label,
         posInfo: posInfo,
       );
+      state = state.copyWith(cart: []);
       dismissPosDialog();
       _emit(PosNavigateEffect(location: '/payment', extra: args));
     } catch (e) {
@@ -803,6 +831,7 @@ class PosViewModel extends StateNotifier<PosState> {
         label: label,
         posInfo: posInfo,
       );
+      state = state.copyWith(cart: []);
       _emit(PosNavigateEffect(location: '/payment', extra: args));
     } catch (e) {
       debugPrint('Failed to start payment from customer choice: $e');
