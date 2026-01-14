@@ -324,7 +324,7 @@ class _TypedOverlay extends StatelessWidget {
 }
 
 class _OverlayCard extends StatelessWidget {
-  const _OverlayCard({super.key, required this.message});
+  const _OverlayCard({required this.message});
 
   final PeerMessage message;
 
@@ -349,6 +349,15 @@ class _OverlayCard extends StatelessWidget {
         break;
       case 'payment_selection':
         content = PaymentSelectionContent(payload: message.payload);
+        break;
+      case 'payment_cash':
+        content = const SizedBox.shrink();
+        break;
+      case 'payment_card':
+        content = const SizedBox.shrink();
+        break;
+      case 'payment_qrcode':
+        content = const SizedBox.shrink();
         break;
       default:
         content = UnknownContent(type: message.type);
