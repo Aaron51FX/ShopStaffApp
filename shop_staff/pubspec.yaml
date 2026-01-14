@@ -39,7 +39,7 @@ dependencies:
   flutter_printer_plus:
     git:
       url: git@github.com:Aaron51FX/flutter_printer_plus.git
-      ref: new
+      ref: 8b44411476b434a22c8cf8624baa82ae653f8e6b
   print_image_generate_tool: ^0.0.2
 
   cupertino_icons: ^1.0.8

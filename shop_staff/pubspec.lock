@@ -335,11 +335,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: new
-      resolved-ref: "16eb18b9f908628cd97958f1dc27b022bb13e74e"
+      ref: "8b44411476b434a22c8cf8624baa82ae653f8e6b"
+      resolved-ref: "8b44411476b434a22c8cf8624baa82ae653f8e6b"
       url: "git@github.com:Aaron51FX/flutter_printer_plus.git"
     source: git
-    version: "1.0.2"
+    version: "1.0.3"
   flutter_riverpod:
     dependency: "direct main"
     description:
