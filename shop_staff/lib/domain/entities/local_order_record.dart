@@ -3,11 +3,13 @@ import 'package:equatable/equatable.dart';
 import 'cart_item.dart';
 import 'order_submission_result.dart';
 
+
 class LocalOrderRecord extends Equatable {
   const LocalOrderRecord({
     required this.orderId,
     required this.createdAt,
     required this.isPaid,
+    this.payMethod = "",
     required this.items,
     required this.machineCode,
     required this.language,
@@ -20,6 +22,9 @@ class LocalOrderRecord extends Equatable {
   final String orderId;
   final DateTime createdAt;
   final bool isPaid;
+
+  /// Payment method resolved from print document. Defaults to unknown.
+  final String payMethod;
 
   /// Cart snapshot at submit time.
   final List<CartItem> items;
@@ -36,11 +41,13 @@ class LocalOrderRecord extends Equatable {
 
   LocalOrderRecord copyWith({
     bool? isPaid,
+    String? payMethod,
   }) {
     return LocalOrderRecord(
       orderId: orderId,
       createdAt: createdAt,
       isPaid: isPaid ?? this.isPaid,
+      payMethod: payMethod ?? this.payMethod,
       items: items,
       machineCode: machineCode,
       language: language,
@@ -56,6 +63,7 @@ class LocalOrderRecord extends Equatable {
         orderId,
         createdAt,
         isPaid,
+        payMethod,
         items,
         machineCode,
         language,

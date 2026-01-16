@@ -33,9 +33,56 @@ class PrintServiceImpl implements PrintService {
       results.add(PrintJobResult(printer: loaclPrinter));
     }
 
+    results.addAll(await enqueueKitchenJobs(document: document, printers: printers));
+
+    // Center consolidated receipt (type 11) when enabled and takeout
+    final centerPrinter = printers.firstWhere(
+      (p) => p.type == 11 && p.isOn && (p.printIp?.isNotEmpty ?? false),
+      orElse: () => const PrinterSettings(name: '', type: -1),
+    );
+
+    if (centerPrinter.type == 11 && isTakeOut) {
+      _enqueueReceipt(document, centerPrinter, forceContinuous: true);
+      results.add(PrintJobResult(printer: centerPrinter));
+    }
+
+    return results;
+  }
+
+  @override
+  Future<List<PrintJobResult>> enqueueReceiptJobs({
+    required PrintInfoDocument document,
+    required List<PrinterSettings> printers,
+  }) async {
+    final results = <PrintJobResult>[];
+    final info = document.printInfo;
+    if (info == null || info.orderLinesMap.isEmpty || printers.isEmpty) {
+      return results;
+    }
+
+    final printer = _pickReceiptPrinter(printers);
+    if (printer == null) return results;
+
+    _printReceipt(document, printer);
+    results.add(PrintJobResult(printer: printer));
+    return results;
+  }
+
+  @override
+  Future<List<PrintJobResult>> enqueueKitchenJobs({
+    required PrintInfoDocument document,
+    required List<PrinterSettings> printers,
+  }) async {
+    final results = <PrintJobResult>[];
+    final info = document.printInfo;
+    if (info == null || info.orderLinesMap.isEmpty || printers.isEmpty) {
+      return results;
+    }
+
     for (final entry in info.orderLinesMap.entries) {
       final typeKey = int.tryParse(entry.key);
       if (typeKey == null) continue;
+
       final printer = printers.firstWhere(
         (p) => p.type == typeKey && p.isOn && (p.printIp?.isNotEmpty ?? false),
         orElse: () => const PrinterSettings(name: '', type: -1),
@@ -57,18 +104,23 @@ class PrintServiceImpl implements PrintService {
       results.add(PrintJobResult(printer: printer));
     }
 
-    // Center consolidated receipt (type 11) when enabled and takeout
-    final centerPrinter = printers.firstWhere(
-      (p) => p.type == 11 && p.isOn && (p.printIp?.isNotEmpty ?? false),
-      orElse: () => const PrinterSettings(name: '', type: -1),
-    );
-
-    if (centerPrinter.type == 11 && isTakeOut) {
-      _enqueueReceipt(document, centerPrinter, forceContinuous: true);
-      results.add(PrintJobResult(printer: centerPrinter));
-    }
-
     return results;
+  }
+
+  PrinterSettings? _pickReceiptPrinter(List<PrinterSettings> printers) {
+    final active = printers
+        .where((p) => p.isOn && (p.printIp?.isNotEmpty ?? false))
+        .toList(growable: false);
+    if (active.isEmpty) return null;
+
+    final receiptCapable = active.where((p) => p.receipt != false).toList(growable: false);
+    if (receiptCapable.isEmpty) return null;
+
+    // Prefer the legacy receipt printer type when available.
+    for (final p in receiptCapable) {
+      if (p.type == 10) return p;
+    }
+    return receiptCapable.first;
   }
 
   void _printReceipt(PrintInfoDocument document, PrinterSettings printer) {

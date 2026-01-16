@@ -48,6 +48,14 @@ class LocalOrderLocalDataSource {
     await save(existing.copyWith(isPaid: isPaid));
   }
 
+  Future<void> updatePayMethod(String orderId, String payMethod, {bool isPaid = false}) async {
+    if (payMethod.trim().isEmpty) return;
+    final existing = await getById(orderId);
+    if (existing == null) return;
+    if (existing.payMethod == payMethod) return;
+    await save(existing.copyWith(payMethod: payMethod, isPaid: isPaid));
+  }
+
   Future<void> delete(String orderId) async {
     final box = await _getBox();
     await box.delete(orderId);
@@ -57,6 +65,7 @@ class LocalOrderLocalDataSource {
         'orderId': o.orderId,
         'createdAt': o.createdAt.millisecondsSinceEpoch,
         'isPaid': o.isPaid,
+      'payMethod': o.payMethod,
         'machineCode': o.machineCode,
         'language': o.language,
         'takeout': o.takeout,
@@ -76,6 +85,7 @@ class LocalOrderLocalDataSource {
       orderId: (m['orderId'] ?? '').toString(),
       createdAt: DateTime.fromMillisecondsSinceEpoch((m['createdAt'] as int?) ?? 0),
       isPaid: (m['isPaid'] as bool?) ?? false,
+      payMethod: (m['payMethod'] ?? '').toString(),
       machineCode: (m['machineCode'] ?? '').toString(),
       language: (m['language'] ?? '').toString(),
       takeout: (m['takeout'] as bool?) ?? false,

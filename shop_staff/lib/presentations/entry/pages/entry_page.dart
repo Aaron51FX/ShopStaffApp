@@ -304,6 +304,20 @@ class _EntryPageState extends ConsumerState<EntryPage> {
             ),
           ),
         ),
+        const SizedBox(width: 12),
+        FilledButton.icon(
+          onPressed: () => router.push('/orders'),
+          icon: const Icon(Icons.receipt_long_rounded),
+          label: const Text('历史订单'),
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.white.withValues(alpha: 0.12),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+          ),
+        ),
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,

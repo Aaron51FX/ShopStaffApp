@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/data/models/print_info.dart';
+import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/domain/repositories/print_repository.dart';
 import 'package:shop_staff/domain/services/print_service.dart';
 import 'print_job_models.dart';
@@ -65,6 +66,7 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
 
     try {
       final doc = await _resolveDocument();
+      await _updateLocalOrderPayMethodIfPossible(doc);
       if (!mounted) {
         _running = false;
         return;
@@ -105,6 +107,27 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
     } finally {
       _running = false;
     }
+  }
+
+  Future<void> _updateLocalOrderPayMethodIfPossible(PrintInfoDocument doc) async {
+    final orderId = request.orderId;
+    if (orderId == null || orderId.isEmpty) return;
+
+    final method = _extractPayMethod(doc);
+    if (method.isEmpty) return;
+
+    try {
+      final local = ref.read(localOrderLocalDataSourceProvider);
+      await local.updatePayMethod(orderId, method, isPaid: true);
+    } catch (_) {
+      // ignore (should not block printing)
+    }
+  }
+
+  String _extractPayMethod(PrintInfoDocument doc) {
+    final payMethod = doc.payMethod.trim();
+    if (payMethod.isNotEmpty) return payMethod;
+    return '';
   }
 
   Future<void> retry() async {

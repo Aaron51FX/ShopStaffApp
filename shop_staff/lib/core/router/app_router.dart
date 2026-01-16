@@ -7,6 +7,7 @@ import '../../presentations/pos/pages/pos_page.dart';
 import '../../presentations/auth/pages/login_page.dart';
 import '../../presentations/splash/pages/splash_page.dart';
 import '../../presentations/pos/pages/suspended_orders_page.dart';
+import '../../presentations/order/pages/local_orders_page.dart';
 import '../../presentations/payment/pages/payment_flow_page.dart';
 import '../../presentations/entry/pages/entry_page.dart';
 import '../../presentations/customer/pages/customer_page.dart';
@@ -35,6 +36,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         '/customer',
         '/pos',
         '/pos/suspended',
+        '/orders',
         '/settings',
         '/payment',
       };
@@ -77,6 +79,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/pos/suspended',
             name: 'suspended',
             builder: (context, state) => const SuspendedOrdersPage(),
+          ),
+          GoRoute(
+            path: '/orders',
+            name: 'orders',
+            builder: (context, state) => const LocalOrdersPage(),
           ),
           GoRoute(
             path: '/settings',

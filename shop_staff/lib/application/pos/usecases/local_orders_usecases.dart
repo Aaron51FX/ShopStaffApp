@@ -41,6 +41,11 @@ class LocalOrdersUseCases {
     await _local.updatePaid(orderId, isPaid);
   }
 
+  Future<void> updatePayMethod(String orderId, String payMethod) async {
+    _logger.fine('Update local order id=$orderId payMethod=$payMethod');
+    await _local.updatePayMethod(orderId, payMethod);
+  }
+
   Future<void> delete(String orderId) async {
     _logger.fine('Delete local order id=$orderId');
     await _local.delete(orderId);

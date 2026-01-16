@@ -612,6 +612,19 @@ class PosViewModel extends StateNotifier<PosState> {
     state = state.copyWith(discount: value);
   }
 
+  /// Load a historical local order into the current cart for reorder.
+  /// Does not trigger network; simply maps takeout flag to orderMode and applies discount/cart snapshot.
+  void loadFromLocalOrder(LocalOrderRecord record) {
+    final mode = record.takeout ? 'take_out' : 'dine_in';
+    state = state.copyWith(
+      orderMode: mode,
+      cart: record.items,
+      discount: record.discount,
+      lastOrderResult: null,
+      posDialog: null,
+    );
+  }
+
   // Public API: call when languageOverrideProvider changes
   Future<void> onLanguageChanged() async {
     await _maybeReloadCategories(force: true);
@@ -679,14 +692,16 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   // 取单: 根据挂单 id 恢复
-  void resumeSuspended(String id) {
+  void resumeSuspended(String id, {bool isDeleteAfter = true}) {
     final list = [...state.suspended];
     final idx = list.indexWhere((e) => e.id == id);
     if (idx == -1) return;
     final order = list.removeAt(idx);
     state = state.copyWith(cart: order.items, suspended: list);
     // remove from local
-    _suspendedOrders.delete(id);
+    if (isDeleteAfter) {
+      _suspendedOrders.delete(id);
+    }
   }
 
   String _generateKey(Product p, List<SelectedOption> options) {
