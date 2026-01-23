@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shop_staff/application/auth/login_flow_usecase.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import '../../../data/providers.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/app_role.dart';
@@ -27,6 +28,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     if (_inFlight) return;
     setState(() => _inFlight = true);
     try {
+      final t = AppLocalizations.of(context);
       final login = ref.read(loginFlowUseCaseProvider);
       final result = await login.resume();
       if (!mounted) return;
@@ -41,6 +43,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
       debugPrint('[Splash] resume success, navigating to role=${result.role.name}');
       context.go(result.role == AppRole.customer ? '/customer' : '/entry');
     } catch (e) {
+      final t = AppLocalizations.of(context);
       String msg;
       if (e is ApiException) {
         final sc = e.statusCode;
@@ -49,11 +52,16 @@ class _SplashPageState extends ConsumerState<SplashPage> {
         final short = raw
             .replaceAll(RegExp(r'<[^>]+>'), ' ')
             .replaceAll(RegExp(r'\s+'), ' ');
-        msg =
-            '激活失败(${sc ?? '网络'}): ${short.substring(0, short.length > 180 ? 180 : short.length)}';
+        final statusLabel = sc?.toString() ?? t.commonNetworkLabel;
+        msg = t.splashActivationFailedMessage(
+          statusLabel,
+          short.substring(0, short.length > 180 ? 180 : short.length),
+        );
       } else {
         final s = e.toString();
-        msg = '加载失败: ${s.substring(0, s.length > 180 ? 180 : s.length)}';
+        msg = t.splashLoadFailedMessage(
+          s.substring(0, s.length > 180 ? 180 : s.length),
+        );
       }
       setState(() => _error = msg);
     } finally {
@@ -64,6 +72,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -74,7 +83,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
             if (_error == null) ...[
               const CircularProgressIndicator(),
               const SizedBox(height: 20),
-              Text('正在初始化...', style: theme.textTheme.titleMedium),
+              Text(t.splashInitializing, style: theme.textTheme.titleMedium),
             ] else ...[
               Icon(Icons.error_outline, color: Colors.red[400], size: 44),
               const SizedBox(height: 12),
@@ -94,7 +103,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
               ),
               const SizedBox(height: 12),
               Text(
-                '可能原因: 临时网络/服务器 502, 版本号不匹配, 或机号无效',
+                t.splashPossibleCauses,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: Colors.grey[600],
@@ -106,11 +115,11 @@ class _SplashPageState extends ConsumerState<SplashPage> {
                 children: [
                   ElevatedButton(
                     onPressed: _inFlight ? null : _run,
-                    child: const Text('重试'),
+                    child: Text(t.splashRetry),
                   ),
                   OutlinedButton(
                     onPressed: () => context.go('/login'),
-                    child: const Text('重新激活'),
+                    child: Text(t.splashReactivate),
                   ),
                 ],
               ),

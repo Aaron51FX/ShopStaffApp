@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multipeer_session/multipeer_session.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
 
 class PaymentSelectionContent extends StatelessWidget {
@@ -12,6 +13,7 @@ class PaymentSelectionContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final orderNumber = (payload['orderNumber'] as num?)?.toInt() ?? 0;
     final total = (payload['total'] as num?)?.toDouble() ?? 0;
     final options = (payload['options'] as List?)
@@ -51,9 +53,9 @@ class PaymentSelectionContent extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('订单 #$orderNumber', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(t.customerOrderNumberTitle(orderNumber), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
               const Spacer(),
-              Text('应付 ¥${total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFFEF4444))),
+              Text(t.customerTotalDueWithAmount(total.toStringAsFixed(2)), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFFEF4444))),
             ],
           ),
           const SizedBox(height: 16),
@@ -108,7 +110,7 @@ class PaymentSelectionContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            enabled ? '点击选择' : '暂不可用',
+                            enabled ? t.customerPaymentChoiceTapToSelect : t.customerPaymentChoiceUnavailable,
                             style: TextStyle(fontSize: 12, color: enabled ? Colors.grey.shade600 : Colors.grey.shade500),
                           ),
                         ],

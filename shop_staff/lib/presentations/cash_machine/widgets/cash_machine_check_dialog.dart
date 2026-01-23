@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../../entry/viewmodels/entry_viewmodels.dart';
 
@@ -19,6 +20,7 @@ class CashMachineCheckDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final status = state.status;
     final isChecking = status == CashMachineDialogStatus.checking;
@@ -37,13 +39,13 @@ class CashMachineCheckDialog extends StatelessWidget {
             : theme.colorScheme.primary;
     final message = state.message ??
         (isChecking
-            ? '正在检测现金机，请稍候…'
+            ? t.cashMachineCheckingMessage
             : isSuccess
-                ? '现金机工作正常，可以进行现金支付。'
-                : '检测失败，请检查设备连接。');
+                ? t.cashMachineSuccessMessage
+                : t.cashMachineFailureMessage);
 
     return AlertDialog(
-      title: const Text('现金机检测'),
+      title: Text(t.cashMachineTitle),
       content: SizedBox(
         width: 380,
         child: Column(
@@ -66,13 +68,13 @@ class CashMachineCheckDialog extends StatelessWidget {
             if (isChecking) ...[
               const LinearProgressIndicator(minHeight: 4),
               const SizedBox(height: 12),
-              Text('步骤: 检查状态 → 打开 → 开始接收 → 读取金额 → 结束',
+              Text(t.cashMachineStepsChecking,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.7),
                   )),
             ] else ...[
               Text(
-                '流程: 检查状态 → 打开现金机 → Start Deposit → Deposit Amount → End Deposit',
+                t.cashMachineStepsFailure,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurface.withOpacity(0.7),
                 ),
@@ -83,22 +85,22 @@ class CashMachineCheckDialog extends StatelessWidget {
       ),
       actions: [
         if (isChecking)
-          TextButton(onPressed: onSkip, child: const Text('跳过')),
+          TextButton(onPressed: onSkip, child: Text(t.cashMachineSkip)),
         if (isFailure) ...[
-          TextButton(onPressed: onSkip, child: const Text('跳过')),
+          TextButton(onPressed: onSkip, child: Text(t.cashMachineSkip)),
           FilledButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('重试'),
+            label: Text(t.cashMachineRetry),
           ),
         ] else if (isSuccess) ...[
           FilledButton.icon(
             onPressed: onClose,
             icon: const Icon(Icons.check_circle_outline),
-            label: const Text('完成'),
+            label: Text(t.cashMachineDone),
           ),
         ] else if (!isChecking)
-          TextButton(onPressed: onClose, child: const Text('关闭')),
+          TextButton(onPressed: onClose, child: Text(t.cashMachineClose)),
       ],
     );
   }

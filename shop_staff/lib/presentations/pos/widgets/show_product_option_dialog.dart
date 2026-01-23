@@ -6,6 +6,7 @@ import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/product.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/pos/widgets/option_dialog_widgets.dart';
 import 'package:shop_staff/presentations/pos/widgets/primary_button.dart';
 
@@ -44,6 +45,7 @@ Future<void> showProductOptionDialog({
     transitionDuration: const Duration(milliseconds: 180),
     pageBuilder: (_, __, ___) => const SizedBox.shrink(),
     transitionBuilder: (ctx, anim, _, __) {
+      final t = AppLocalizations.of(ctx);
       final curved = CurvedAnimation(
         parent: anim,
         curve: Curves.easeOutCubic,
@@ -97,7 +99,7 @@ Future<void> showProductOptionDialog({
                                     final options = buildSelectedOptions(selected);
                                     onSendAll(options);
                                   },
-                                  tooltip: '发送当前选项到顾客端',
+                                  tooltip: t.posOptionSendAllTooltip,
                                 ),
                               IconButton(
                                 icon: const Icon(
@@ -132,10 +134,10 @@ Future<void> showProductOptionDialog({
                                   },
                                   onMaxReached: () {
                                     ref.read(dialogControllerProvider.notifier).confirm(
-                                          title: '已达到最大可选',
-                                          message: '${group.groupName} 已达到最多可选数量',
-                                          okText: '知道了',
-                                          cancelText: '关闭',
+                                          title: t.posOptionMaxReachedTitle,
+                                          message: '${group.groupName}${t.posOptionMaxReachedMessageSuffix}',
+                                          okText: t.posOptionMaxReachedOk,
+                                          cancelText: t.peerActionClose,
                                         );
                                   },
                                   onSendGroup: (peerLinkEnabled && onSendGroup != null)
@@ -159,15 +161,17 @@ Future<void> showProductOptionDialog({
                             children: [
                               Expanded(
                                 child: PrimaryButton(
-                                  label: existing == null ? '确认添加' : '更新',
+                                  label: existing == null
+                                      ? t.posOptionAddConfirm
+                                      : t.posOptionUpdate,
                                   onTap: () {
                                     final missing = validateMissingGroups(selected);
                                     if (missing.isNotEmpty) {
                                       ref.read(dialogControllerProvider.notifier).confirm(
-                                            title: '缺少必选项',
+                                            title: t.posOptionMissingTitle,
                                             message: missing.join('\n'),
-                                            okText: '好的',
-                                            cancelText: '关闭',
+                                            okText: t.posOptionMissingOk,
+                                            cancelText: t.peerActionClose,
                                           );
                                       return;
                                     }

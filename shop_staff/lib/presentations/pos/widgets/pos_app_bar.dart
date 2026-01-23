@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/providers.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 
 class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const PosAppBar({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
     final vm = ref.read(posViewModelProvider.notifier);
     final settings = ref.watch(appSettingsSnapshotProvider);
     final peerLinkEnabled = settings?.basic.peerLinkEnabled ?? true;
@@ -36,12 +38,12 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
             ),
             if (peerLinkEnabled) ...[
               IconButton(
-                tooltip: '清除顾客端展示',
+                tooltip: t.posClearCustomerDisplayTooltip,
                 onPressed: vm.clearCustomerDisplay,
                 icon: const Icon(Icons.close_fullscreen_rounded),
               ),
               IconButton(
-                tooltip: 'share',
+                tooltip: t.posBroadcastCategoriesTooltip,
                 onPressed: () => vm.broadcastCategories(),
                 icon: const Icon(Icons.send_rounded, size: 20, color: AppColors.amberPrimary),
               ),
@@ -79,10 +81,11 @@ class _SearchBar extends ConsumerWidget {
   const _SearchBar();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context);
     final vm = ref.read(posViewModelProvider.notifier);
     return TextField(
       decoration: InputDecoration(
-        hintText: "搜索商品 ...",
+        hintText: t.posSearchProductHint,
         prefixIcon: const Icon(
           Icons.search,
           size: 20,

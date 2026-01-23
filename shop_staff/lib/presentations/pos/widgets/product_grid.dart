@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 import 'package:shop_staff/presentations/pos/widgets/no_scrollbar_behavior.dart';
@@ -114,7 +115,7 @@ class ProductGrid extends ConsumerWidget {
                                 color: Colors.white.withAlpha(220),
                                 shape: const CircleBorder(),
                                 child: IconButton(
-                                  tooltip: '推送到顾客端',
+                                  tooltip: AppLocalizations.of(context).posPushProductToCustomerTooltip,
                                   icon: const Icon(Icons.send_rounded),
                                   color: AppColors.amberPrimary,
                                   onPressed: () => vm.pushProductToCustomer(p, quantity: 1),

@@ -6,10 +6,25 @@ abstract class PosEffect {
   const PosEffect();
 }
 
-class PosToastEffect extends PosEffect {
-  const PosToastEffect({required this.message, this.isError = false});
+enum PosToastKey {
+  peerSyncDisabled,
+  peerNotConnected,
+  pushedToCustomer,
+  pushedConfigToCustomer,
+  pushedOptionGroupToCustomer,
+  cartEmptyCannotPush,
+  cartSentToCustomer,
+  clearedCustomerDisplay,
+  localOrderSaveFailed,
+  orderSubmitFailed,
+  noPayableOrder,
+}
 
-  final String message;
+class PosToastEffect extends PosEffect {
+  const PosToastEffect({this.message, this.messageKey, this.isError = false});
+
+  final String? message;
+  final PosToastKey? messageKey;
   final bool isError;
 }
 

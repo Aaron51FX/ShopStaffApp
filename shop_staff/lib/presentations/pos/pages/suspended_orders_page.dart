@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
@@ -27,10 +28,11 @@ class _SuspendedOrdersPageState extends ConsumerState<SuspendedOrdersPage> {
     final filtered = _query.trim().isEmpty
         ? orders
         : orders.where((o) => _match(o, _query)).toList();
+    final t = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('挂单列表'),
+      title: Text(t.suspendedOrdersTitle),
         backgroundColor: AppColors.amberPrimary,
         foregroundColor: Colors.white,
         leading:
@@ -48,7 +50,7 @@ class _SuspendedOrdersPageState extends ConsumerState<SuspendedOrdersPage> {
             padding: const EdgeInsets.all(12),
             child: TextField(
               decoration: InputDecoration(
-                hintText: '搜索 按编号或商品名',
+                hintText: t.suspendedOrdersSearchHint,
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: AppColors.stone100,
@@ -62,7 +64,7 @@ class _SuspendedOrdersPageState extends ConsumerState<SuspendedOrdersPage> {
           ),
           Expanded(
             child: filtered.isEmpty
-                ? const Center(child: Text('暂无挂单'))
+                ? Center(child: Text(t.suspendedOrdersEmpty))
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
@@ -101,7 +103,8 @@ class _OrderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = intl.DateFormat('MM-dd HH:mm');
+    final t = AppLocalizations.of(context);
+    final formatter = intl.DateFormat(t.suspendedOrdersDatePattern, t.localeName);
     final when = formatter.format(order.createdAt.toLocal());
     final itemCount = order.items.fold<int>(
       0,
@@ -141,7 +144,7 @@ class _OrderTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        '共$itemCount件',
+                        '${t.suspendedOrdersItemCountPrefix}$itemCount${t.suspendedOrdersItemCountSuffix}',
                         style: const TextStyle(color: AppColors.stone600),
                       ),
                     ],
@@ -174,7 +177,7 @@ class _OrderTile extends StatelessWidget {
                     foregroundColor: Colors.white,
                   ),
                   onPressed: () => onResume(order.id),
-                  child: const Text('取单'),
+                  child: Text(t.suspendedOrdersResume),
                 ),
               ],
             ),

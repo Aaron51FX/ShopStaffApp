@@ -12,8 +12,97 @@
   "entrySettingsTooltip": "Open settings",
   "settingsShellTitle": "Application Settings",
   "settingsShellSubtitle": "Manage terminal info and business configuration",
+  "settingsTitle": "Settings",
   "settingsRefreshTooltip": "Refresh settings",
   "settingsErrorDismissTooltip": "Close",
+  "settingsErrorLoadFailed": "Failed to load settings: {detail}",
+  "@settingsErrorLoadFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsErrorSaveBasicFailed": "Failed to save business info: {detail}",
+  "@settingsErrorSaveBasicFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsErrorSaveNetworkFailed": "Failed to save network settings: {detail}",
+  "@settingsErrorSaveNetworkFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsErrorSavePrinterFailed": "Failed to save printer settings: {detail}",
+  "@settingsErrorSavePrinterFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsBusinessInfoTitle": "Store profile",
+  "settingsBusinessInfoSubtitle": "These details appear on the customer display and receipts",
+  "settingsBusinessNameLabel": "Store name",
+  "settingsBusinessCodeLabel": "Store code",
+  "settingsBusinessPhoneLabel": "Contact phone",
+  "settingsBusinessAddressLabel": "Store address",
+  "settingsBusinessHoursTitle": "Business hours & seating",
+  "settingsBusinessHoursSubtitle": "Managed in the back office store data",
+  "settingsBusinessHoursLabel": "Business hours",
+  "settingsBusinessSeatsLabel": "Seats",
+  "settingsLogoutButton": "Sign out",
+  "settingsLogoutConfirmTitle": "Sign out",
+  "settingsLogoutConfirmMessage": "Are you sure you want to sign out?",
+  "settingsRoleSwitchTitle": "Switch role",
+  "settingsRoleSwitchMessage": "Switch to \"{role}\" and restart the app to load that interface?",
+  "@settingsRoleSwitchMessage": {
+    "placeholders": {
+      "role": {}
+    }
+  },
+  "settingsRoleSwitchSuccess": "Switched to {role}. Redirecting...",
+  "@settingsRoleSwitchSuccess": {
+    "placeholders": {
+      "role": {}
+    }
+  },
+  "settingsRoleSelectionTitle": "Role selection",
+  "settingsRoleSelectionSubtitle": "Choose the device role; it will restart and open the selected interface",
+  "settingsRoleSelectionDescription": "Staff terminal handles checkout and management; customer display shows products and ordering.",
+  "settingsCashPaymentTitle": "Cash payment",
+  "settingsCashPaymentSubtitle": "Check the cash machine to enable or verify cash payments",
+  "settingsCashStatusLabel": "Current status",
+  "settingsCashEnabled": "Enabled",
+  "settingsCashDisabled": "Disabled",
+  "settingsCashNotSupported": "Not authorized or cash payments unsupported",
+  "settingsCashLastCheckFailed": "Last check failed: {detail}",
+  "@settingsCashLastCheckFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsCashChecking": "Checking…",
+  "settingsCashCheckNow": "Check now",
+  "settingsCashSkipOnce": "Skip for now",
+  "settingsPosNetworkTitle": "POS terminal network",
+  "settingsPosNetworkSubtitle": "Keep the terminal and card reader on the same network",
+  "settingsPosIpLabel": "Terminal IP",
+  "settingsPosPortLabel": "Terminal port",
+  "settingsPrinterConfigTitle": "Printer configuration",
+  "settingsPrinterConfigSubtitle": "Manage receipts, labels, and kitchen printing",
+  "settingsPrinterEmpty": "No printers configured yet. Add one in the back office.",
+  "settingsMachineInfoTitle": "Device identifiers",
+  "settingsMachineInfoSubtitle": "Active terminal and activation details",
+  "settingsMachineCodeLabel": "Machine code",
+  "settingsStationCodeLabel": "Station code",
+  "settingsAuthorizedShopLabel": "Authorized shop code",
+  "settingsLanguageFeatureTitle": "Languages & features",
+  "settingsLanguageFeatureSubtitle": "Display languages and features from store authorization",
+  "settingsSupportedLanguagesLabel": "Supported languages",
+  "settingsSupportedLanguagesEmpty": "Not configured",
+  "settingsFeatureOnlineCall": "Online call",
+  "settingsFeatureTaxSystem": "Tax system",
+  "settingsFeatureDynamicCode": "Dynamic ticket",
+  "settingsFeatureMultiplayer": "Multi-terminal collaboration",
   "settingsLanguageSectionTitle": "Display language",
   "settingsLanguageSectionSubtitle": "Choose the language used across the terminal",
   "settingsLanguageSystem": "Follow system",
@@ -30,6 +119,7 @@
   "dialogCancel": "Cancel",
   "dialogConfirm": "Confirm",
   "settingsEditAction": "Edit",
+  "settingsValueNotSet": "Not set",
   "settingsNetworkEditIpTitle": "Edit terminal IP",
   "settingsNetworkEditIpLabel": "Terminal IP address",
   "settingsNetworkEditIpHint": "Leave empty to clear the address",
@@ -42,6 +132,16 @@
   "settingsPrinterReceiptLabel": "Label",
   "settingsPrinterLabelSizeTitle": "Label size",
   "settingsPrinterLabelSizeNone": "Not set",
+  "settingsPrinterDefaultTag": "Default",
+  "settingsPrinterTypeKitchen": "Kitchen printing",
+  "settingsPrinterTypeCenter": "Central printing",
+  "settingsPrinterTypeFront": "Front desk printing",
+  "settingsPrinterTypeUnknown": "Printer type {type}",
+  "@settingsPrinterTypeUnknown": {
+    "placeholders": {
+      "type": {}
+    }
+  },
   "settingsPrinterEditIpTitle": "Edit printer IP",
   "settingsPrinterEditIpLabel": "Printer IP address",
   "settingsPrinterEditPortTitle": "Edit printer port",
@@ -50,5 +150,213 @@
   "settingsPrinterPortTitle": "Printer port",
   "settingsPrinterToggleContinuous": "Continuous printing",
   "settingsPrinterToggleOption": "Print optional fields",
-  "settingsPrinterToggleDirection": "Reverse printing"
+  "settingsPrinterToggleDirection": "Reverse printing",
+  "entryPeerDisconnectedTitle": "Customer display disconnected",
+  "entryPeerDisconnectedMessage": "Search again and try to reconnect to the customer display?",
+  "entryPeerReconnect": "Reconnect",
+  "entryPeerConnectDialogTitle": "Connect customer display",
+  "entryPeerSearchingCustomer": "Searching for nearby customer display…",
+  "entryHistoryOrders": "Order history",
+  "entryDatePattern": "MMM d, y · EEEE",
+  "peerStatusConnectedPrefix": "Connected:",
+  "peerStatusDisconnectedPrefix": "Not connected:",
+  "peerStatusErrorPrefix": "Connection error:",
+  "peerStatusIdle": "Not connected yet",
+  "peerSearchInProgress": "Searching…",
+  "peerSearchRestart": "Restart search",
+  "peerActionDone": "Done",
+  "peerActionClose": "Close",
+  "peerLabelCustomer": "Customer display",
+  "peerLabelStaff": "Staff terminal",
+  "commonUnknownError": "Unknown error",
+  "customerDisconnectTitle": "Connection lost",
+  "customerDisconnectMessage": "Connection to the staff terminal was lost. Please reconnect.",
+  "customerReconnect": "Reconnect",
+  "customerLater": "Later",
+  "customerConnectDialogTitle": "Connect staff terminal",
+  "customerPeerSearchingStaff": "Searching for staff terminal…",
+  "customerGreeting": "Welcome",
+  "customerLabel": "Customer display",
+  "optionGroupMultiple": "Multiple",
+  "optionGroupSingle": "Single",
+  "optionGroupMinPrefix": "Min ",
+  "optionGroupMaxPrefix": "Max ",
+  "optionGroupNoOptions": "No options",
+  "optionGroupSelected": "Selected",
+  "optionGroupNotSelected": "Not selected",
+  "cashMachineTitle": "Cash machine check",
+  "cashMachineCheckingMessage": "Checking the cash machine, please wait…",
+  "cashMachineSuccessMessage": "Cash machine is ready for cash payments.",
+  "cashMachineFailureMessage": "Check failed. Please verify the device connection.",
+  "cashMachineStepsChecking": "Steps: Check status → Open → Start receive → Read amount → End",
+  "cashMachineStepsFailure": "Flow: Check status → Open cash machine → Start Deposit → Deposit Amount → End Deposit",
+  "cashMachineSkip": "Skip",
+  "cashMachineRetry": "Retry",
+  "cashMachineDone": "Done",
+  "cashMachineClose": "Close",
+  "suspendedOrdersTitle": "Suspended orders",
+  "suspendedOrdersSearchHint": "Search by ID or product name",
+  "suspendedOrdersEmpty": "No suspended orders",
+  "suspendedOrdersItemCountPrefix": "Items: ",
+  "suspendedOrdersItemCountSuffix": "",
+  "suspendedOrdersResume": "Resume",
+  "suspendedOrdersDatePattern": "MM-dd HH:mm",
+  "posClearCartTitle": "Clear cart",
+  "posClearCartMessage": "Are you sure you want to clear the cart?",
+  "posSuspendTitle": "Suspend order",
+  "posSuspendMessage": "Suspend the current order?",
+  "posPushProductToCustomerTooltip": "Send to customer display",
+  "posClearCustomerDisplayTooltip": "Clear customer display",
+  "posBroadcastCategoriesTooltip": "Broadcast categories",
+  "posSearchProductHint": "Search products...",
+  "discountInputTitle": "Enter discount amount",
+  "discountConfirm": "Confirm",
+  "discountKeyClear": "Clear",
+  "discountKeyDelete": "Delete",
+  "posOrderNumberLabel": "Order #:",
+  "posPushCartTooltip": "Send cart to customer display",
+  "posOrderModeDineIn": "Dine in",
+  "posOrderModeTakeout": "Takeout",
+  "posCartEmptyMessage": "Cart is empty\nPlease select items from the left",
+  "posSubtotalLabel": "Subtotal",
+  "posDiscountLabel": "Discount",
+  "posTotalDueLabel": "Total due",
+  "posSuspendButton": "Suspend",
+  "posDiscountButton": "Discount",
+  "posClearButton": "Clear",
+  "posCheckoutButton": "Checkout",
+  "posOptionGroupCurrentPrefix": "Current ",
+  "posOptionSendGroupTooltip": "Send this group to customer",
+  "posOptionSendAllTooltip": "Send current options to customer",
+  "posOptionMaxReachedTitle": "Max selections reached",
+  "posOptionMaxReachedMessageSuffix": " has reached the maximum selections",
+  "posOptionMaxReachedOk": "Got it",
+  "posOptionAddConfirm": "Add to cart",
+  "posOptionUpdate": "Update",
+  "posOptionMissingTitle": "Missing required options",
+  "posOptionMissingOk": "OK",
+  "paymentSelectionTitle": "Select payment method",
+  "paymentSelectionPushTooltip": "Send payment options to customer display",
+  "paymentGroupCashTitle": "Cash",
+  "paymentGroupCashSubtitle": "Pay with cash",
+  "paymentGroupQrTitle": "QR payment",
+  "paymentGroupCardTitle": "Credit/Debit card",
+  "paymentGroupCardShort": "Card",
+  "paymentGroupTransitTitle": "Transit/IC & eMoney",
+  "paymentGroupTransitShort": "eMoney",
+  "paymentSelectionNotConfigured": "Not configured",
+  "orderHistoryTitle": "Order history",
+  "orderHistoryRefreshTooltip": "Refresh",
+  "orderHistorySearchHint": "Search by ID or product name",
+  "orderHistoryEmpty": "No order history",
+  "orderHistoryItemCountPrefix": "Items: ",
+  "orderHistoryItemCountSuffix": "",
+  "orderHistoryPaid": "Paid",
+  "orderHistoryUnpaid": "Unpaid",
+  "orderHistoryDatePatternShort": "MM-dd HH:mm",
+  "orderHistoryDatePatternLong": "yyyy-MM-dd HH:mm:ss",
+  "orderHistoryDetailsTitle": "Order details",
+  "orderHistoryCloseTooltip": "Close",
+  "orderHistoryDetailOrderIdLabel": "Order ID",
+  "orderHistoryDetailTimeLabel": "Time",
+  "orderHistoryDetailStatusLabel": "Status",
+  "orderHistoryDetailPayMethodLabel": "Payment method",
+  "orderHistoryDetailAmountLabel": "Amount",
+  "orderHistoryDetailModeLabel": "Mode",
+  "orderHistoryDetailItemCountLabel": "Items",
+  "orderHistoryDetailProductsTitle": "Products",
+  "orderHistoryPayMethodUnknown": "Unknown",
+  "orderHistoryReorder": "Reorder",
+  "orderHistoryPrintReceipt": "Print receipt",
+  "orderHistoryPrintKitchen": "Print kitchen ticket",
+  "cancelDialogLoadingTitle": "Canceling",
+  "cancelDialogLoadingMessage": "Sending cancel request to terminal…",
+  "cancelDialogSuccessTitle": "Canceled",
+  "cancelDialogFailureTitle": "Cancel failed",
+  "cancelDialogSuccessMessage": "Payment canceled",
+  "cancelDialogFailureMessage": "Cancel failed. Please try again later.",
+  "cancelDialogDone": "Done",
+  "cancelDialogConfirm": "Confirm",
+  "cashAmountMatched": "Amount matches order total",
+  "cashAmountChangePrefix": "Change due ",
+  "cashAmountShortPrefix": "Remaining ",
+  "cashAmountConfirmedLabel": "Confirmed cash amount",
+  "cashAmountDetectingLabel": "Detecting cash amount",
+  "cashAmountExpectedPrefix": "Order total: ",
+  "paymentOrderIdLabel": "Order ID",
+  "paymentChannelLabel": "Payment method",
+  "loginActivateTitle": "Device activation",
+  "loginMachineCodeLabel": "Machine code",
+  "loginActivateButton": "Activate and continue",
+  "activationFailedMessage": "Activation failed: {detail}",
+  "@activationFailedMessage": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "splashInitializing": "Initializing...",
+  "splashActivationFailedMessage": "Activation failed ({status}): {detail}",
+  "@splashActivationFailedMessage": {
+    "placeholders": {
+      "status": {},
+      "detail": {}
+    }
+  },
+  "splashLoadFailedMessage": "Load failed: {detail}",
+  "@splashLoadFailedMessage": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "splashPossibleCauses": "Possible causes: temporary network/server 502, version mismatch, or invalid machine code",
+  "splashRetry": "Retry",
+  "splashReactivate": "Re-activate",
+  "commonNetworkLabel": "Network",
+  "commonUnitPriceLabel": "Unit price",
+  "customerUnknownMessage": "Unknown message received: {type}",
+  "@customerUnknownMessage": {
+    "placeholders": {
+      "type": {}
+    }
+  },
+  "customerOrderNumberTitle": "Order #{orderNumber}",
+  "@customerOrderNumberTitle": {
+    "placeholders": {
+      "orderNumber": {}
+    }
+  },
+  "customerTotalDueWithAmount": "Total due ¥{amount}",
+  "@customerTotalDueWithAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "customerPaymentChoiceTapToSelect": "Tap to select",
+  "customerPaymentChoiceUnavailable": "Unavailable",
+  "customerStatusConnectedTitle": "Connected to staff terminal",
+  "customerStatusSyncing": "Syncing: {name}",
+  "@customerStatusSyncing": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "customerStatusSearchingDescription": "Please make sure the staff terminal is open and nearby.",
+  "customerStatusErrorTitle": "Connection issue",
+  "customerStatusErrorDescription": "Please retry or check the network.",
+  "customerStatusIdleDescription": "Tap \"Connect staff terminal\" above to start pairing.",
+  "posToastPeerSyncDisabled": "Customer sync is disabled",
+  "posToastPeerNotConnected": "Customer display not connected. Push failed.",
+  "posToastPushedToCustomer": "Sent to customer display",
+  "posToastPushedConfigToCustomer": "Sent current configuration to customer display",
+  "posToastPushedOptionGroupToCustomer": "Sent option group to customer display",
+  "posToastCartEmptyCannotPush": "Cart is empty. Unable to push.",
+  "posToastCartSentToCustomer": "Sent cart to customer display",
+  "posToastClearedCustomerDisplay": "Cleared customer display",
+  "posToastLocalOrderSaveFailed": "Failed to save local order",
+  "posToastOrderSubmitFailed": "Order submission failed",
+  "posToastNoPayableOrder": "No payable order available",
+  "orderHistoryLoadFailed": "Failed to load orders",
+  "customerOptionsBasePricePrefix": "Base price ",
+  "customerOptionsSelectedTitle": "Selected options",
+  "customerOptionsTotalLabel": "Current total"
 }

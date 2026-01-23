@@ -54,24 +54,25 @@ class _CustomerPageState extends ConsumerState<CustomerPage> {
 
   Future<void> _showDisconnectedDialog() async {
     if (!mounted) return;
+    final t = AppLocalizations.of(context);
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('连接已断开'),
-          content: const Text('与店员端的连接已断开，请重新连接。'),
+          title: Text(t.customerDisconnectTitle),
+          content: Text(t.customerDisconnectMessage),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
                 _showSearchDialog();
               },
-              child: const Text('重新连接'),
+              child: Text(t.customerReconnect),
             ),
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('稍后'),
+              child: Text(t.customerLater),
             ),
           ],
         );
@@ -88,33 +89,36 @@ class _CustomerPageState extends ConsumerState<CustomerPage> {
       barrierDismissible: false,
       builder: (ctx) {
         return Consumer(builder: (context, ref, _) {
+          final t = AppLocalizations.of(context);
           final state = ref.watch(customerPeerLinkControllerProvider);
           final statusLabel = switch (state.status) {
-            PeerLinkStatus.connected => '已连接店员端: ${state.peerName ?? '店员端'}',
-            PeerLinkStatus.searching => '正在搜索店员端…',
-            PeerLinkStatus.error => '连接异常: ${state.lastError ?? '未知错误'}',
-            PeerLinkStatus.idle => '未开始连接',
+            PeerLinkStatus.connected =>
+                '${t.peerStatusConnectedPrefix} ${state.peerName ?? t.peerLabelStaff}',
+            PeerLinkStatus.searching => t.customerPeerSearchingStaff,
+            PeerLinkStatus.error =>
+                '${t.peerStatusErrorPrefix} ${state.lastError ?? t.commonUnknownError}',
+            PeerLinkStatus.idle => t.peerStatusIdle,
           };
           final showSpinner =
               state.status == PeerLinkStatus.searching || state.status == PeerLinkStatus.idle;
           return AlertDialog(
-            title: const Text('连接店员端'),
+            title: Text(t.customerConnectDialogTitle),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (showSpinner)
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 16),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
                     child: Row(
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           width: 22,
                           height: 22,
                           child: CircularProgressIndicator(strokeWidth: 2.4),
                         ),
-                        SizedBox(width: 12),
-                        Text('搜索中…'),
+                        const SizedBox(width: 12),
+                        Text(t.peerSearchInProgress),
                       ],
                     ),
                   )
@@ -133,11 +137,11 @@ class _CustomerPageState extends ConsumerState<CustomerPage> {
             actions: [
               TextButton(
                 onPressed: () => controller.restart(),
-                child: const Text('重启搜索'),
+                child: Text(t.peerSearchRestart),
               ),
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(state.isConnected ? '完成' : '关闭'),
+                child: Text(state.isConnected ? t.peerActionDone : t.peerActionClose),
               ),
             ],
           );
@@ -156,9 +160,12 @@ class _CustomerPageState extends ConsumerState<CustomerPage> {
     final isConnected = linkState.isConnected;
     final color = isConnected ? const Color(0xFF22D3EE) : const Color(0xFFEF4444);
     final icon = isConnected ? Icons.sensors_rounded : Icons.sensors_off_rounded;
+    final peerLabel = role == AppRole.staff ? t.peerLabelCustomer : t.peerLabelStaff;
+    final peerName = linkState.peerName?.trim() ?? '';
+    final peerDisplay = peerName.isEmpty ? peerLabel : '$peerLabel $peerName';
     final label = isConnected
-        ? '已连接: ${"${role.oppositeLabel} ${linkState.peerName ?? ''}"}'
-        : '未连接: ${role.oppositeLabel}';
+      ? '${t.peerStatusConnectedPrefix} $peerDisplay'
+      : '${t.peerStatusDisconnectedPrefix} $peerLabel';
     final message = linkState.lastMessage;
 
     return Stack(
@@ -180,7 +187,7 @@ class _CustomerPageState extends ConsumerState<CustomerPage> {
                   children: [
                     Row(
                       children: [
-                        Pill(label: '顾客端', icon: Icons.tv_rounded),
+                        Pill(label: t.customerLabel, icon: Icons.tv_rounded),
                         const Spacer(),
                         FilledButton.tonalIcon(
                           onPressed: _showSearchDialog,
@@ -214,7 +221,7 @@ class _CustomerPageState extends ConsumerState<CustomerPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'いらっしゃいませ',
+                                t.customerGreeting,
                                 style: theme.textTheme.displayLarge?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,

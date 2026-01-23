@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
 
 class StatusCard extends StatelessWidget {
@@ -11,30 +12,32 @@ class StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
+    final staffName = state.peerName ?? t.peerLabelStaff;
 
     final (icon, title, description, accent, showSpinner) = switch (state.status) {
       PeerLinkStatus.connected => (
           Icons.cloud_done_rounded,
-          '已连接店员端',
-          '同步中: ${state.peerName ?? '店员端'}',
+        t.customerStatusConnectedTitle,
+        t.customerStatusSyncing(staffName),
           const Color(0xFF22D3EE),
           false),
       PeerLinkStatus.searching => (
           Icons.wifi_tethering_rounded,
-          '正在搜索店员端…',
-          '请确保店员端已打开连接且设备靠近。',
+        t.customerPeerSearchingStaff,
+        t.customerStatusSearchingDescription,
           const Color(0xFFFCD34D),
           true),
       PeerLinkStatus.error => (
           Icons.error_outline_rounded,
-          '连接异常',
-          state.lastError ?? '请重试或检查网络。',
+        t.customerStatusErrorTitle,
+        state.lastError ?? t.customerStatusErrorDescription,
           const Color(0xFFFFA94D),
           false),
       PeerLinkStatus.idle => (
           Icons.link_off_rounded,
-          '未开始连接',
-          '点击上方“连接店员端”开始配对。',
+        t.peerStatusIdle,
+        t.customerStatusIdleDescription,
           Colors.white70,
           false),
     };

@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 class OptionGroupContent extends StatelessWidget {
   const OptionGroupContent({required this.payload, super.key});
@@ -8,6 +9,7 @@ class OptionGroupContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     //final productName = (payload['productName'] ?? '') as String? ?? '';
     final groupName = (payload['groupName'] ?? '') as String? ?? '';
     final multiple = payload['multiple'] as bool? ?? false;
@@ -20,9 +22,13 @@ class OptionGroupContent extends StatelessWidget {
         const [];
 
     final subtitleParts = <String>[];
-    subtitleParts.add(multiple ? '可多选' : '单选');
-    if (minSelect != null && minSelect > 0) subtitleParts.add('最少$minSelect');
-    if (maxSelect != null) subtitleParts.add('最多$maxSelect');
+    subtitleParts.add(multiple ? t.optionGroupMultiple : t.optionGroupSingle);
+    if (minSelect != null && minSelect > 0) {
+      subtitleParts.add('${t.optionGroupMinPrefix}$minSelect');
+    }
+    if (maxSelect != null) {
+      subtitleParts.add('${t.optionGroupMaxPrefix}$maxSelect');
+    }
     final subtitle = subtitleParts.join(' · ');
 
     const accent = Color(0xFF0EA5E9);
@@ -90,7 +96,7 @@ class OptionGroupContent extends StatelessWidget {
           const SizedBox(height: 16),
           Expanded(
             child: options.isEmpty
-                ? const Center(child: Text('暂无选项'))
+                ? Center(child: Text(t.optionGroupNoOptions))
                 : SingleChildScrollView(
                     child: Wrap(
                       spacing: 12,
@@ -161,7 +167,9 @@ class OptionGroupContent extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
-                                        selected ? '已选' : '未选',
+                                        selected
+                                            ? t.optionGroupSelected
+                                            : t.optionGroupNotSelected,
                                         style: TextStyle(
                                           color: selected ? Colors.white : Colors.black54,
                                           fontWeight: FontWeight.w700,

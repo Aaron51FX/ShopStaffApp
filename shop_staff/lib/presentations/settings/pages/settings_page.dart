@@ -46,7 +46,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           backgroundColor: Colors.white,
           foregroundColor: AppColors.stone500,
           titleSpacing: 0,
-          title: Text('設置'),
+          title: Text(t.settingsTitle),
         ),
         body: SafeArea(
           top: false,
@@ -73,7 +73,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 32),
                         child: _ErrorBanner(
-                          message: state.error!,
+                          message: _localizeSettingsError(t, state),
                           onDismissed: vm.clearError,
                         ),
                       ),
@@ -98,6 +98,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         ),
       ),
     ));
+  }
+
+  String _localizeSettingsError(AppLocalizations t, SettingsState state) {
+    final detail = state.error ?? t.commonUnknownError;
+    return switch (state.errorType) {
+      SettingsErrorType.load => t.settingsErrorLoadFailed(detail),
+      SettingsErrorType.saveBasic => t.settingsErrorSaveBasicFailed(detail),
+      SettingsErrorType.saveNetwork => t.settingsErrorSaveNetworkFailed(detail),
+      SettingsErrorType.savePrinter => t.settingsErrorSavePrinterFailed(detail),
+      null => detail,
+    };
   }
 }
 
@@ -247,6 +258,7 @@ class _SettingsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 24, 32, 16),
       child: Row(
@@ -330,48 +342,52 @@ class _BusinessInfoView extends ConsumerWidget {
     final basic = state.snapshot.basic;
     final shop = state.shopInfo;
     final vm = ref.read(settingsViewModelProvider.notifier);
+    final t = AppLocalizations.of(context);
     return _RefreshableScroll(
       onRefresh: onRefresh,
       children: [
         _SectionCard(
-          title: '店铺基本信息',
-          subtitle: '这些信息将展示在前台与票据上',
+          title: t.settingsBusinessInfoTitle,
+          subtitle: t.settingsBusinessInfoSubtitle,
           children: [
             _InfoRow(
               icon: Icons.storefront_rounded,
-              label: '店铺名称',
-              value: _displayValue(basic.shopName ?? shop?.shopName),
+              label: t.settingsBusinessNameLabel,
+              value: _displayValue(t, basic.shopName ?? shop?.shopName),
             ),
             _InfoRow(
               icon: Icons.qr_code_2_rounded,
-              label: '店铺编号',
-              value: _displayValue(basic.shopCode ?? shop?.shopCode),
+              label: t.settingsBusinessCodeLabel,
+              value: _displayValue(t, basic.shopCode ?? shop?.shopCode),
             ),
             _InfoRow(
               icon: Icons.phone_iphone,
-              label: '联系电话',
-              value: _displayValue(basic.contactNumber ?? shop?.shopTelephone),
+              label: t.settingsBusinessPhoneLabel,
+              value: _displayValue(
+                t,
+                basic.contactNumber ?? shop?.shopTelephone,
+              ),
             ),
             _InfoRow(
               icon: Icons.place_rounded,
-              label: '店铺地址',
-              value: _displayValue(basic.address ?? shop?.shopAddress),
+              label: t.settingsBusinessAddressLabel,
+              value: _displayValue(t, basic.address ?? shop?.shopAddress),
             ),
           ],
         ),
         _SectionCard(
-          title: '营业时间 & 座位',
-          subtitle: '来自门店主数据，可在后台系统维护',
+          title: t.settingsBusinessHoursTitle,
+          subtitle: t.settingsBusinessHoursSubtitle,
           children: [
             _InfoRow(
               icon: Icons.schedule_rounded,
-              label: '营业时间',
-              value: _displayValue(shop?.businessTime),
+              label: t.settingsBusinessHoursLabel,
+              value: _displayValue(t, shop?.businessTime),
             ),
             _InfoRow(
               icon: Icons.event_seat_rounded,
-              label: '座位数',
-              value: _displayValue(shop?.seatNumber),
+              label: t.settingsBusinessSeatsLabel,
+              value: _displayValue(t, shop?.seatNumber),
             ),
           ],
         ),
@@ -380,10 +396,13 @@ class _BusinessInfoView extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
           child: ElevatedButton.icon(
             onPressed: () {
-              vm.logout();
+              vm.logout(
+                title: t.settingsLogoutConfirmTitle,
+                message: t.settingsLogoutConfirmMessage,
+              );
             },
             icon: const Icon(Icons.exit_to_app_rounded),
-            label: const Text('退出登录'),
+            label: Text(t.settingsLogoutButton),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent,
               foregroundColor: Colors.white,
@@ -424,8 +443,8 @@ class _SystemSettingsView extends ConsumerWidget {
         context: context,
         builder: (ctx) {
           return AlertDialog(
-            title: const Text('切换角色'),
-            content: Text('切换到“${target.label}”需要重启应用以加载对应界面，是否立即重启？'),
+            title: Text(t.settingsRoleSwitchTitle),
+            content: Text(t.settingsRoleSwitchMessage(target.label)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(false),
@@ -447,7 +466,7 @@ class _SystemSettingsView extends ConsumerWidget {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('已切换为${target.label}，即将跳转...'),
+          content: Text(t.settingsRoleSwitchSuccess(target.label)),
           duration: const Duration(seconds: 1),
         ),
       );
@@ -461,8 +480,8 @@ class _SystemSettingsView extends ConsumerWidget {
       onRefresh: onRefresh,
       children: [
         _SectionCard(
-          title: '角色选择',
-          subtitle: '选择设备扮演的端，保存后会重启并进入对应界面',
+          title: t.settingsRoleSelectionTitle,
+          subtitle: t.settingsRoleSelectionSubtitle,
           trailing: Switch.adaptive(
             value: basic.peerLinkEnabled,
             onChanged: (enabled) => vm.saveBasicSettings(
@@ -473,10 +492,11 @@ class _SystemSettingsView extends ConsumerWidget {
             _RoleSelector(
               current: currentRole,
               onSelect: onRoleSelected,
+              t: t,
             ),
             const SizedBox(height: 10),
             Text(
-              '店员端用于收银与管理；顾客端用于商品展示与下单。',
+              t.settingsRoleSelectionDescription,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context)
                         .colorScheme
@@ -487,8 +507,8 @@ class _SystemSettingsView extends ConsumerWidget {
           ],
         ),
         _SectionCard(
-          title: '现金支付',
-          subtitle: '检测现金机以启用或验证现金支付能力',
+          title: t.settingsCashPaymentTitle,
+          subtitle: t.settingsCashPaymentSubtitle,
           trailing: Switch.adaptive(
             value: cashCheckState.isEnabled,
             onChanged: (enabled) async {
@@ -498,15 +518,17 @@ class _SystemSettingsView extends ConsumerWidget {
           children: [
             _InfoRow(
               icon: Icons.payments_rounded,
-              label: '当前状态',
+              label: t.settingsCashStatusLabel,
               value: cashCheckState.isSupported
-                  ? (cashCheckState.isEnabled ? '已启用' : '未启用')
-                  : '未授权或不支持现金支付',
+                  ? (cashCheckState.isEnabled
+                      ? t.settingsCashEnabled
+                      : t.settingsCashDisabled)
+                  : t.settingsCashNotSupported,
             ),
             if (cashCheckState.lastError != null) ...[
               const SizedBox(height: 8),
               Text(
-                '最近一次检测失败: ${cashCheckState.lastError}',
+                t.settingsCashLastCheckFailed(cashCheckState.lastError!),
                 style: Theme.of(context)
                     .textTheme
                     .bodySmall
@@ -527,14 +549,18 @@ class _SystemSettingsView extends ConsumerWidget {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.fact_check_rounded),
-                  label: Text(cashCheckState.isChecking ? '检测中…' : '立即检测'),
+                  label: Text(
+                    cashCheckState.isChecking
+                        ? t.settingsCashChecking
+                        : t.settingsCashCheckNow,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 TextButton(
                   onPressed: cashCheckState.isChecking
                       ? null
                       : () => cashCheckController.skip(),
-                  child: const Text('跳过本次'),
+                  child: Text(t.settingsCashSkipOnce),
                 ),
               ],
             ),
@@ -542,13 +568,13 @@ class _SystemSettingsView extends ConsumerWidget {
         ),
 
                 _SectionCard(
-          title: 'POS终端网络',
-          subtitle: '确保终端与刷卡设备保持在同一网络',
+                  title: t.settingsPosNetworkTitle,
+                  subtitle: t.settingsPosNetworkSubtitle,
           children: [
             _InfoRow(
               icon: Icons.language_rounded,
-              label: '终端 IP',
-              value: _displayValue(pos.posIp),
+                      label: t.settingsPosIpLabel,
+              value: _displayValue(t, pos.posIp),
               editLabel: t.settingsEditAction,
               onEdit: () async {
                 final input = await _promptForValue(
@@ -573,8 +599,8 @@ class _SystemSettingsView extends ConsumerWidget {
             ),
             _InfoRow(
               icon: Icons.settings_ethernet,
-              label: '终端端口',
-              value: _displayValue(pos.posPort?.toString()),
+              label: t.settingsPosPortLabel,
+              value: _displayValue(t, pos.posPort?.toString()),
               editLabel: t.settingsEditAction,
               onEdit: () async {
                 final input = await _promptForValue(
@@ -605,10 +631,10 @@ class _SystemSettingsView extends ConsumerWidget {
         ),
 
         _SectionCard(
-          title: '打印机配置',
-          subtitle: '控制小票、标签及厨房打印',
+          title: t.settingsPrinterConfigTitle,
+          subtitle: t.settingsPrinterConfigSubtitle,
           children: printers.isEmpty
-              ? const [_EmptyPlaceholder(message: '暂无打印机配置，可在后台新增')]
+              ? [_EmptyPlaceholder(message: t.settingsPrinterEmpty)]
               : [_PrinterGrid(printers: printers)],
         ),
 
@@ -651,10 +677,11 @@ class _SystemSettingsView extends ConsumerWidget {
 }
 
 class _RoleSelector extends StatelessWidget {
-  const _RoleSelector({required this.current, required this.onSelect});
+  const _RoleSelector({required this.current, required this.onSelect, required this.t});
 
   final AppRole current;
   final Future<void> Function(AppRole role) onSelect;
+  final AppLocalizations t;
 
   @override
   Widget build(BuildContext context) {
@@ -664,7 +691,7 @@ class _RoleSelector extends StatelessWidget {
       runSpacing: 10,
       children: AppRole.values.map((role) {
         final active = role == current;
-        final label = role == AppRole.staff ? '店员端' : '顾客端';
+        final label = role == AppRole.staff ? t.peerLabelStaff : t.peerLabelCustomer;
         final icon = role == AppRole.staff ? Icons.badge_rounded : Icons.tv_rounded;
         final color = active
             ? theme.colorScheme.primary
@@ -838,6 +865,7 @@ class _MachineInfoView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final shop = state.shopInfo;
     final basic = state.snapshot.basic;
     final languages =
@@ -847,44 +875,46 @@ class _MachineInfoView extends StatelessWidget {
             .toList() ??
         const [];
     final features = <_FeatureChipData>[
-      _FeatureChipData('线上叫号', shop?.onlineCall ?? false),
-      _FeatureChipData('税制', shop?.taxSystem ?? false),
-      _FeatureChipData('动态取票', shop?.dynamicCode ?? false),
-      _FeatureChipData('多人协同', shop?.multiplayer ?? false),
+      _FeatureChipData(t.settingsFeatureOnlineCall, shop?.onlineCall ?? false),
+      _FeatureChipData(t.settingsFeatureTaxSystem, shop?.taxSystem ?? false),
+      _FeatureChipData(t.settingsFeatureDynamicCode, shop?.dynamicCode ?? false),
+      _FeatureChipData(t.settingsFeatureMultiplayer, shop?.multiplayer ?? false),
     ];
 
     return _RefreshableScroll(
       onRefresh: onRefresh,
       children: [
         _SectionCard(
-          title: '设备标识',
-          subtitle: '当前终端与激活信息',
+          title: t.settingsMachineInfoTitle,
+          subtitle: t.settingsMachineInfoSubtitle,
           children: [
             _InfoRow(
               icon: Icons.confirmation_number,
-              label: '机器码',
-              value: _displayValue(shop?.machineCode ?? basic.machineCode),
+              label: t.settingsMachineCodeLabel,
+              value: _displayValue(t, shop?.machineCode ?? basic.machineCode),
             ),
             _InfoRow(
               icon: Icons.qr_code,
-              label: '工作站编码',
-              value: _displayValue(shop?.stationMachineCode),
+              label: t.settingsStationCodeLabel,
+              value: _displayValue(t, shop?.stationMachineCode),
             ),
             _InfoRow(
               icon: Icons.lock_clock,
-              label: '授权门店号',
-              value: _displayValue(shop?.shopCode ?? basic.shopCode),
+              label: t.settingsAuthorizedShopLabel,
+              value: _displayValue(t, shop?.shopCode ?? basic.shopCode),
             ),
           ],
         ),
         _SectionCard(
-          title: '语言与功能',
-          subtitle: '根据门店授权调整显示语言与能力',
+          title: t.settingsLanguageFeatureTitle,
+          subtitle: t.settingsLanguageFeatureSubtitle,
           children: [
             _InfoRow(
               icon: Icons.language,
-              label: '支持语言',
-              value: languages.isEmpty ? '未配置' : languages.join(' / '),
+              label: t.settingsSupportedLanguagesLabel,
+              value: languages.isEmpty
+                  ? t.settingsSupportedLanguagesEmpty
+                  : languages.join(' / '),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -1000,6 +1030,7 @@ class _InfoRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -1046,7 +1077,7 @@ class _InfoRow extends StatelessWidget {
                 ),
               ),
               icon: const Icon(Icons.edit_outlined, size: 18),
-              label: Text(editLabel ?? '编辑'),
+              label: Text(editLabel ?? t.settingsEditAction),
             ),
           ],
         ],
@@ -1099,7 +1130,7 @@ class _PrinterTile extends ConsumerWidget {
     final receiptLabel = printer.receipt
         ? t.settingsPrinterReceiptTicket
         : t.settingsPrinterReceiptLabel;
-    final typeLabel = _printerType(printer.type);
+    final typeLabel = _printerType(t, printer.type);
     String? selectedLabelKey;
     for (final entry in _labelPrintSize.entries) {
       if (entry.value == printer.labelSize || entry.key == printer.labelSize) {
@@ -1202,7 +1233,10 @@ class _PrinterTile extends ConsumerWidget {
                         _Tag(icon: Icons.print_rounded, label: typeLabel),
                         _Tag(icon: Icons.receipt_long, label: receiptLabel),
                         if (printer.isDefault)
-                          const _Tag(icon: Icons.star_rounded, label: '默认'),
+                          _Tag(
+                            icon: Icons.star_rounded,
+                            label: t.settingsPrinterDefaultTag,
+                          ),
                       ],
                     ),
                   ],
@@ -1221,7 +1255,7 @@ class _PrinterTile extends ConsumerWidget {
             contentPadding: EdgeInsets.zero,
             leading: Icon(Icons.language, color: theme.colorScheme.primary),
             title: Text(t.settingsPrinterIpTitle),
-            subtitle: Text(_displayValue(printer.printIp)),
+            subtitle: Text(_displayValue(t, printer.printIp)),
             trailing: const Icon(Icons.edit_outlined, size: 18),
             onTap: editIp,
           ),
@@ -1232,7 +1266,7 @@ class _PrinterTile extends ConsumerWidget {
               color: theme.colorScheme.primary,
             ),
             title: Text(t.settingsPrinterPortTitle),
-            subtitle: Text(_displayValue(printer.printPort)),
+            subtitle: Text(_displayValue(t, printer.printPort)),
             trailing: const Icon(Icons.edit_outlined, size: 18),
             onTap: editPort,
           ),
@@ -1525,22 +1559,22 @@ IconData _sectionIcon(SettingsSection section) {
   }
 }
 
-String _displayValue(String? value) {
+String _displayValue(AppLocalizations t, String? value) {
   if (value == null || value.trim().isEmpty) {
-    return '未设置';
+    return t.settingsValueNotSet;
   }
   return value.trim();
 }
 
-String _printerType(int type) {
+String _printerType(AppLocalizations t, int type) {
   switch (type) {
     case 10:
-      return '厨房打印';
+      return t.settingsPrinterTypeKitchen;
     case 11:
-      return '中心打印';
+      return t.settingsPrinterTypeCenter;
     case 12:
-      return '前台打印';
+      return t.settingsPrinterTypeFront;
     default:
-      return '打印类型 $type';
+      return t.settingsPrinterTypeUnknown(type.toString());
   }
 }

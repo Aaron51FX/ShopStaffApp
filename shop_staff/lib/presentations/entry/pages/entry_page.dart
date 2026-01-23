@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' as intl;
 import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../../../core/router/app_router.dart';
@@ -49,8 +50,8 @@ class _EntryPageState extends ConsumerState<EntryPage> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('顾客端已断开'),
-          content: const Text('是否重新搜索并尝试连接顾客端？'),
+          title: Text(t.entryPeerDisconnectedTitle),
+          content: Text(t.entryPeerDisconnectedMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
@@ -58,7 +59,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
             ),
             FilledButton(
               onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('重新连接'),
+              child: Text(t.entryPeerReconnect),
             ),
           ],
         );
@@ -82,34 +83,37 @@ class _EntryPageState extends ConsumerState<EntryPage> {
       builder: (ctx) {
         return Consumer(
           builder: (context, ref, _) {
+            final t = AppLocalizations.of(context);
             final state = ref.watch(peerLinkControllerProvider);
             final statusLabel = switch (state.status) {
-              PeerLinkStatus.connected => '已连接: ${state.peerName ?? '顾客端'}',
-              PeerLinkStatus.searching => '正在搜索附近的顾客端…',
-              PeerLinkStatus.error => '连接异常: ${state.lastError ?? '未知错误'}',
-              PeerLinkStatus.idle => '未开始连接',
+              PeerLinkStatus.connected =>
+                  '${t.peerStatusConnectedPrefix} ${state.peerName ?? t.peerLabelCustomer}',
+              PeerLinkStatus.searching => t.entryPeerSearchingCustomer,
+              PeerLinkStatus.error =>
+                  '${t.peerStatusErrorPrefix} ${state.lastError ?? t.commonUnknownError}',
+              PeerLinkStatus.idle => t.peerStatusIdle,
             };
             final showSpinner =
                 state.status == PeerLinkStatus.searching ||
                 state.status == PeerLinkStatus.idle;
             return AlertDialog(
-              title: const Text('连接顾客端'),
+              title: Text(t.entryPeerConnectDialogTitle),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (showSpinner)
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 16),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
                       child: Row(
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             width: 22,
                             height: 22,
                             child: CircularProgressIndicator(strokeWidth: 2.4),
                           ),
-                          SizedBox(width: 12),
-                          Text('搜索中…'),
+                          const SizedBox(width: 12),
+                          Text(t.peerSearchInProgress),
                         ],
                       ),
                     )
@@ -128,11 +132,11 @@ class _EntryPageState extends ConsumerState<EntryPage> {
               actions: [
                 TextButton(
                   onPressed: () => controller.restart(),
-                  child: const Text('重启搜索'),
+                  child: Text(t.peerSearchRestart),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(),
-                  child: Text(state.isConnected ? '完成' : '关闭'),
+                  child: Text(state.isConnected ? t.peerActionDone : t.peerActionClose),
                 ),
               ],
             );
@@ -171,7 +175,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
         .maybeWhen(data: (value) => value, orElse: DateTime.now);
     final linkState = ref.watch(peerLinkControllerProvider);
     final timeText = _formatTime(now);
-    final dateText = _formatDate(now);
+    final dateText = _formatDate(now, t);
 
     return CashMachineDialogPortal(
       child: Scaffold(
@@ -308,7 +312,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
         FilledButton.icon(
           onPressed: () => router.push('/orders'),
           icon: const Icon(Icons.receipt_long_rounded),
-          label: const Text('历史订单'),
+          label: Text(t.entryHistoryOrders),
           style: FilledButton.styleFrom(
             backgroundColor: Colors.white.withValues(alpha: 0.12),
             foregroundColor: Colors.white,
@@ -471,12 +475,16 @@ class _CustomerStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final connected = linkState.isConnected;
     final color = connected ? const Color(0xFF22D3EE) : const Color(0xFFEF4444);
     final icon = connected ? Icons.sensors_rounded : Icons.sensors_off_rounded;
+    final peerLabel = role == AppRole.staff ? t.peerLabelCustomer : t.peerLabelStaff;
+    final peerName = linkState.peerName?.trim() ?? '';
+    final peerDisplay = peerName.isEmpty ? peerLabel : '$peerLabel $peerName';
     final label = connected
-        ? '已连接: ${"${role.oppositeLabel} ${linkState.peerName ?? ''}"}'
-        : '未连接: ${role.oppositeLabel}';
+      ? '${t.peerStatusConnectedPrefix} $peerDisplay'
+      : '${t.peerStatusDisconnectedPrefix} $peerLabel';
     return GestureDetector(
       onTap: toTouch,
       child: Container(
@@ -518,29 +526,7 @@ String _formatTime(DateTime now) {
   return '$h:$m:$s';
 }
 
-String _formatDate(DateTime now) {
-  final weekday = _weekdayLabel(now.weekday);
-  final month = now.month.toString().padLeft(2, '0');
-  final day = now.day.toString().padLeft(2, '0');
-  return '${now.year}年$month月$day日 · $weekday';
-}
-
-String _weekdayLabel(int weekday) {
-  switch (weekday) {
-    case DateTime.monday:
-      return '星期一';
-    case DateTime.tuesday:
-      return '星期二';
-    case DateTime.wednesday:
-      return '星期三';
-    case DateTime.thursday:
-      return '星期四';
-    case DateTime.friday:
-      return '星期五';
-    case DateTime.saturday:
-      return '星期六';
-    case DateTime.sunday:
-    default:
-      return '星期日';
-  }
+String _formatDate(DateTime now, AppLocalizations t) {
+  final formatter = intl.DateFormat(t.entryDatePattern, t.localeName);
+  return formatter.format(now);
 }

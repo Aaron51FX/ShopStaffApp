@@ -62,7 +62,7 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
       }
     } catch (e) {
       debugPrint('[Activation] error: $e');
-      state = state.copyWith(isLoading: false, error: '激活失败: $e');
+      state = state.copyWith(isLoading: false, error: e.toString());
       return;
     }
     state = state.copyWith(isLoading: false);

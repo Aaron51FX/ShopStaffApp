@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 class CartContent extends StatelessWidget {
   const CartContent({super.key, required this.payload});
@@ -10,6 +11,7 @@ class CartContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final orderNumber = (payload['orderNumber'] as num?)?.toInt() ?? 0;
     final orderMode = (payload['orderMode'] ?? '') as String? ?? '';
     final subtotal = (payload['subtotal'] as num?)?.toDouble() ?? 0;
@@ -35,7 +37,7 @@ class CartContent extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('订单 #$orderNumber', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              Text(t.customerOrderNumberTitle(orderNumber), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
               const SizedBox(width: 12),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -44,7 +46,7 @@ class CartContent extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  orderMode == 'take_out' ? '外带' : '堂食',
+                  orderMode == 'take_out' ? t.posOrderModeTakeout : t.posOrderModeDineIn,
                   style: TextStyle(
                     fontSize: 18,
                     color: orderMode == 'take_out' ? const Color(0xFFF97316) : const Color(0xFF0284C7),
@@ -57,7 +59,7 @@ class CartContent extends StatelessWidget {
           const SizedBox(height: 12),
           Expanded(
             child: items.isEmpty
-                ? const Center(child: Text('暂无购物车商品'))
+                ? Center(child: Text(t.posCartEmptyMessage))
                 : ListView.separated(
                     itemCount: items.length,
                     separatorBuilder: (_, __) => const Divider(height: 16),
@@ -101,7 +103,7 @@ class CartContent extends StatelessWidget {
                                   ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 6.0),
-                                  child: Text('单价 ¥${unitPrice.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.amberPrimary, fontSize: 16)),
+                                  child: Text('${t.commonUnitPriceLabel} ¥${unitPrice.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.amberPrimary, fontSize: 16)),
                                 ),
                               ],
                             ),
@@ -123,10 +125,10 @@ class CartContent extends StatelessWidget {
                   ),
           ),
           const Divider(height: 20),
-          _SummaryLine(label: '小计', value: subtotal),
-          _SummaryLine(label: '折扣', value: -discount, muted: true),
+          _SummaryLine(label: t.posSubtotalLabel, value: subtotal),
+          _SummaryLine(label: t.posDiscountLabel, value: -discount, muted: true),
           const SizedBox(height: 6),
-          _SummaryLine(label: '应付总额', value: total, emphasized: true),
+          _SummaryLine(label: t.posTotalDueLabel, value: total, emphasized: true),
         ],
       ),
     );

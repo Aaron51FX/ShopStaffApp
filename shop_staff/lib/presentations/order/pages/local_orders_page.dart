@@ -6,6 +6,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:shop_staff/application/order/usecases/order_reprint_usecase.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 import 'package:shop_staff/presentations/order/viewmodels/local_orders_viewmodel.dart';
 
@@ -17,12 +18,13 @@ class LocalOrdersPage extends ConsumerWidget {
     final vm = ref.read(localOrdersViewModelProvider.notifier);
     final state = ref.watch(localOrdersViewModelProvider);
     final orders = vm.filtered;
+    final t = AppLocalizations.of(context);
 
     final selected = vm.selected;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('历史订单'),
+        title: Text(t.orderHistoryTitle),
         backgroundColor: AppColors.amberPrimary,
         foregroundColor: Colors.white,
         leading: IconButton(
@@ -31,7 +33,7 @@ class LocalOrdersPage extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            tooltip: '刷新',
+            tooltip: t.orderHistoryRefreshTooltip,
             onPressed: () => vm.load(),
             icon: const Icon(Icons.refresh_rounded),
           ),
@@ -43,7 +45,7 @@ class LocalOrdersPage extends ConsumerWidget {
             padding: const EdgeInsets.all(12),
             child: TextField(
               decoration: InputDecoration(
-                hintText: '搜索 按编号或商品名',
+                hintText: t.orderHistorySearchHint,
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: AppColors.stone100,
@@ -63,7 +65,7 @@ class LocalOrdersPage extends ConsumerWidget {
           else if (state.error != null)
             Padding(
               padding: const EdgeInsets.only(top: 32),
-              child: Center(child: Text(state.error!)),
+              child: Center(child: Text(t.orderHistoryLoadFailed)),
             )
           else
             Expanded(
@@ -75,7 +77,7 @@ class LocalOrdersPage extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: orders.isEmpty
-                            ? const Center(child: Text('暂无历史订单'))
+                            ? Center(child: Text(t.orderHistoryEmpty))
                             : ListView.separated(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
@@ -139,7 +141,8 @@ class _OrderTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = intl.DateFormat('MM-dd HH:mm');
+    final t = AppLocalizations.of(context);
+    final formatter = intl.DateFormat(t.orderHistoryDatePatternShort, t.localeName);
     final when = formatter.format(order.createdAt.toLocal());
 
     return Card(
@@ -187,11 +190,11 @@ class _OrderTile extends StatelessWidget {
                           style: const TextStyle(color: AppColors.stone600),
                         ),
                         Text(
-                          '共$itemCount件',
+                          '${t.orderHistoryItemCountPrefix}$itemCount${t.orderHistoryItemCountSuffix}',
                           style: const TextStyle(color: AppColors.stone600),
                         ),
                         Text(
-                          order.isPaid ? '已支付' : '未支付',
+                          order.isPaid ? t.orderHistoryPaid : t.orderHistoryUnpaid,
                           style: TextStyle(
                             color: order.isPaid ? AppColors.emerald600 : AppColors.stone600,
                             fontWeight: FontWeight.w600,
@@ -247,7 +250,8 @@ class _OrderDetailsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formatter = intl.DateFormat('yyyy-MM-dd HH:mm:ss');
+    final t = AppLocalizations.of(context);
+    final formatter = intl.DateFormat(t.orderHistoryDatePatternLong, t.localeName);
     final when = formatter.format(order.createdAt.toLocal());
 
     return Container(
@@ -261,14 +265,14 @@ class _OrderDetailsPanel extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    '订单详情',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    t.orderHistoryDetailsTitle,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                   ),
                 ),
                 IconButton(
-                  tooltip: '关闭',
+                  tooltip: t.orderHistoryCloseTooltip,
                   onPressed: onClose,
                   icon: const Icon(Icons.close_rounded),
                 ),
@@ -280,18 +284,18 @@ class _OrderDetailsPanel extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(12),
               children: [
-                _kv('订单号', order.orderId),
-                _kv('时间', when),
-                _kv('状态', order.isPaid ? '已支付' : '未支付'),
-                _kv('支付方式', order.payMethod.isNotEmpty ? order.payMethod : '未知'),
-                _kv('金额', '¥${order.clientTotal.toStringAsFixed(2)}'),
-                _kv('模式', order.takeout ? '外带' : '堂食'),
-                _kv('商品数', order.items.length.toString()),
-                const SizedBox(height: 12),
-                const Text(
-                  '商品',
-                  style: TextStyle(fontWeight: FontWeight.w700),
+                _kv(t.orderHistoryDetailOrderIdLabel, order.orderId),
+                _kv(t.orderHistoryDetailTimeLabel, when),
+                _kv(t.orderHistoryDetailStatusLabel, order.isPaid ? t.orderHistoryPaid : t.orderHistoryUnpaid),
+                _kv(
+                  t.orderHistoryDetailPayMethodLabel,
+                  order.payMethod.isNotEmpty ? order.payMethod : t.orderHistoryPayMethodUnknown,
                 ),
+                _kv(t.orderHistoryDetailAmountLabel, '¥${order.clientTotal.toStringAsFixed(2)}'),
+                _kv(t.orderHistoryDetailModeLabel, order.takeout ? t.posOrderModeTakeout : t.posOrderModeDineIn),
+                _kv(t.orderHistoryDetailItemCountLabel, order.items.length.toString()),
+                const SizedBox(height: 12),
+                Text(t.orderHistoryDetailProductsTitle, style: const TextStyle(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 8),
                 ...order.items.map(
                   (e) => Padding(
@@ -313,17 +317,17 @@ class _OrderDetailsPanel extends StatelessWidget {
               children: [
                 FilledButton(
                   onPressed: onReorder,
-                  child: const Text('再次下单(取单)'),
+                  child: Text(t.orderHistoryReorder),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton(
                   onPressed: onPrintReceipt,
-                  child: const Text('打印 receipt'),
+                  child: Text(t.orderHistoryPrintReceipt),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton(
                   onPressed: onPrintKitchenTickets,
-                  child: const Text('打印厨房票'),
+                  child: Text(t.orderHistoryPrintKitchen),
                 ),
               ],
             ),

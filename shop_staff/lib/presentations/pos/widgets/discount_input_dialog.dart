@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 Future<double?> showDiscountInputDialog(
   BuildContext context, {
@@ -23,11 +24,14 @@ class _DiscountInputDialog extends StatefulWidget {
 class _DiscountInputDialogState extends State<_DiscountInputDialog> {
   late String _input;
 
+  static const String _actionClear = '__clear__';
+  static const String _actionDelete = '__delete__';
+
   static const List<String> _digitKeys = <String>[
     '7', '8', '9',
     '4', '5', '6',
     '1', '2', '3',
-    '清空', '0', '删除',
+    _actionClear, '0', _actionDelete,
   ];
 
   static const List<int> _presetValues = <int>[100, 200, 500, 1000, 2000, 5000];
@@ -40,6 +44,7 @@ class _DiscountInputDialogState extends State<_DiscountInputDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final value = _currentValue();
     final canConfirm = value > 0;
@@ -56,9 +61,9 @@ class _DiscountInputDialogState extends State<_DiscountInputDialog> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    '输入折扣金额',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  Text(
+                    t.discountInputTitle,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -82,7 +87,7 @@ class _DiscountInputDialogState extends State<_DiscountInputDialog> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: canConfirm ? () => Navigator.pop(context, value) : null,
-                  child: const Text('确定'),
+                  child: Text(t.discountConfirm),
                 ),
               ),
             ],
@@ -93,6 +98,7 @@ class _DiscountInputDialogState extends State<_DiscountInputDialog> {
   }
 
   Widget _buildDigitPad(ThemeData theme) {
+    final t = AppLocalizations.of(context);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -105,9 +111,9 @@ class _DiscountInputDialogState extends State<_DiscountInputDialog> {
       itemCount: _digitKeys.length,
       itemBuilder: (_, index) {
         final label = _digitKeys[index];
-        final isAction = label == '删除' || label == '清空';
+        final isAction = label == _actionDelete || label == _actionClear;
         return _KeyButton(
-          label: label,
+          label: _displayLabel(label, t),
           color: isAction ? theme.colorScheme.secondary : theme.colorScheme.primary,
           onTap: () => _handleKey(label),
         );
@@ -117,11 +123,11 @@ class _DiscountInputDialogState extends State<_DiscountInputDialog> {
 
   void _handleKey(String label) {
     setState(() {
-      if (label == '删除') {
+      if (label == _actionDelete) {
         if (_input.isNotEmpty) {
           _input = _input.substring(0, _input.length - 1);
         }
-      } else if (label == '清空') {
+      } else if (label == _actionClear) {
         _input = '';
       } else {
         if (_input.length >= 8) return;
@@ -143,6 +149,12 @@ class _DiscountInputDialogState extends State<_DiscountInputDialog> {
   double _currentValue() {
     if (_input.isEmpty) return 0;
     return double.tryParse(_input) ?? 0;
+  }
+
+  String _displayLabel(String key, AppLocalizations t) {
+    if (key == _actionClear) return t.discountKeyClear;
+    if (key == _actionDelete) return t.discountKeyDelete;
+    return key;
   }
 }
 

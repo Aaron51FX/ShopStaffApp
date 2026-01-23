@@ -6,6 +6,7 @@ import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_dialog_state.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_effect.dart';
@@ -78,13 +79,15 @@ class _PosPageState extends ConsumerState<PosPage> {
 
   Future<void> _handleEffect(PosEffect effect) async {
     if (!mounted) return;
+    final t = AppLocalizations.of(context);
     final vm = ref.read(posViewModelProvider.notifier);
 
     if (effect is PosToastEffect) {
+      final message = _resolveToastMessage(t, effect);
       if (effect.isError) {
-        SimpleToast.errorGlobal(effect.message);
+        SimpleToast.errorGlobal(message);
       } else {
-        SimpleToast.successGlobal(effect.message);
+        SimpleToast.successGlobal(message);
       }
       return;
     }
@@ -101,8 +104,8 @@ class _PosPageState extends ConsumerState<PosPage> {
 
     if (effect is PosRequestClearCartConfirmEffect) {
       final ok = await ref.read(dialogControllerProvider.notifier).confirm(
-            title: '清空购物车',
-            message: '确认要清空购物车吗？',
+            title: t.posClearCartTitle,
+            message: t.posClearCartMessage,
             destructive: true,
           );
       if (ok) {
@@ -113,14 +116,33 @@ class _PosPageState extends ConsumerState<PosPage> {
 
     if (effect is PosRequestSuspendConfirmEffect) {
       final ok = await ref.read(dialogControllerProvider.notifier).confirm(
-            title: '挂单',
-            message: '确认要挂单吗？',
+            title: t.posSuspendTitle,
+            message: t.posSuspendMessage,
           );
       if (ok) {
         vm.confirmSuspendCurrentOrder();
       }
       return;
     }
+  }
+
+  String _resolveToastMessage(AppLocalizations t, PosToastEffect effect) {
+    if (effect.messageKey != null) {
+      return switch (effect.messageKey!) {
+        PosToastKey.peerSyncDisabled => t.posToastPeerSyncDisabled,
+        PosToastKey.peerNotConnected => t.posToastPeerNotConnected,
+        PosToastKey.pushedToCustomer => t.posToastPushedToCustomer,
+        PosToastKey.pushedConfigToCustomer => t.posToastPushedConfigToCustomer,
+        PosToastKey.pushedOptionGroupToCustomer => t.posToastPushedOptionGroupToCustomer,
+        PosToastKey.cartEmptyCannotPush => t.posToastCartEmptyCannotPush,
+        PosToastKey.cartSentToCustomer => t.posToastCartSentToCustomer,
+        PosToastKey.clearedCustomerDisplay => t.posToastClearedCustomerDisplay,
+        PosToastKey.localOrderSaveFailed => t.posToastLocalOrderSaveFailed,
+        PosToastKey.orderSubmitFailed => t.posToastOrderSubmitFailed,
+        PosToastKey.noPayableOrder => t.posToastNoPayableOrder,
+      };
+    }
+    return effect.message ?? '';
   }
 
   @override

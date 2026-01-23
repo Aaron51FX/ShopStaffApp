@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import '../viewmodels/activation_viewmodel.dart';
 
 class LoginPage extends ConsumerWidget {
@@ -9,6 +10,7 @@ class LoginPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
   final vm = ref.watch(activationViewModelProvider);
   final controller = ref.read(activationViewModelProvider.notifier).machineCodeController;
+  final t = AppLocalizations.of(context);
 
     return Scaffold(
       body: Center(
@@ -20,12 +22,12 @@ class LoginPage extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('设备激活', style: Theme.of(context).textTheme.headlineMedium),
+                Text(t.loginActivateTitle, style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 24),
                 TextField(
                   controller: controller,
                   decoration: InputDecoration(
-                    labelText: '机器码 (Machine Code)',
+                    labelText: t.loginMachineCodeLabel,
                     prefixIcon: const Icon(Icons.confirmation_number),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.qr_code_scanner),
@@ -37,11 +39,13 @@ class LoginPage extends ConsumerWidget {
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: vm.isLoading || vm.machineCode.trim().isEmpty ? null : () => ref.read(activationViewModelProvider.notifier).submit(context),
-                  child: vm.isLoading ? const SizedBox(height:20,width:20,child: CircularProgressIndicator(strokeWidth:2,color: Colors.white)) : const Text('激活并进入'),
+                  child: vm.isLoading
+                      ? const SizedBox(height:20,width:20,child: CircularProgressIndicator(strokeWidth:2,color: Colors.white))
+                      : Text(t.loginActivateButton),
                 ),
                 if (vm.error != null) ...[
                   const SizedBox(height: 12),
-                  Text(vm.error!, style: const TextStyle(color: Colors.red)),
+                  Text(t.activationFailedMessage(vm.error!), style: const TextStyle(color: Colors.red)),
                 ],
               ],
             ),

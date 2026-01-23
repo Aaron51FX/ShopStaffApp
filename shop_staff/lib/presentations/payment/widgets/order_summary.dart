@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 class OrderSummary extends StatelessWidget {
   const OrderSummary({super.key, required this.args});
@@ -10,6 +11,7 @@ class OrderSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final formatter = NumberFormat.currency(locale: 'ja_JP', symbol: '¥');
     return Card(
       elevation: 0,
@@ -23,9 +25,9 @@ class OrderSummary extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('订单号 ${args.order.orderId}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  Text('${t.paymentOrderIdLabel} ${args.order.orderId}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 4),
-                  Text('选择方式: ${args.channelDisplayName ?? args.channelCode}', style: const TextStyle(color: Colors.black54)),
+                  Text('${t.paymentChannelLabel}: ${args.channelDisplayName ?? args.channelCode}', style: const TextStyle(color: Colors.black54)),
                 ],
               ),
             ),

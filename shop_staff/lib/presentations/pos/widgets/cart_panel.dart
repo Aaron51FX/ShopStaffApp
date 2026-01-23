@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 import 'package:shop_staff/presentations/pos/widgets/no_scrollbar_behavior.dart';
 
@@ -20,6 +21,7 @@ class CartPanel extends ConsumerWidget {
   const CartPanel({super.key, required this.onEdit, required this.onCheckout, required this.onSuspend, required this.onClear, required this.onDiscount});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+  final t = AppLocalizations.of(context);
   final orderNumber = ref.watch(posViewModelProvider.select((s) => s.orderNumber));
   final orderMode = ref.watch(posViewModelProvider.select((s) => s.orderMode));
   final cart = ref.watch(posViewModelProvider.select((s) => s.cart));
@@ -37,13 +39,13 @@ class CartPanel extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Row(children: [
-            const Text('订单号:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text(t.posOrderNumberLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(width: 6),
             Text('#$orderNumber', style: const TextStyle(color: AppColors.amberPrimary, fontWeight: FontWeight.bold, fontSize: 16)),
             if (vm.peerLinkEnabled()) ...[
               IconButton(
                 icon: const Icon(Icons.send_rounded, size: 20, color: AppColors.amberPrimary),
-                tooltip: '推送购物车到顾客端',
+                tooltip: t.posPushCartTooltip,
                 onPressed: cart.isEmpty ? null : vm.sendCartToCustomer,
                 padding: const EdgeInsets.all(6),
                 constraints: const BoxConstraints(),
@@ -58,7 +60,7 @@ class CartPanel extends ConsumerWidget {
                 color: AppColors.amberPrimary,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(orderMode == 'dine_in' ? '堂食' : '外带', style: const TextStyle(color: AppColors.stone100, fontWeight: FontWeight.bold, fontSize: 16)),
+              child: Text(orderMode == 'dine_in' ? t.posOrderModeDineIn : t.posOrderModeTakeout, style: const TextStyle(color: AppColors.stone100, fontWeight: FontWeight.bold, fontSize: 16)),
             ),
           ]),
         ),
@@ -68,10 +70,10 @@ class CartPanel extends ConsumerWidget {
             child: ScrollConfiguration(
               behavior: const NoScrollbarBehavior(),
               child: cart.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text('购物车是空的\n请从左侧选择商品', textAlign: TextAlign.center, style: TextStyle(color: AppColors.stone400)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Text(t.posCartEmptyMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.stone400)),
                       ),
                     )
                   : ListView.builder(
@@ -160,21 +162,21 @@ class CartPanel extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(children: [
-            _SummaryRow(label: '小计', value: '¥${subtotal.toStringAsFixed(2)}'),
+            _SummaryRow(label: t.posSubtotalLabel, value: '¥${subtotal.toStringAsFixed(2)}'),
             const SizedBox(height: 4),
-            _SummaryRow(label: '折扣', value: '-¥${discount.toStringAsFixed(2)}', onTap: cart.isEmpty ? null : onDiscount),
+            _SummaryRow(label: t.posDiscountLabel, value: '-¥${discount.toStringAsFixed(2)}', onTap: cart.isEmpty ? null : onDiscount),
             const Divider(height: 24),
-            _SummaryRow(label: '应付总额', value: '¥${total.toStringAsFixed(2)}', emphasized: true),
+            _SummaryRow(label: t.posTotalDueLabel, value: '¥${total.toStringAsFixed(2)}', emphasized: true),
             const SizedBox(height: 12),
             Row(children: [
-              Expanded(child: PrimaryButton(label: '挂单', onTap: cart.isEmpty ? null : onSuspend, color: AppColors.stone200, textColor: AppColors.stone600)),
+              Expanded(child: PrimaryButton(label: t.posSuspendButton, onTap: cart.isEmpty ? null : onSuspend, color: AppColors.stone200, textColor: AppColors.stone600)),
               const SizedBox(width: 8),
-              Expanded(child: PrimaryButton(label: '折扣', onTap: cart.isEmpty ? null : () => onDiscount(), color: AppColors.stone200, textColor: AppColors.stone600)),
+              Expanded(child: PrimaryButton(label: t.posDiscountButton, onTap: cart.isEmpty ? null : () => onDiscount(), color: AppColors.stone200, textColor: AppColors.stone600)),
               const SizedBox(width: 8),
-              Expanded(child: PrimaryButton(label: '清空', onTap: cart.isEmpty ? null : onClear, color: Colors.red.shade100, textColor: Colors.red.shade700)),
+              Expanded(child: PrimaryButton(label: t.posClearButton, onTap: cart.isEmpty ? null : onClear, color: Colors.red.shade100, textColor: Colors.red.shade700)),
             ]),
             const SizedBox(height: 8),
-            PrimaryButton(label: '结 账', onTap: cart.isEmpty ? null : onCheckout, color: AppColors.emerald600, textColor: Colors.white, height: 52),
+            PrimaryButton(label: t.posCheckoutButton, onTap: cart.isEmpty ? null : onCheckout, color: AppColors.emerald600, textColor: Colors.white, height: 52),
           ]),
         )
       ]),

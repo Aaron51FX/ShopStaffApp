@@ -1,6 +1,7 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 class OptionsContent extends StatelessWidget {
   const OptionsContent({required this.payload, super.key});
@@ -9,6 +10,7 @@ class OptionsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final name = (payload['name'] ?? '') as String? ?? '';
     final image = (payload['image'] ?? '') as String? ?? '';
     final basePrice = (payload['basePrice'] as num?)?.toDouble() ?? 0;
@@ -57,7 +59,7 @@ class OptionsContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '基础价 ¥${basePrice.toStringAsFixed(2)}',
+                  '${t.customerOptionsBasePricePrefix}¥${basePrice.toStringAsFixed(2)}',
                   style: const TextStyle(fontSize: 20, color: Colors.grey, fontWeight: FontWeight.w700),
                 ),
               ],
@@ -69,9 +71,9 @@ class OptionsContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  '已选配料',
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 24),
+                Text(
+                  t.customerOptionsSelectedTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 24),
                 ),
                 const SizedBox(height: 10),
                 Expanded(
@@ -84,7 +86,7 @@ class OptionsContent extends StatelessWidget {
                       border: Border.all(color: Colors.grey.shade200),
                     ),
                     child: options.isEmpty
-                        ? const Center(child: Text('暂无选项'))
+                      ? Center(child: Text(t.optionGroupNoOptions))
                         : ListView.separated(
                             itemCount: options.length,
                             separatorBuilder: (_, __) => const Divider(height: 14),
@@ -125,7 +127,7 @@ class OptionsContent extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Text('当前总价', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 24)),
+                    Text(t.customerOptionsTotalLabel, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 24)),
                     const Spacer(),
                     Text(
                       '¥${totalPrice.toStringAsFixed(2)}',

@@ -12,8 +12,97 @@
   "entrySettingsTooltip": "設定を開く",
   "settingsShellTitle": "アプリ設定",
   "settingsShellSubtitle": "端末情報と業務設定を管理",
+  "settingsTitle": "設定",
   "settingsRefreshTooltip": "設定を更新",
   "settingsErrorDismissTooltip": "閉じる",
+  "settingsErrorLoadFailed": "設定の読み込みに失敗しました: {detail}",
+  "@settingsErrorLoadFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsErrorSaveBasicFailed": "基本情報の保存に失敗しました: {detail}",
+  "@settingsErrorSaveBasicFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsErrorSaveNetworkFailed": "ネットワーク設定の保存に失敗しました: {detail}",
+  "@settingsErrorSaveNetworkFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsErrorSavePrinterFailed": "プリンター設定の保存に失敗しました: {detail}",
+  "@settingsErrorSavePrinterFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsBusinessInfoTitle": "店舗基本情報",
+  "settingsBusinessInfoSubtitle": "これらの情報は顧客端とレシートに表示されます",
+  "settingsBusinessNameLabel": "店舗名",
+  "settingsBusinessCodeLabel": "店舗番号",
+  "settingsBusinessPhoneLabel": "連絡先電話",
+  "settingsBusinessAddressLabel": "店舗住所",
+  "settingsBusinessHoursTitle": "営業時間・席数",
+  "settingsBusinessHoursSubtitle": "店舗マスターデータで管理されます",
+  "settingsBusinessHoursLabel": "営業時間",
+  "settingsBusinessSeatsLabel": "席数",
+  "settingsLogoutButton": "ログアウト",
+  "settingsLogoutConfirmTitle": "ログアウト",
+  "settingsLogoutConfirmMessage": "ログアウトしますか？",
+  "settingsRoleSwitchTitle": "役割の切り替え",
+  "settingsRoleSwitchMessage": "「{role}」に切り替えるにはアプリを再起動する必要があります。今すぐ再起動しますか？",
+  "@settingsRoleSwitchMessage": {
+    "placeholders": {
+      "role": {}
+    }
+  },
+  "settingsRoleSwitchSuccess": "「{role}」に切り替えました。画面を移動します...",
+  "@settingsRoleSwitchSuccess": {
+    "placeholders": {
+      "role": {}
+    }
+  },
+  "settingsRoleSelectionTitle": "役割選択",
+  "settingsRoleSelectionSubtitle": "端末の役割を選択すると再起動して対象画面に切り替わります",
+  "settingsRoleSelectionDescription": "スタッフ端末は会計・管理用、顧客端は商品表示と注文用です。",
+  "settingsCashPaymentTitle": "現金支払い",
+  "settingsCashPaymentSubtitle": "現金機を確認して現金支払いを有効化または検証します",
+  "settingsCashStatusLabel": "現在の状態",
+  "settingsCashEnabled": "有効",
+  "settingsCashDisabled": "無効",
+  "settingsCashNotSupported": "未認証または現金支払いが未対応",
+  "settingsCashLastCheckFailed": "直近の検査に失敗しました: {detail}",
+  "@settingsCashLastCheckFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsCashChecking": "検査中…",
+  "settingsCashCheckNow": "今すぐ検査",
+  "settingsCashSkipOnce": "今回はスキップ",
+  "settingsPosNetworkTitle": "POS端末ネットワーク",
+  "settingsPosNetworkSubtitle": "端末とカードリーダーを同一ネットワークに保ってください",
+  "settingsPosIpLabel": "端末IP",
+  "settingsPosPortLabel": "端末ポート",
+  "settingsPrinterConfigTitle": "プリンター設定",
+  "settingsPrinterConfigSubtitle": "レシート・ラベル・キッチン印刷を管理",
+  "settingsPrinterEmpty": "プリンターが未設定です。管理画面で追加してください。",
+  "settingsMachineInfoTitle": "端末識別情報",
+  "settingsMachineInfoSubtitle": "現在の端末と有効化情報",
+  "settingsMachineCodeLabel": "機器コード",
+  "settingsStationCodeLabel": "ワークステーションコード",
+  "settingsAuthorizedShopLabel": "許可された店舗コード",
+  "settingsLanguageFeatureTitle": "言語と機能",
+  "settingsLanguageFeatureSubtitle": "店舗権限に基づいて表示言語と機能を調整します",
+  "settingsSupportedLanguagesLabel": "対応言語",
+  "settingsSupportedLanguagesEmpty": "未設定",
+  "settingsFeatureOnlineCall": "オンライン呼び出し",
+  "settingsFeatureTaxSystem": "税制",
+  "settingsFeatureDynamicCode": "動的発券",
+  "settingsFeatureMultiplayer": "マルチ端末連携",
   "settingsLanguageSectionTitle": "表示言語",
   "settingsLanguageSectionSubtitle": "端末全体で使用する言語を選択してください",
   "settingsLanguageSystem": "システムに合わせる",
@@ -30,6 +119,7 @@
   "dialogCancel": "キャンセル",
   "dialogConfirm": "決定",
   "settingsEditAction": "編集",
+  "settingsValueNotSet": "未設定",
   "settingsNetworkEditIpTitle": "端末IPを編集",
   "settingsNetworkEditIpLabel": "端末IPアドレス",
   "settingsNetworkEditIpHint": "空欄にすると値がクリアされます",
@@ -42,6 +132,16 @@
   "settingsPrinterReceiptLabel": "ラベル",
   "settingsPrinterLabelSizeTitle": "ラベルサイズ",
   "settingsPrinterLabelSizeNone": "未設定",
+  "settingsPrinterDefaultTag": "デフォルト",
+  "settingsPrinterTypeKitchen": "厨房印刷",
+  "settingsPrinterTypeCenter": "センター印刷",
+  "settingsPrinterTypeFront": "フロント印刷",
+  "settingsPrinterTypeUnknown": "印刷タイプ {type}",
+  "@settingsPrinterTypeUnknown": {
+    "placeholders": {
+      "type": {}
+    }
+  },
   "settingsPrinterEditIpTitle": "プリンターIPを編集",
   "settingsPrinterEditIpLabel": "プリンターIPアドレス",
   "settingsPrinterEditPortTitle": "プリンターポートを編集",
@@ -50,5 +150,213 @@
   "settingsPrinterPortTitle": "プリンターポート",
   "settingsPrinterToggleContinuous": "連続印刷",
   "settingsPrinterToggleOption": "オプション項目を印刷",
-  "settingsPrinterToggleDirection": "逆向き印刷"
+  "settingsPrinterToggleDirection": "逆方向印刷",
+  "entryPeerDisconnectedTitle": "顧客端が切断されました",
+  "entryPeerDisconnectedMessage": "顧客端を再検索して再接続しますか？",
+  "entryPeerReconnect": "再接続",
+  "entryPeerConnectDialogTitle": "顧客端に接続",
+  "entryPeerSearchingCustomer": "近くの顧客端を検索中…",
+  "entryHistoryOrders": "履歴注文",
+  "entryDatePattern": "y年M月d日 · EEEE",
+  "peerStatusConnectedPrefix": "接続済み:",
+  "peerStatusDisconnectedPrefix": "未接続:",
+  "peerStatusErrorPrefix": "接続エラー:",
+  "peerStatusIdle": "未接続",
+  "peerSearchInProgress": "検索中…",
+  "peerSearchRestart": "検索を再開",
+  "peerActionDone": "完了",
+  "peerActionClose": "閉じる",
+  "peerLabelCustomer": "お客様端末",
+  "peerLabelStaff": "スタッフ端末",
+  "commonUnknownError": "不明なエラー",
+  "customerDisconnectTitle": "接続が切断されました",
+  "customerDisconnectMessage": "店員端末との接続が切断されました。再接続してください。",
+  "customerReconnect": "再接続",
+  "customerLater": "後で",
+  "customerConnectDialogTitle": "スタッフ端末に接続",
+  "customerPeerSearchingStaff": "スタッフ端末を検索中…",
+  "customerGreeting": "いらっしゃいませ",
+  "customerLabel": "顧客端",
+  "optionGroupMultiple": "複数選択",
+  "optionGroupSingle": "単一選択",
+  "optionGroupMinPrefix": "最少",
+  "optionGroupMaxPrefix": "最大",
+  "optionGroupNoOptions": "オプションなし",
+  "optionGroupSelected": "選択済み",
+  "optionGroupNotSelected": "未選択",
+  "cashMachineTitle": "現金機チェック",
+  "cashMachineCheckingMessage": "現金機を確認しています。しばらくお待ちください…",
+  "cashMachineSuccessMessage": "現金機は正常です。現金支払いが可能です。",
+  "cashMachineFailureMessage": "チェックに失敗しました。機器の接続を確認してください。",
+  "cashMachineStepsChecking": "手順: 状態確認 → 開く → 受け付け開始 → 金額読み取り → 終了",
+  "cashMachineStepsFailure": "フロー: 状態確認 → 現金機を開く → Start Deposit → Deposit Amount → End Deposit",
+  "cashMachineSkip": "スキップ",
+  "cashMachineRetry": "再試行",
+  "cashMachineDone": "完了",
+  "cashMachineClose": "閉じる",
+  "suspendedOrdersTitle": "保留注文",
+  "suspendedOrdersSearchHint": "番号または商品名で検索",
+  "suspendedOrdersEmpty": "保留注文はありません",
+  "suspendedOrdersItemCountPrefix": "合計",
+  "suspendedOrdersItemCountSuffix": "件",
+  "suspendedOrdersResume": "再開",
+  "suspendedOrdersDatePattern": "MM-dd HH:mm",
+  "posClearCartTitle": "カートを空にする",
+  "posClearCartMessage": "カートを空にしますか？",
+  "posSuspendTitle": "注文を保留",
+  "posSuspendMessage": "現在の注文を保留しますか？",
+  "posPushProductToCustomerTooltip": "顧客端に送信",
+  "posClearCustomerDisplayTooltip": "顧客端表示をクリア",
+  "posBroadcastCategoriesTooltip": "カテゴリを顧客端に送信",
+  "posSearchProductHint": "商品を検索 ...",
+  "discountInputTitle": "割引金額を入力",
+  "discountConfirm": "確定",
+  "discountKeyClear": "クリア",
+  "discountKeyDelete": "削除",
+  "posOrderNumberLabel": "注文番号:",
+  "posPushCartTooltip": "カートを顧客端に送信",
+  "posOrderModeDineIn": "店内",
+  "posOrderModeTakeout": "持ち帰り",
+  "posCartEmptyMessage": "カートは空です\n左側から商品を選択してください",
+  "posSubtotalLabel": "小計",
+  "posDiscountLabel": "割引",
+  "posTotalDueLabel": "合計",
+  "posSuspendButton": "保留",
+  "posDiscountButton": "割引",
+  "posClearButton": "クリア",
+  "posCheckoutButton": "会計",
+  "posOptionGroupCurrentPrefix": "現在",
+  "posOptionSendGroupTooltip": "このグループを顧客に送信",
+  "posOptionSendAllTooltip": "現在のオプションを顧客端に送信",
+  "posOptionMaxReachedTitle": "最大数に達しました",
+  "posOptionMaxReachedMessageSuffix": " の最大選択数に達しました",
+  "posOptionMaxReachedOk": "了解",
+  "posOptionAddConfirm": "追加",
+  "posOptionUpdate": "更新",
+  "posOptionMissingTitle": "必須項目が未選択",
+  "posOptionMissingOk": "OK",
+  "paymentSelectionTitle": "支払い方法を選択",
+  "paymentSelectionPushTooltip": "支払い方法を顧客端に送信",
+  "paymentGroupCashTitle": "現金",
+  "paymentGroupCashSubtitle": "現金支払い",
+  "paymentGroupQrTitle": "QR決済",
+  "paymentGroupCardTitle": "クレジット/デビット",
+  "paymentGroupCardShort": "カード",
+  "paymentGroupTransitTitle": "交通系/電子マネー",
+  "paymentGroupTransitShort": "電子マネー",
+  "paymentSelectionNotConfigured": "未設定",
+  "orderHistoryTitle": "履歴注文",
+  "orderHistoryRefreshTooltip": "更新",
+  "orderHistorySearchHint": "番号または商品名で検索",
+  "orderHistoryEmpty": "履歴注文はありません",
+  "orderHistoryItemCountPrefix": "合計",
+  "orderHistoryItemCountSuffix": "件",
+  "orderHistoryPaid": "支払済み",
+  "orderHistoryUnpaid": "未払い",
+  "orderHistoryDatePatternShort": "MM-dd HH:mm",
+  "orderHistoryDatePatternLong": "yyyy-MM-dd HH:mm:ss",
+  "orderHistoryDetailsTitle": "注文詳細",
+  "orderHistoryCloseTooltip": "閉じる",
+  "orderHistoryDetailOrderIdLabel": "注文番号",
+  "orderHistoryDetailTimeLabel": "時間",
+  "orderHistoryDetailStatusLabel": "状態",
+  "orderHistoryDetailPayMethodLabel": "支払い方法",
+  "orderHistoryDetailAmountLabel": "金額",
+  "orderHistoryDetailModeLabel": "モード",
+  "orderHistoryDetailItemCountLabel": "商品数",
+  "orderHistoryDetailProductsTitle": "商品",
+  "orderHistoryPayMethodUnknown": "不明",
+  "orderHistoryReorder": "再注文",
+  "orderHistoryPrintReceipt": "レシート印刷",
+  "orderHistoryPrintKitchen": "キッチン伝票印刷",
+  "cancelDialogLoadingTitle": "取消中",
+  "cancelDialogLoadingMessage": "端末へ取消リクエストを送信中…",
+  "cancelDialogSuccessTitle": "取消完了",
+  "cancelDialogFailureTitle": "取消失敗",
+  "cancelDialogSuccessMessage": "支払いを取消しました",
+  "cancelDialogFailureMessage": "取消に失敗しました。時間をおいて再試行してください。",
+  "cancelDialogDone": "完了",
+  "cancelDialogConfirm": "確認",
+  "cashAmountMatched": "注文金額と一致しました",
+  "cashAmountChangePrefix": "おつり ",
+  "cashAmountShortPrefix": "不足 ",
+  "cashAmountConfirmedLabel": "確定した現金金額",
+  "cashAmountDetectingLabel": "現金金額を認識中",
+  "cashAmountExpectedPrefix": "注文金額：",
+  "paymentOrderIdLabel": "注文番号",
+  "paymentChannelLabel": "選択方式",
+  "loginActivateTitle": "端末アクティベーション",
+  "loginMachineCodeLabel": "機器コード (Machine Code)",
+  "loginActivateButton": "有効化して続行",
+  "activationFailedMessage": "アクティベーションに失敗しました: {detail}",
+  "@activationFailedMessage": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "splashInitializing": "初期化中...",
+  "splashActivationFailedMessage": "アクティベーションに失敗しました({status}): {detail}",
+  "@splashActivationFailedMessage": {
+    "placeholders": {
+      "status": {},
+      "detail": {}
+    }
+  },
+  "splashLoadFailedMessage": "読み込みに失敗しました: {detail}",
+  "@splashLoadFailedMessage": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "splashPossibleCauses": "考えられる原因: 一時的なネットワーク/サーバー 502、バージョン不一致、または機器番号が無効",
+  "splashRetry": "再試行",
+  "splashReactivate": "再アクティベーション",
+  "commonNetworkLabel": "ネットワーク",
+  "commonUnitPriceLabel": "単価",
+  "customerUnknownMessage": "不明なメッセージを受信: {type}",
+  "@customerUnknownMessage": {
+    "placeholders": {
+      "type": {}
+    }
+  },
+  "customerOrderNumberTitle": "注文 #{orderNumber}",
+  "@customerOrderNumberTitle": {
+    "placeholders": {
+      "orderNumber": {}
+    }
+  },
+  "customerTotalDueWithAmount": "お会計 ¥{amount}",
+  "@customerTotalDueWithAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "customerPaymentChoiceTapToSelect": "タップして選択",
+  "customerPaymentChoiceUnavailable": "利用不可",
+  "customerStatusConnectedTitle": "スタッフ端末に接続済み",
+  "customerStatusSyncing": "同期中: {name}",
+  "@customerStatusSyncing": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "customerStatusSearchingDescription": "スタッフ端末が開いていて近くにあることを確認してください。",
+  "customerStatusErrorTitle": "接続エラー",
+  "customerStatusErrorDescription": "再試行するかネットワークを確認してください。",
+  "customerStatusIdleDescription": "上の「スタッフ端末に接続」をタップしてペアリングを開始してください。",
+  "posToastPeerSyncDisabled": "顧客端同期が無効です",
+  "posToastPeerNotConnected": "顧客端が未接続のため送信できません",
+  "posToastPushedToCustomer": "顧客端に送信しました",
+  "posToastPushedConfigToCustomer": "現在の設定を顧客端に送信しました",
+  "posToastPushedOptionGroupToCustomer": "オプショングループを顧客端に送信しました",
+  "posToastCartEmptyCannotPush": "カートが空のため送信できません",
+  "posToastCartSentToCustomer": "カートを顧客端に送信しました",
+  "posToastClearedCustomerDisplay": "顧客端表示をクリアしました",
+  "posToastLocalOrderSaveFailed": "ローカル注文の保存に失敗しました",
+  "posToastOrderSubmitFailed": "注文送信に失敗しました",
+  "posToastNoPayableOrder": "支払い可能な注文がありません",
+  "orderHistoryLoadFailed": "注文履歴の読み込みに失敗しました",
+  "customerOptionsBasePricePrefix": "基本価格 ",
+  "customerOptionsSelectedTitle": "選択済みトッピング",
+  "customerOptionsTotalLabel": "現在合計"
 }

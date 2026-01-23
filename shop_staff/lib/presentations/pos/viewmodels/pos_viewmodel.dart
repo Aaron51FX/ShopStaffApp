@@ -119,7 +119,7 @@ class PosViewModel extends StateNotifier<PosState> {
   bool _ensurePeerLinkEnabled({bool toast = true}) {
     final enabled = peerLinkEnabled();
     if (!enabled && toast) {
-      _emit(const PosToastEffect(message: '顾客端同步已关闭', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.peerSyncDisabled, isError: true));
     }
     return enabled;
   }
@@ -212,7 +212,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
       return;
     }
     final payload = {
@@ -232,7 +232,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
       return;
     }
     final payload = {
@@ -244,7 +244,7 @@ class PosViewModel extends StateNotifier<PosState> {
       'quantity': quantity,
     };
     await controller.sendMessage(PeerMessage(type: 'product_preview', payload: payload));
-    _emit(const PosToastEffect(message: '已推送到顾客端'));
+    _emit(const PosToastEffect(messageKey: PosToastKey.pushedToCustomer));
   }
 
   Future<void> _sendOptionsToCustomer({required Product product, required List<SelectedOption> options}) async {
@@ -252,7 +252,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
       return;
     }
     final basePrice = product.price;
@@ -276,7 +276,7 @@ class PosViewModel extends StateNotifier<PosState> {
           .toList(),
     };
     await controller.sendMessage(PeerMessage(type: 'product_options', payload: payload));
-    _emit(const PosToastEffect(message: '已推送当前配置到顾客端'));
+    _emit(const PosToastEffect(messageKey: PosToastKey.pushedConfigToCustomer));
   }
 
   Future<void> _sendOptionGroupToCustomer({required Product product, required OptionGroupEntity group, required Map<String, int> selected}) async {
@@ -284,7 +284,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
       return;
     }
     final payload = {
@@ -312,7 +312,7 @@ class PosViewModel extends StateNotifier<PosState> {
           .toList(),
     };
     await controller.sendMessage(PeerMessage(type: 'option_group', payload: payload));
-    _emit(const PosToastEffect(message: '已推送分组选项给顾客'));
+    _emit(const PosToastEffect(messageKey: PosToastKey.pushedOptionGroupToCustomer));
   }
 
   Future<void> sendCartToCustomer() async {
@@ -320,11 +320,11 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
       return;
     }
     if (state.cart.isEmpty) {
-      _emit(const PosToastEffect(message: '购物车为空，无法推送', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.cartEmptyCannotPush, isError: true));
       return;
     }
 
@@ -359,14 +359,14 @@ class PosViewModel extends StateNotifier<PosState> {
     };
 
     await controller.sendMessage(PeerMessage(type: 'cart_snapshot', payload: payload));
-    _emit(const PosToastEffect(message: '已将购物车发送到顾客端'));
+    _emit(const PosToastEffect(messageKey: PosToastKey.cartSentToCustomer));
   }
 
   Future<void> _sendPaymentSelectionToCustomer(ShopInfoModel shop, double total) async {
     if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     if (!_ref.read(peerLinkControllerProvider).isConnected) {
-      _emit(const PosToastEffect(message: '顾客端未连接，推送失败', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
       return;
     }
 
@@ -384,7 +384,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) return;
     await controller.sendMessage(const PeerMessage(type: 'reset_display', payload: {}));
-    _emit(const PosToastEffect(message: '已清除顾客端展示'));
+    _emit(const PosToastEffect(messageKey: PosToastKey.clearedCustomerDisplay));
   }
 
   // 选择分类: 异步请求该分类商品
@@ -754,7 +754,7 @@ class PosViewModel extends StateNotifier<PosState> {
         );
       } catch (e) {
         debugPrint('Failed to save local order record: $e');
-        _emit(const PosToastEffect(message: '本地订单保存失败', isError: true));
+        _emit(const PosToastEffect(messageKey: PosToastKey.localOrderSaveFailed, isError: true));
       }
 
       state = state.copyWith(
@@ -774,7 +774,7 @@ class PosViewModel extends StateNotifier<PosState> {
       }
     } catch (e) {
       state = state.copyWith(error: '下单失败: $e');
-      _emit(const PosToastEffect(message: '下单失败', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.orderSubmitFailed, isError: true));
     }
   }
 
@@ -787,7 +787,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final machineCode = _ref.read(machineCodeProvider);
     final result = state.lastOrderResult;
     if (machineCode == null || machineCode.isEmpty || result == null) {
-      _emit(const PosToastEffect(message: '当前没有可支付的订单', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.noPayableOrder, isError: true));
       return;
     }
 
@@ -828,7 +828,7 @@ class PosViewModel extends StateNotifier<PosState> {
     final machineCode = _ref.read(machineCodeProvider);
     final result = state.lastOrderResult;
     if (shop == null || machineCode == null || machineCode.isEmpty || result == null) {
-      _emit(const PosToastEffect(message: '当前没有可支付的订单', isError: true));
+      _emit(const PosToastEffect(messageKey: PosToastKey.noPayableOrder, isError: true));
       return;
     }
     dismissPosDialog();

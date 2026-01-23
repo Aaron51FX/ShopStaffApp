@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/domain/entities/product.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 class OptionGroupWidget extends StatefulWidget {
   final OptionGroupEntity group;
@@ -78,19 +79,24 @@ class _OptionGroupWidgetState extends State<OptionGroupWidget> {
     widget.onChanged(Map<String, int>.from(_local));
   }
 
-  String? _subtitle(OptionGroupEntity g, int total) {
+  String? _subtitle(AppLocalizations t, OptionGroupEntity g, int total) {
     final parts = <String>[];
-    parts.add(g.multiple ? '可多选 当前$total' : '单选');
-    if (g.minSelect > 0) parts.add('最少${g.minSelect}');
-    if (g.maxSelect != null) parts.add('最多${g.maxSelect}');
+    parts.add(
+      g.multiple
+          ? '${t.optionGroupMultiple} ${t.posOptionGroupCurrentPrefix}$total'
+          : t.optionGroupSingle,
+    );
+    if (g.minSelect > 0) parts.add('${t.optionGroupMinPrefix}${g.minSelect}');
+    if (g.maxSelect != null) parts.add('${t.optionGroupMaxPrefix}${g.maxSelect}');
     return parts.join(' · ');
   }
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final g = widget.group;
     final total = _currentTotal();
-    final sub = _subtitle(g, total);
+    final sub = _subtitle(t, g, total);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -104,7 +110,7 @@ class _OptionGroupWidgetState extends State<OptionGroupWidget> {
                 IconButton(
                   icon: const Icon(Icons.send_rounded, size: 18),
                   color: AppColors.amberPrimary,
-                  tooltip: '发送此分组给顾客',
+                  tooltip: t.posOptionSendGroupTooltip,
                   onPressed: () => widget.onSendGroup!(g, Map<String, int>.from(_local)),
                 ),
             ],

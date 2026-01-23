@@ -12,8 +12,97 @@
   "entrySettingsTooltip": "打开设置",
   "settingsShellTitle": "应用设置",
   "settingsShellSubtitle": "管理终端信息与业务配置",
+  "settingsTitle": "设置",
   "settingsRefreshTooltip": "刷新设置",
   "settingsErrorDismissTooltip": "关闭",
+  "settingsErrorLoadFailed": "加载设置失败: {detail}",
+  "@settingsErrorLoadFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsErrorSaveBasicFailed": "保存基础信息失败: {detail}",
+  "@settingsErrorSaveBasicFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsErrorSaveNetworkFailed": "保存网络设置失败: {detail}",
+  "@settingsErrorSaveNetworkFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsErrorSavePrinterFailed": "保存打印机设置失败: {detail}",
+  "@settingsErrorSavePrinterFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsBusinessInfoTitle": "店铺基本信息",
+  "settingsBusinessInfoSubtitle": "这些信息将展示在前台与票据上",
+  "settingsBusinessNameLabel": "店铺名称",
+  "settingsBusinessCodeLabel": "店铺编号",
+  "settingsBusinessPhoneLabel": "联系电话",
+  "settingsBusinessAddressLabel": "店铺地址",
+  "settingsBusinessHoursTitle": "营业时间 & 座位",
+  "settingsBusinessHoursSubtitle": "来自门店主数据，可在后台系统维护",
+  "settingsBusinessHoursLabel": "营业时间",
+  "settingsBusinessSeatsLabel": "座位数",
+  "settingsLogoutButton": "退出登录",
+  "settingsLogoutConfirmTitle": "注销",
+  "settingsLogoutConfirmMessage": "确认要注销吗？",
+  "settingsRoleSwitchTitle": "切换角色",
+  "settingsRoleSwitchMessage": "切换到“{role}”需要重启应用以加载对应界面，是否立即重启？",
+  "@settingsRoleSwitchMessage": {
+    "placeholders": {
+      "role": {}
+    }
+  },
+  "settingsRoleSwitchSuccess": "已切换为{role}，即将跳转...",
+  "@settingsRoleSwitchSuccess": {
+    "placeholders": {
+      "role": {}
+    }
+  },
+  "settingsRoleSelectionTitle": "角色选择",
+  "settingsRoleSelectionSubtitle": "选择设备扮演的端，保存后会重启并进入对应界面",
+  "settingsRoleSelectionDescription": "店员端用于收银与管理；顾客端用于商品展示与下单。",
+  "settingsCashPaymentTitle": "现金支付",
+  "settingsCashPaymentSubtitle": "检测现金机以启用或验证现金支付能力",
+  "settingsCashStatusLabel": "当前状态",
+  "settingsCashEnabled": "已启用",
+  "settingsCashDisabled": "未启用",
+  "settingsCashNotSupported": "未授权或不支持现金支付",
+  "settingsCashLastCheckFailed": "最近一次检测失败: {detail}",
+  "@settingsCashLastCheckFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "settingsCashChecking": "检测中…",
+  "settingsCashCheckNow": "立即检测",
+  "settingsCashSkipOnce": "跳过本次",
+  "settingsPosNetworkTitle": "POS终端网络",
+  "settingsPosNetworkSubtitle": "确保终端与刷卡设备保持在同一网络",
+  "settingsPosIpLabel": "终端 IP",
+  "settingsPosPortLabel": "终端端口",
+  "settingsPrinterConfigTitle": "打印机配置",
+  "settingsPrinterConfigSubtitle": "控制小票、标签及厨房打印",
+  "settingsPrinterEmpty": "暂无打印机配置，可在后台新增",
+  "settingsMachineInfoTitle": "设备标识",
+  "settingsMachineInfoSubtitle": "当前终端与激活信息",
+  "settingsMachineCodeLabel": "机器码",
+  "settingsStationCodeLabel": "工作站编码",
+  "settingsAuthorizedShopLabel": "授权门店号",
+  "settingsLanguageFeatureTitle": "语言与功能",
+  "settingsLanguageFeatureSubtitle": "根据门店授权调整显示语言与能力",
+  "settingsSupportedLanguagesLabel": "支持语言",
+  "settingsSupportedLanguagesEmpty": "未配置",
+  "settingsFeatureOnlineCall": "线上叫号",
+  "settingsFeatureTaxSystem": "税制",
+  "settingsFeatureDynamicCode": "动态取票",
+  "settingsFeatureMultiplayer": "多人协同",
   "settingsLanguageSectionTitle": "界面语言",
   "settingsLanguageSectionSubtitle": "选择用于终端界面的显示语言",
   "settingsLanguageSystem": "跟随系统",
@@ -30,6 +119,7 @@
   "dialogCancel": "取消",
   "dialogConfirm": "确定",
   "settingsEditAction": "编辑",
+  "settingsValueNotSet": "未设置",
   "settingsNetworkEditIpTitle": "编辑终端IP",
   "settingsNetworkEditIpLabel": "终端IP地址",
   "settingsNetworkEditIpHint": "留空可清除该地址",
@@ -42,6 +132,16 @@
   "settingsPrinterReceiptLabel": "标签",
   "settingsPrinterLabelSizeTitle": "标签尺寸",
   "settingsPrinterLabelSizeNone": "未设置",
+  "settingsPrinterDefaultTag": "默认",
+  "settingsPrinterTypeKitchen": "厨房打印",
+  "settingsPrinterTypeCenter": "中心打印",
+  "settingsPrinterTypeFront": "前台打印",
+  "settingsPrinterTypeUnknown": "打印类型 {type}",
+  "@settingsPrinterTypeUnknown": {
+    "placeholders": {
+      "type": {}
+    }
+  },
   "settingsPrinterEditIpTitle": "编辑打印机IP",
   "settingsPrinterEditIpLabel": "打印机IP地址",
   "settingsPrinterEditPortTitle": "编辑打印机端口",
@@ -50,5 +150,213 @@
   "settingsPrinterPortTitle": "打印机端口",
   "settingsPrinterToggleContinuous": "连续打印",
   "settingsPrinterToggleOption": "打印可选字段",
-  "settingsPrinterToggleDirection": "倒转打印"
+  "settingsPrinterToggleDirection": "反向打印",
+  "entryPeerDisconnectedTitle": "顾客端已断开",
+  "entryPeerDisconnectedMessage": "是否重新搜索并尝试连接顾客端？",
+  "entryPeerReconnect": "重新连接",
+  "entryPeerConnectDialogTitle": "连接顾客端",
+  "entryPeerSearchingCustomer": "正在搜索附近的顾客端…",
+  "entryHistoryOrders": "历史订单",
+  "entryDatePattern": "y年M月d日 · EEEE",
+  "peerStatusConnectedPrefix": "已连接:",
+  "peerStatusDisconnectedPrefix": "未连接:",
+  "peerStatusErrorPrefix": "连接异常:",
+  "peerStatusIdle": "未开始连接",
+  "peerSearchInProgress": "搜索中…",
+  "peerSearchRestart": "重启搜索",
+  "peerActionDone": "完成",
+  "peerActionClose": "关闭",
+  "peerLabelCustomer": "顾客端",
+  "peerLabelStaff": "店员端",
+  "commonUnknownError": "未知错误",
+  "customerDisconnectTitle": "连接已断开",
+  "customerDisconnectMessage": "与店员端的连接已断开，请重新连接。",
+  "customerReconnect": "重新连接",
+  "customerLater": "稍后",
+  "customerConnectDialogTitle": "连接店员端",
+  "customerPeerSearchingStaff": "正在搜索店员端…",
+  "customerGreeting": "欢迎光临",
+  "customerLabel": "顾客端",
+  "optionGroupMultiple": "可多选",
+  "optionGroupSingle": "单选",
+  "optionGroupMinPrefix": "最少",
+  "optionGroupMaxPrefix": "最多",
+  "optionGroupNoOptions": "暂无选项",
+  "optionGroupSelected": "已选",
+  "optionGroupNotSelected": "未选",
+  "cashMachineTitle": "现金机检测",
+  "cashMachineCheckingMessage": "正在检测现金机，请稍候…",
+  "cashMachineSuccessMessage": "现金机工作正常，可以进行现金支付。",
+  "cashMachineFailureMessage": "检测失败，请检查设备连接。",
+  "cashMachineStepsChecking": "步骤: 检查状态 → 打开 → 开始接收 → 读取金额 → 结束",
+  "cashMachineStepsFailure": "流程: 检查状态 → 打开现金机 → Start Deposit → Deposit Amount → End Deposit",
+  "cashMachineSkip": "跳过",
+  "cashMachineRetry": "重试",
+  "cashMachineDone": "完成",
+  "cashMachineClose": "关闭",
+  "suspendedOrdersTitle": "挂单列表",
+  "suspendedOrdersSearchHint": "搜索 按编号或商品名",
+  "suspendedOrdersEmpty": "暂无挂单",
+  "suspendedOrdersItemCountPrefix": "共",
+  "suspendedOrdersItemCountSuffix": "件",
+  "suspendedOrdersResume": "取单",
+  "suspendedOrdersDatePattern": "MM-dd HH:mm",
+  "posClearCartTitle": "清空购物车",
+  "posClearCartMessage": "确认要清空购物车吗？",
+  "posSuspendTitle": "挂单",
+  "posSuspendMessage": "确认要挂单吗？",
+  "posPushProductToCustomerTooltip": "推送到顾客端",
+  "posClearCustomerDisplayTooltip": "清除顾客端展示",
+  "posBroadcastCategoriesTooltip": "推送分类到顾客端",
+  "posSearchProductHint": "搜索商品 ...",
+  "discountInputTitle": "输入折扣金额",
+  "discountConfirm": "确定",
+  "discountKeyClear": "清空",
+  "discountKeyDelete": "删除",
+  "posOrderNumberLabel": "订单号:",
+  "posPushCartTooltip": "推送购物车到顾客端",
+  "posOrderModeDineIn": "堂食",
+  "posOrderModeTakeout": "外带",
+  "posCartEmptyMessage": "购物车是空的\n请从左侧选择商品",
+  "posSubtotalLabel": "小计",
+  "posDiscountLabel": "折扣",
+  "posTotalDueLabel": "应付总额",
+  "posSuspendButton": "挂单",
+  "posDiscountButton": "折扣",
+  "posClearButton": "清空",
+  "posCheckoutButton": "结 账",
+  "posOptionGroupCurrentPrefix": "当前",
+  "posOptionSendGroupTooltip": "发送此分组给顾客",
+  "posOptionSendAllTooltip": "发送当前选项到顾客端",
+  "posOptionMaxReachedTitle": "已达到最大可选",
+  "posOptionMaxReachedMessageSuffix": " 已达到最多可选数量",
+  "posOptionMaxReachedOk": "知道了",
+  "posOptionAddConfirm": "确认添加",
+  "posOptionUpdate": "更新",
+  "posOptionMissingTitle": "缺少必选项",
+  "posOptionMissingOk": "好的",
+  "paymentSelectionTitle": "选择支付方式",
+  "paymentSelectionPushTooltip": "推送支付方式到顾客端",
+  "paymentGroupCashTitle": "现金",
+  "paymentGroupCashSubtitle": "现金支付",
+  "paymentGroupQrTitle": "二维码支付",
+  "paymentGroupCardTitle": "信用卡/刷卡",
+  "paymentGroupCardShort": "信用卡",
+  "paymentGroupTransitTitle": "交通系/电子货币",
+  "paymentGroupTransitShort": "电子货币",
+  "paymentSelectionNotConfigured": "未配置",
+  "orderHistoryTitle": "历史订单",
+  "orderHistoryRefreshTooltip": "刷新",
+  "orderHistorySearchHint": "搜索 按编号或商品名",
+  "orderHistoryEmpty": "暂无历史订单",
+  "orderHistoryItemCountPrefix": "共",
+  "orderHistoryItemCountSuffix": "件",
+  "orderHistoryPaid": "已支付",
+  "orderHistoryUnpaid": "未支付",
+  "orderHistoryDatePatternShort": "MM-dd HH:mm",
+  "orderHistoryDatePatternLong": "yyyy-MM-dd HH:mm:ss",
+  "orderHistoryDetailsTitle": "订单详情",
+  "orderHistoryCloseTooltip": "关闭",
+  "orderHistoryDetailOrderIdLabel": "订单号",
+  "orderHistoryDetailTimeLabel": "时间",
+  "orderHistoryDetailStatusLabel": "状态",
+  "orderHistoryDetailPayMethodLabel": "支付方式",
+  "orderHistoryDetailAmountLabel": "金额",
+  "orderHistoryDetailModeLabel": "模式",
+  "orderHistoryDetailItemCountLabel": "商品数",
+  "orderHistoryDetailProductsTitle": "商品",
+  "orderHistoryPayMethodUnknown": "未知",
+  "orderHistoryReorder": "再次下单(取单)",
+  "orderHistoryPrintReceipt": "打印 receipt",
+  "orderHistoryPrintKitchen": "打印厨房票",
+  "cancelDialogLoadingTitle": "正在取消",
+  "cancelDialogLoadingMessage": "正在向终端发送取消指令…",
+  "cancelDialogSuccessTitle": "取消成功",
+  "cancelDialogFailureTitle": "取消失败",
+  "cancelDialogSuccessMessage": "支付已取消",
+  "cancelDialogFailureMessage": "取消失败，请稍后重试",
+  "cancelDialogDone": "完成",
+  "cancelDialogConfirm": "确定",
+  "cashAmountMatched": "金额已匹配订单金额",
+  "cashAmountChangePrefix": "需找零 ",
+  "cashAmountShortPrefix": "仍差 ",
+  "cashAmountConfirmedLabel": "已确认现金金额",
+  "cashAmountDetectingLabel": "识别中的现金金额",
+  "cashAmountExpectedPrefix": "订单金额：",
+  "paymentOrderIdLabel": "订单号",
+  "paymentChannelLabel": "选择方式",
+  "loginActivateTitle": "设备激活",
+  "loginMachineCodeLabel": "机器码 (Machine Code)",
+  "loginActivateButton": "激活并进入",
+  "activationFailedMessage": "激活失败: {detail}",
+  "@activationFailedMessage": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "splashInitializing": "正在初始化...",
+  "splashActivationFailedMessage": "激活失败({status}): {detail}",
+  "@splashActivationFailedMessage": {
+    "placeholders": {
+      "status": {},
+      "detail": {}
+    }
+  },
+  "splashLoadFailedMessage": "加载失败: {detail}",
+  "@splashLoadFailedMessage": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "splashPossibleCauses": "可能原因: 临时网络/服务器 502, 版本号不匹配, 或机号无效",
+  "splashRetry": "重试",
+  "splashReactivate": "重新激活",
+  "commonNetworkLabel": "网络",
+  "commonUnitPriceLabel": "单价",
+  "customerUnknownMessage": "收到未知消息: {type}",
+  "@customerUnknownMessage": {
+    "placeholders": {
+      "type": {}
+    }
+  },
+  "customerOrderNumberTitle": "订单 #{orderNumber}",
+  "@customerOrderNumberTitle": {
+    "placeholders": {
+      "orderNumber": {}
+    }
+  },
+  "customerTotalDueWithAmount": "应付 ¥{amount}",
+  "@customerTotalDueWithAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "customerPaymentChoiceTapToSelect": "点击选择",
+  "customerPaymentChoiceUnavailable": "暂不可用",
+  "customerStatusConnectedTitle": "已连接店员端",
+  "customerStatusSyncing": "同步中: {name}",
+  "@customerStatusSyncing": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "customerStatusSearchingDescription": "请确保店员端已打开连接且设备靠近。",
+  "customerStatusErrorTitle": "连接异常",
+  "customerStatusErrorDescription": "请重试或检查网络。",
+  "customerStatusIdleDescription": "点击上方“连接店员端”开始配对。",
+  "posToastPeerSyncDisabled": "顾客端同步已关闭",
+  "posToastPeerNotConnected": "顾客端未连接，推送失败",
+  "posToastPushedToCustomer": "已推送到顾客端",
+  "posToastPushedConfigToCustomer": "已推送当前配置到顾客端",
+  "posToastPushedOptionGroupToCustomer": "已推送分组选项给顾客",
+  "posToastCartEmptyCannotPush": "购物车为空，无法推送",
+  "posToastCartSentToCustomer": "已将购物车发送到顾客端",
+  "posToastClearedCustomerDisplay": "已清除顾客端展示",
+  "posToastLocalOrderSaveFailed": "本地订单保存失败",
+  "posToastOrderSubmitFailed": "下单失败",
+  "posToastNoPayableOrder": "当前没有可支付的订单",
+  "orderHistoryLoadFailed": "加载失败",
+  "customerOptionsBasePricePrefix": "基础价 ",
+  "customerOptionsSelectedTitle": "已选配料",
+  "customerOptionsTotalLabel": "当前总价"
 }

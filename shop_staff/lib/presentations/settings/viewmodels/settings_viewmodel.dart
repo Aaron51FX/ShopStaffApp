@@ -11,11 +11,14 @@ import '../../../domain/services/app_settings_service.dart';
 
 enum SettingsSection { systemSettings, machineInfo, businessInfo }
 
+enum SettingsErrorType { load, saveBasic, saveNetwork, savePrinter }
+
 class SettingsState {
   const SettingsState({
     this.selected = SettingsSection.systemSettings,
     this.loading = false,
     this.error,
+    this.errorType,
     this.snapshot = const AppSettingsSnapshot(),
     this.shopInfo,
   });
@@ -23,6 +26,7 @@ class SettingsState {
   final SettingsSection selected;
   final bool loading;
   final String? error;
+  final SettingsErrorType? errorType;
   final AppSettingsSnapshot snapshot;
   final ShopInfoModel? shopInfo;
 
@@ -30,6 +34,7 @@ class SettingsState {
     SettingsSection? selected,
     bool? loading,
     String? error,
+    SettingsErrorType? errorType,
     bool clearError = false,
     AppSettingsSnapshot? snapshot,
     ShopInfoModel? shopInfo,
@@ -38,6 +43,7 @@ class SettingsState {
       selected: selected ?? this.selected,
       loading: loading ?? this.loading,
       error: clearError ? null : (error ?? this.error),
+      errorType: clearError ? null : (errorType ?? this.errorType),
       snapshot: snapshot ?? this.snapshot,
       shopInfo: shopInfo ?? this.shopInfo,
     );
@@ -86,7 +92,11 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
       state = state.copyWith(snapshot: loaded, loading: false);
       _updateSharedSnapshot(loaded);
     } catch (e) {
-      state = state.copyWith(loading: false, error: '加载设置失败: $e');
+      state = state.copyWith(
+        loading: false,
+        error: e.toString(),
+        errorType: SettingsErrorType.load,
+      );
     }
   }
 
@@ -115,7 +125,8 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     } catch (e) {
       state = state.copyWith(
         snapshot: previousSnapshot,
-        error: '保存基础设置失败: $e',
+        error: e.toString(),
+        errorType: SettingsErrorType.saveBasic,
       );
       _updateSharedSnapshot(previousSnapshot);
     }
@@ -129,10 +140,10 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     state = state.copyWith(shopInfo: info);
   }
 
-  void logout() async {
+  void logout({required String title, required String message}) async {
     final ok = await _ref
         .read(dialogControllerProvider.notifier)
-        .confirm(title: '注销', message: '确认要注销吗？', destructive: true);
+        .confirm(title: title, message: message, destructive: true);
     if (ok) {
       try {
         // 清空购物车与本地状态
@@ -170,7 +181,11 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     try {
       await _appSettingsService.savePosTerminalSettings(settings);
     } catch (e) {
-      state = state.copyWith(snapshot: previousSnapshot, error: '保存网络设置失败: $e');
+      state = state.copyWith(
+        snapshot: previousSnapshot,
+        error: e.toString(),
+        errorType: SettingsErrorType.saveNetwork,
+      );
       _updateSharedSnapshot(previousSnapshot);
     }
   }
@@ -220,7 +235,8 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     } catch (e) {
       state = state.copyWith(
         snapshot: previousSnapshot,
-        error: '保存打印机设置失败: $e',
+        error: e.toString(),
+        errorType: SettingsErrorType.savePrinter,
       );
       _updateSharedSnapshot(previousSnapshot);
     }

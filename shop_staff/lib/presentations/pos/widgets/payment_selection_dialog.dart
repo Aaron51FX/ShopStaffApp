@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 typedef OnPaymentSelected = void Function(String group, String code, String? label);
 typedef PaymentPushCallback = Future<void> Function();
@@ -71,6 +72,7 @@ Future<void> showPaymentSelectionDialog({
     transitionDuration: const Duration(milliseconds: 180),
     pageBuilder: (_, __, ___) => const SizedBox.shrink(),
     transitionBuilder: (ctx, anim, _, __) {
+      final t = AppLocalizations.of(ctx);
       debugPrint('Payment selection dialog animation: $shop');
       final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic, reverseCurve: Curves.easeInCubic);
       return FadeTransition(
@@ -96,13 +98,20 @@ Future<void> showPaymentSelectionDialog({
                         children: [
                           const Icon(Icons.payment, color: Colors.white),
                           const SizedBox(width: 8),
-                          const Expanded(
-                            child: Text('选择支付方式', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                          Expanded(
+                            child: Text(
+                              t.paymentSelectionTitle,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                           if (onPushToCustomer != null)
                             IconButton(
                               icon: const Icon(Icons.send_rounded, color: Colors.white),
-                              tooltip: '推送支付方式到顾客端',
+                              tooltip: t.paymentSelectionPushTooltip,
                               onPressed: () => onPushToCustomer(),
                             ),
                           IconButton(
@@ -123,25 +132,25 @@ Future<void> showPaymentSelectionDialog({
                               children: [
                                 Expanded(
                                   child: _GroupCard(
-                                    title: '现金',
+                                    title: t.paymentGroupCashTitle,
                                     leading: const Icon(Icons.attach_money, size: 28, color: Colors.green),
-                                    child: const Text('现金支付'),
+                                    child: Text(t.paymentGroupCashSubtitle),
                                     onTap: () {
                                       Navigator.of(ctx).pop();
-                                      onSelected('cash', 'cash', '现金');
+                                      onSelected('cash', 'cash', t.paymentGroupCashTitle);
                                     },
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: _GroupCard(
-                                    title: '二维码支付',
+                                    title: t.paymentGroupQrTitle,
                                     leading: const Icon(Icons.qr_code_2, size: 28, color: Colors.black87),
                                     onTap: qrVendors.isEmpty
                                         ? null
                                         : () {
                                             Navigator.of(ctx).pop();
-                                            onSelected('qr', '', '二维码支付');
+                                            onSelected('qr', '', t.paymentGroupQrTitle);
                                           },
                                     child: _VendorWrap(
                                       vendors: qrVendors,
@@ -157,13 +166,13 @@ Future<void> showPaymentSelectionDialog({
                             const SizedBox(height: 12),
                             // Row 2: Credit Cards
                             _GroupCard(
-                              title: '信用卡/刷卡',
+                              title: t.paymentGroupCardTitle,
                               leading: const Icon(Icons.credit_card, size: 28, color: Colors.blueAccent),
                               onTap: cardBrands.isEmpty
                                   ? null
                                   : () {
                                       Navigator.of(ctx).pop();
-                                      onSelected('card', 'card', '信用卡');
+                                      onSelected('card', 'card', t.paymentGroupCardShort);
                                     },
                               child: _VendorWrap(
                                 vendors: cardBrands,
@@ -176,13 +185,13 @@ Future<void> showPaymentSelectionDialog({
                             const SizedBox(height: 12),
                             // Row 3: Transit/IC & eMoney
                             _GroupCard(
-                              title: '交通系/电子货币',
+                              title: t.paymentGroupTransitTitle,
                               leading: const Icon(Icons.train, size: 28, color: Colors.deepPurple),
                               onTap: transitBrands.isEmpty
                                   ? null
                                   : () {
                                       Navigator.of(ctx).pop();
-                                      onSelected('transit', 'transit', '电子货币');
+                                      onSelected('transit', 'transit', t.paymentGroupTransitShort);
                                     },
                               child: _VendorWrap(
                                 vendors: transitBrands,
@@ -219,8 +228,9 @@ class _VendorWrap extends StatelessWidget {
   const _VendorWrap({required this.vendors, required this.onTap});
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     if (vendors.isEmpty) {
-      return const Text('未配置');
+      return Text(t.paymentSelectionNotConfigured);
     }
     return Wrap(
       spacing: 8,
