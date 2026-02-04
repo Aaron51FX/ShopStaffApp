@@ -101,7 +101,7 @@ class CashMachineServiceImpl implements CashMachineService {
 
       final start = await CashChanger.startDeposit();
       if (!start.isSuccess) _failAndThrow(start.error);
-      _emitStage(CashMachineStage.accepting, '等待顾客投入现金');
+      _emitStage(CashMachineStage.accepting, '正在打开现金机成功。');
 
       final receipt = CashMachineReceipt(
         acceptedAmount: 0,
@@ -115,7 +115,7 @@ class CashMachineServiceImpl implements CashMachineService {
       _pendingReceipt = receipt;
       _awaitingCompletion = true;
       _emit(CashMachineReceiptReadyEvent(receipt));
-      _emitStage(CashMachineStage.completed, '金额确认完成，等待人工确认');
+      _emitStage(CashMachineStage.accepting, '金额确认，等待投入现金…');
       return receipt;
     } catch (e, s) {
       _logger.severe('Cash payment sequence failed', e, s);
