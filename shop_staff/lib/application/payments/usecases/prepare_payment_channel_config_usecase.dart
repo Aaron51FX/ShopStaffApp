@@ -39,10 +39,10 @@ class PreparePaymentChannelConfigUseCase {
 
       if (args.channelGroup == PaymentChannels.card) {
         if (ip == null || ip.isEmpty) {
-          throw StateError('POS终端 IP 未配置');
+          throw StateError('POS_IP_MISSING');
         }
         if (port == null) {
-          throw StateError('POS终端端口未配置或格式错误');
+          throw StateError('POS_PORT_INVALID');
         }
       }
 

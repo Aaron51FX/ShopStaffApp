@@ -481,6 +481,67 @@
   "paymentActionConfirming": "Confirming…",
   "paymentActionCancel": "Cancel payment",
   "paymentActionCancelling": "Cancelling…",
+  "paymentPosFetchingPayData": "Fetching POS payment data",
+  "paymentPosWaitingUser": "Waiting for terminal operation",
+  "paymentPosRequestPayData": "Requesting payment data",
+  "paymentPosLoading": "Loading ({mode})",
+  "@paymentPosLoading": {
+    "placeholders": {
+      "mode": {}
+    }
+  },
+  "paymentPosTerminalDone": "Terminal completed action: {action}",
+  "@paymentPosTerminalDone": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "paymentPosTerminalCancelled": "Terminal cancelled code={code} mpfs={mpfs}",
+  "@paymentPosTerminalCancelled": {
+    "placeholders": {
+      "code": {},
+      "mpfs": {}
+    }
+  },
+  "paymentPosTimeout": "POS connection timed out",
+  "paymentPosReportResult": "Reporting payment result",
+  "paymentPosPaymentSuccess": "Payment successful",
+  "paymentPosResultHandleFailed": "Failed to handle POS result: {detail}",
+  "@paymentPosResultHandleFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentPosCancelProcessing": "Cancelling POS transaction…",
+  "paymentPosCancelFailed": "Failed to cancel POS transaction: {detail}",
+  "@paymentPosCancelFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentPosOperatorCancelled": "Operator cancelled transaction",
+  "paymentErrorPosIpMissing": "POS terminal IP is not configured",
+  "paymentErrorPosPortInvalid": "POS terminal port is missing or invalid",
+  "paymentErrorPosConfigMissing": "POS configuration is missing",
+  "paymentErrorPosCardGatewayRequired": "POS card gateway is not configured",
+  "paymentErrorPosSessionMissing": "POS session is missing or ended",
+  "paymentErrorPosCancelInstructionEmpty": "POS cancel instruction is empty",
+  "paymentErrorPosRequestDataMissing": "POS payment request data is missing",
+  "paymentErrorPosCancelNotSupported": "POS session does not support cancel",
+  "paymentErrorPosCancelFailed": "POS cancel failed",
+  "paymentErrorPaymentFinalizeNotRequired": "Payment finalization is not required",
+  "paymentErrorCashReceiptMissing": "No cash receipt to confirm",
+  "paymentErrorCashBusy": "Previous cash payment is still in progress",
+  "paymentErrorCashNoPending": "No pending cash transaction",
+  "paymentErrorQrScanCancelled": "QR scan cancelled",
+  "paymentErrorQrScanReset": "QR scan reset by a new request",
+  "paymentErrorQrScanReleased": "QR scanner released",
+  "paymentErrorCodeLabel": "Error code: {code}",
+  "@paymentErrorCodeLabel": {
+    "placeholders": {
+      "code": {}
+    }
+  },
   "paymentErrorUnknown": "Unknown error: {detail}",
   "@paymentErrorUnknown": {
     "placeholders": {

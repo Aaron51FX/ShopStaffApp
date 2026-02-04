@@ -2260,6 +2260,186 @@ abstract class AppLocalizations {
   /// **'Cancelling…'**
   String get paymentActionCancelling;
 
+  /// No description provided for @paymentPosFetchingPayData.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching POS payment data'**
+  String get paymentPosFetchingPayData;
+
+  /// No description provided for @paymentPosWaitingUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for terminal operation'**
+  String get paymentPosWaitingUser;
+
+  /// No description provided for @paymentPosRequestPayData.
+  ///
+  /// In en, this message translates to:
+  /// **'Requesting payment data'**
+  String get paymentPosRequestPayData;
+
+  /// No description provided for @paymentPosLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading ({mode})'**
+  String paymentPosLoading(Object mode);
+
+  /// No description provided for @paymentPosTerminalDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal completed action: {action}'**
+  String paymentPosTerminalDone(Object action);
+
+  /// No description provided for @paymentPosTerminalCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal cancelled code={code} mpfs={mpfs}'**
+  String paymentPosTerminalCancelled(Object code, Object mpfs);
+
+  /// No description provided for @paymentPosTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'POS connection timed out'**
+  String get paymentPosTimeout;
+
+  /// No description provided for @paymentPosReportResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Reporting payment result'**
+  String get paymentPosReportResult;
+
+  /// No description provided for @paymentPosPaymentSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment successful'**
+  String get paymentPosPaymentSuccess;
+
+  /// No description provided for @paymentPosResultHandleFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to handle POS result: {detail}'**
+  String paymentPosResultHandleFailed(Object detail);
+
+  /// No description provided for @paymentPosCancelProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling POS transaction…'**
+  String get paymentPosCancelProcessing;
+
+  /// No description provided for @paymentPosCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to cancel POS transaction: {detail}'**
+  String paymentPosCancelFailed(Object detail);
+
+  /// No description provided for @paymentPosOperatorCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Operator cancelled transaction'**
+  String get paymentPosOperatorCancelled;
+
+  /// No description provided for @paymentErrorPosIpMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'POS terminal IP is not configured'**
+  String get paymentErrorPosIpMissing;
+
+  /// No description provided for @paymentErrorPosPortInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'POS terminal port is missing or invalid'**
+  String get paymentErrorPosPortInvalid;
+
+  /// No description provided for @paymentErrorPosConfigMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'POS configuration is missing'**
+  String get paymentErrorPosConfigMissing;
+
+  /// No description provided for @paymentErrorPosCardGatewayRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'POS card gateway is not configured'**
+  String get paymentErrorPosCardGatewayRequired;
+
+  /// No description provided for @paymentErrorPosSessionMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'POS session is missing or ended'**
+  String get paymentErrorPosSessionMissing;
+
+  /// No description provided for @paymentErrorPosCancelInstructionEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'POS cancel instruction is empty'**
+  String get paymentErrorPosCancelInstructionEmpty;
+
+  /// No description provided for @paymentErrorPosRequestDataMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'POS payment request data is missing'**
+  String get paymentErrorPosRequestDataMissing;
+
+  /// No description provided for @paymentErrorPosCancelNotSupported.
+  ///
+  /// In en, this message translates to:
+  /// **'POS session does not support cancel'**
+  String get paymentErrorPosCancelNotSupported;
+
+  /// No description provided for @paymentErrorPosCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'POS cancel failed'**
+  String get paymentErrorPosCancelFailed;
+
+  /// No description provided for @paymentErrorPaymentFinalizeNotRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment finalization is not required'**
+  String get paymentErrorPaymentFinalizeNotRequired;
+
+  /// No description provided for @paymentErrorCashReceiptMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'No cash receipt to confirm'**
+  String get paymentErrorCashReceiptMissing;
+
+  /// No description provided for @paymentErrorCashBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous cash payment is still in progress'**
+  String get paymentErrorCashBusy;
+
+  /// No description provided for @paymentErrorCashNoPending.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending cash transaction'**
+  String get paymentErrorCashNoPending;
+
+  /// No description provided for @paymentErrorQrScanCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'QR scan cancelled'**
+  String get paymentErrorQrScanCancelled;
+
+  /// No description provided for @paymentErrorQrScanReset.
+  ///
+  /// In en, this message translates to:
+  /// **'QR scan reset by a new request'**
+  String get paymentErrorQrScanReset;
+
+  /// No description provided for @paymentErrorQrScanReleased.
+  ///
+  /// In en, this message translates to:
+  /// **'QR scanner released'**
+  String get paymentErrorQrScanReleased;
+
+  /// No description provided for @paymentErrorCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error code: {code}'**
+  String paymentErrorCodeLabel(Object code);
+
   /// No description provided for @paymentErrorUnknown.
   ///
   /// In en, this message translates to:

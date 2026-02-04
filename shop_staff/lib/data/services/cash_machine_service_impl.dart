@@ -89,7 +89,7 @@ class CashMachineServiceImpl implements CashMachineService {
     debugPrint('---CashMachineServiceImpl.runPayment expectedAmount $expectedAmount called---');
     _logger.info('Starting cash payment sequence for amount: $expectedAmount');
     if (_isRunning || _awaitingCompletion) {
-      throw StateError('上一笔现金支付仍在进行');
+      throw StateError('CASH_BUSY');
     }
     _isRunning = true;
 
@@ -132,7 +132,7 @@ class CashMachineServiceImpl implements CashMachineService {
   Future<CashMachineReceipt> completePayment() async {
     debugPrint('Completing cash payment');
     if (_pendingReceipt == null || !_awaitingCompletion) {
-      throw StateError('没有待完成的现金交易');
+      throw StateError('CASH_NO_PENDING');
     }
     
     final deposit = await CashChanger.depositAmount;

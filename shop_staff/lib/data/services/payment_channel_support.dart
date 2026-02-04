@@ -56,7 +56,7 @@ class DialogDrivenQrScannerService extends ChangeNotifier implements QrScannerSe
   Future<String> acquireCode(PaymentContext context) {
     if (_pending != null && !_pending!.isCompleted) {
       _logger.warning('检测到未完成的扫码任务，自动重置');
-      _pending!.completeError(StateError('扫码任务被新的请求重置'));
+      _pending!.completeError(StateError('QR_SCAN_RESET'));
       _pending = null;
       _setStateDeferred(const QrScanUiState.hidden());
     }
@@ -125,7 +125,7 @@ class DialogDrivenQrScannerService extends ChangeNotifier implements QrScannerSe
   Future<void> cancelScan() async {
     if (_pending != null && !_pending!.isCompleted) {
       _logger.info('取消扫码');
-      _pending!.completeError(StateError('扫码已取消'));
+      _pending!.completeError(StateError('QR_SCAN_CANCELLED'));
     }
     _pending = null;
     _setState(const QrScanUiState.hidden());
@@ -134,7 +134,7 @@ class DialogDrivenQrScannerService extends ChangeNotifier implements QrScannerSe
   @override
   void dispose() {
     if (_pending != null && !_pending!.isCompleted) {
-      _pending!.completeError(StateError('扫码服务已释放'));
+      _pending!.completeError(StateError('QR_SCAN_RELEASED'));
     }
     _pending = null;
     super.dispose();

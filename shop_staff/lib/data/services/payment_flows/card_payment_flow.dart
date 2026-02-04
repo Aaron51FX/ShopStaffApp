@@ -32,26 +32,33 @@ class CardPaymentFlow implements PaymentFlow {
     }
 
     PaymentStatus _mapPosStatus(PosPaymentStatus status) {
+      final messageArgs = {
+        if (status.messageArgs != null) ...status.messageArgs!,
+        if (status.errorCode != null) 'errorCode': status.errorCode,
+      };
       switch (status.type) {
         case PosPaymentStatusType.pending:
           return PaymentStatus(
             type: PaymentStatusType.pending,
             message: status.message,
-            messageKey: status.message == null ? PaymentMessageKeys.posWaitingResponse : null,
+            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.posWaitingResponse : null),
+            messageArgs: messageArgs.isEmpty ? null : messageArgs,
             phase: PaymentPhase.sending,
           );
         case PosPaymentStatusType.processing:
           return PaymentStatus(
             type: PaymentStatusType.processing,
             message: status.message,
-            messageKey: status.message == null ? PaymentMessageKeys.posProcessing : null,
+            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.posProcessing : null),
+            messageArgs: messageArgs.isEmpty ? null : messageArgs,
             phase: PaymentPhase.waitingUser,
           );
         case PosPaymentStatusType.success:
           return PaymentStatus(
             type: PaymentStatusType.success,
             message: status.message,
-            messageKey: status.message == null ? PaymentMessageKeys.cardSuccess : null,
+            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.cardSuccess : null),
+            messageArgs: messageArgs.isEmpty ? null : messageArgs,
             details: {
               if (status.approvalCode != null) 'approvalCode': status.approvalCode,
             },
@@ -60,7 +67,8 @@ class CardPaymentFlow implements PaymentFlow {
           return PaymentStatus(
             type: PaymentStatusType.failure,
             message: status.message,
-            messageKey: status.message == null ? PaymentMessageKeys.cardFailure : null,
+            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.cardFailure : null),
+            messageArgs: messageArgs.isEmpty ? null : messageArgs,
             details: {
               if (status.errorCode != null) 'errorCode': status.errorCode,
             },
@@ -71,7 +79,8 @@ class CardPaymentFlow implements PaymentFlow {
           return PaymentStatus(
             type: PaymentStatusType.cancelled,
             message: status.message,
-            messageKey: status.message == null ? PaymentMessageKeys.cardCancelled : null,
+            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.cardCancelled : null),
+            messageArgs: messageArgs.isEmpty ? null : messageArgs,
             details: {
               if (status.errorCode != null) 'errorCode': status.errorCode,
             },

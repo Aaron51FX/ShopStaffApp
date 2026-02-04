@@ -241,108 +241,265 @@ class StatusHero extends StatelessWidget {
     Map<String, dynamic>? args,
     required String fallback,
   }) {
+    String resolveDetail() {
+      final raw = args?['detail']?.toString() ?? '';
+      return _resolveExternalDetail(t, raw);
+    }
+    String? resolveErrorCodeSuffix() {
+      final rawCode = args?['errorCode']?.toString();
+      if (rawCode == null || rawCode.isEmpty) return null;
+      final desc = _resolveExternalErrorCodeDesc(t, rawCode);
+      if (desc != null && desc.isNotEmpty) return desc;
+      return t.paymentErrorCodeLabel(rawCode);
+    }
     if (key == null) return fallback;
+    late final String base;
     switch (key) {
       case PaymentMessageKeys.flowStarted:
-        return t.paymentFlowStarted(args?['channel']?.toString() ?? '');
+        base = t.paymentFlowStarted(args?['channel']?.toString() ?? '');
+        break;
       case PaymentMessageKeys.statusInitialized:
-        return t.paymentStatusInitialized;
+        base = t.paymentStatusInitialized;
+        break;
       case PaymentMessageKeys.statusPending:
-        return t.paymentStatusPending;
+        base = t.paymentStatusPending;
+        break;
       case PaymentMessageKeys.statusWaitingUser:
-        return t.paymentStatusWaitingUser;
+        base = t.paymentStatusWaitingUser;
+        break;
       case PaymentMessageKeys.statusProcessing:
-        return t.paymentStatusProcessing;
+        base = t.paymentStatusProcessing;
+        break;
       case PaymentMessageKeys.statusSuccess:
-        return t.paymentStatusSuccess;
+        base = t.paymentStatusSuccess;
+        break;
       case PaymentMessageKeys.statusFailure:
-        return t.paymentStatusFailure;
+        base = t.paymentStatusFailure;
+        break;
       case PaymentMessageKeys.statusCancelled:
-        return t.paymentStatusCancelled;
+        base = t.paymentStatusCancelled;
+        break;
       case PaymentMessageKeys.statusNoUpdates:
-        return t.paymentStatusNoUpdates;
+        base = t.paymentStatusNoUpdates;
+        break;
       case PaymentMessageKeys.cardInitTerminal:
-        return t.paymentCardInitTerminal;
+        base = t.paymentCardInitTerminal;
+        break;
       case PaymentMessageKeys.cardSuccess:
-        return t.paymentCardSuccess;
+        base = t.paymentCardSuccess;
+        break;
       case PaymentMessageKeys.cardFailure:
-        return t.paymentCardFailure;
+        base = t.paymentCardFailure;
+        break;
       case PaymentMessageKeys.cardCancelled:
-        return t.paymentCardCancelled;
+        base = t.paymentCardCancelled;
+        break;
       case PaymentMessageKeys.cardCancelFailed:
-        return t.paymentCardCancelFailed(args?['detail']?.toString() ?? '');
+        base = t.paymentCardCancelFailed(resolveDetail());
+        break;
       case PaymentMessageKeys.cardInitFailed:
-        return t.paymentCardInitFailed(args?['detail']?.toString() ?? '');
+        base = t.paymentCardInitFailed(resolveDetail());
+        break;
       case PaymentMessageKeys.posStreamClosed:
-        return t.paymentPosStreamClosed;
+        base = t.paymentPosStreamClosed;
+        break;
       case PaymentMessageKeys.qrWaitScan:
-        return t.paymentQrWaitScan;
+        base = t.paymentQrWaitScan;
+        break;
       case PaymentMessageKeys.qrRequestBackend:
-        return t.paymentQrRequestBackend;
+        base = t.paymentQrRequestBackend;
+        break;
       case PaymentMessageKeys.qrPosPrompt:
-        return t.paymentQrPosPrompt;
+        base = t.paymentQrPosPrompt;
+        break;
       case PaymentMessageKeys.qrSuccess:
-        return t.paymentQrSuccess;
+        base = t.paymentQrSuccess;
+        break;
       case PaymentMessageKeys.qrFailure:
-        return t.paymentQrFailure(args?['detail']?.toString() ?? '');
+        base = t.paymentQrFailure(resolveDetail());
+        break;
       case PaymentMessageKeys.qrCancelled:
-        return t.paymentQrCancelled;
+        base = t.paymentQrCancelled;
+        break;
       case PaymentMessageKeys.qrConfigMissing:
-        return t.paymentQrConfigMissing;
+        base = t.paymentQrConfigMissing;
+        break;
       case PaymentMessageKeys.posWaitingResponse:
-        return t.paymentPosWaitingResponse;
+        base = t.paymentPosWaitingResponse;
+        break;
       case PaymentMessageKeys.posProcessing:
-        return t.paymentPosProcessing;
+        base = t.paymentPosProcessing;
+        break;
+      case PaymentMessageKeys.posFetchingPayData:
+        base = t.paymentPosFetchingPayData;
+        break;
+      case PaymentMessageKeys.posWaitingUser:
+        base = t.paymentPosWaitingUser;
+        break;
+      case PaymentMessageKeys.posRequestPayData:
+        base = t.paymentPosRequestPayData;
+        break;
+      case PaymentMessageKeys.posLoading:
+        base = t.paymentPosLoading(args?['mode']?.toString() ?? '');
+        break;
+      case PaymentMessageKeys.posTerminalDone:
+        base = t.paymentPosTerminalDone(args?['action']?.toString() ?? '');
+        break;
+      case PaymentMessageKeys.posTerminalCancelled:
+        base = t.paymentPosTerminalCancelled(
+          args?['code']?.toString() ?? '',
+          args?['mpfs']?.toString() ?? '',
+        );
+        break;
+      case PaymentMessageKeys.posTimeout:
+        base = t.paymentPosTimeout;
+        break;
+      case PaymentMessageKeys.posReportResult:
+        base = t.paymentPosReportResult;
+        break;
+      case PaymentMessageKeys.posPaymentSuccess:
+        base = t.paymentPosPaymentSuccess;
+        break;
+      case PaymentMessageKeys.posResultHandleFailed:
+        base = t.paymentPosResultHandleFailed(resolveDetail());
+        break;
+      case PaymentMessageKeys.posCancelProcessing:
+        base = t.paymentPosCancelProcessing;
+        break;
+      case PaymentMessageKeys.posCancelFailed:
+        base = t.paymentPosCancelFailed(resolveDetail());
+        break;
+      case PaymentMessageKeys.posOperatorCancelled:
+        base = t.paymentPosOperatorCancelled;
+        break;
       case PaymentMessageKeys.cashPrepare:
-        return t.paymentCashPrepare;
+        base = t.paymentCashPrepare;
+        break;
       case PaymentMessageKeys.cashAwaitConfirm:
-        return t.paymentCashAwaitConfirm;
+        base = t.paymentCashAwaitConfirm;
+        break;
       case PaymentMessageKeys.cashConfirming:
-        return t.paymentCashConfirming;
+        base = t.paymentCashConfirming;
+        break;
       case PaymentMessageKeys.cashSuccess:
-        return t.paymentCashSuccess;
+        base = t.paymentCashSuccess;
+        break;
       case PaymentMessageKeys.cashFailure:
-        return t.paymentCashFailure(args?['detail']?.toString() ?? '');
+        base = t.paymentCashFailure(resolveDetail());
+        break;
       case PaymentMessageKeys.cashConfirmFailed:
-        return t.paymentCashConfirmFailed(args?['detail']?.toString() ?? '');
+        base = t.paymentCashConfirmFailed(resolveDetail());
+        break;
       case PaymentMessageKeys.cashCancelled:
-        return t.paymentCashCancelled;
+        base = t.paymentCashCancelled;
+        break;
       case PaymentMessageKeys.cashStageIdle:
-        return t.paymentCashStageIdle;
+        base = t.paymentCashStageIdle;
+        break;
       case PaymentMessageKeys.cashStageChecking:
-        return t.paymentCashStageChecking;
+        base = t.paymentCashStageChecking;
+        break;
       case PaymentMessageKeys.cashStageOpening:
-        return t.paymentCashStageOpening;
+        base = t.paymentCashStageOpening;
+        break;
       case PaymentMessageKeys.cashStageAccepting:
-        return t.paymentCashStageAccepting;
+        base = t.paymentCashStageAccepting;
+        break;
       case PaymentMessageKeys.cashStageCounting:
-        return t.paymentCashStageCounting;
+        base = t.paymentCashStageCounting;
+        break;
       case PaymentMessageKeys.cashStageClosing:
-        return t.paymentCashStageClosing;
+        base = t.paymentCashStageClosing;
+        break;
       case PaymentMessageKeys.cashStageCompleted:
-        return t.paymentCashStageCompleted;
+        base = t.paymentCashStageCompleted;
+        break;
       case PaymentMessageKeys.cashStageNearFull:
-        return t.paymentCashStageNearFull;
+        base = t.paymentCashStageNearFull;
+        break;
       case PaymentMessageKeys.cashStageFull:
-        return t.paymentCashStageFull;
+        base = t.paymentCashStageFull;
+        break;
       case PaymentMessageKeys.cashStageError:
-        return t.paymentCashStageError;
+        base = t.paymentCashStageError;
+        break;
       case PaymentMessageKeys.cashStageChange:
-        return t.paymentCashStageChange;
+        base = t.paymentCashStageChange;
+        break;
       case PaymentMessageKeys.cashStageChangeFailed:
-        return t.paymentCashStageChangeFailed;
+        base = t.paymentCashStageChangeFailed;
+        break;
       case PaymentMessageKeys.cashAmountCurrent:
-        return t.paymentCashAmountCurrent(args?['amount']?.toString() ?? '');
+        base = t.paymentCashAmountCurrent(args?['amount']?.toString() ?? '');
+        break;
       case PaymentMessageKeys.cashAmountFinal:
-        return t.paymentCashAmountFinal(args?['amount']?.toString() ?? '');
+        base = t.paymentCashAmountFinal(args?['amount']?.toString() ?? '');
+        break;
       case PaymentMessageKeys.errorUnknown:
-        return t.paymentErrorUnknown(args?['detail']?.toString() ?? '');
+        base = t.paymentErrorUnknown(resolveDetail());
+        break;
       case PaymentMessageKeys.sessionMissing:
-        return t.paymentSessionMissing;
+        base = t.paymentSessionMissing;
+        break;
       case PaymentMessageKeys.flowEnded:
-        return t.paymentFlowEnded;
+        base = t.paymentFlowEnded;
+        break;
       default:
-        return fallback;
+        base = fallback;
+        break;
+    }
+
+    final suffix = resolveErrorCodeSuffix();
+    if (suffix == null || suffix.isEmpty) return base;
+    return '$base ($suffix)';
+  }
+
+  static String _resolveExternalDetail(AppLocalizations t, String raw) {
+    if (raw.isEmpty) return raw;
+    switch (raw) {
+      case 'POS_IP_MISSING':
+        return t.paymentErrorPosIpMissing;
+      case 'POS_PORT_INVALID':
+        return t.paymentErrorPosPortInvalid;
+      case 'POS_CONFIG_MISSING':
+        return t.paymentErrorPosConfigMissing;
+      case 'POS_CARD_GATEWAY_REQUIRED':
+        return t.paymentErrorPosCardGatewayRequired;
+      case 'POS_SESSION_MISSING':
+        return t.paymentErrorPosSessionMissing;
+      case 'POS_CANCEL_INSTRUCTION_EMPTY':
+        return t.paymentErrorPosCancelInstructionEmpty;
+      case 'POS_REQUEST_DATA_MISSING':
+        return t.paymentErrorPosRequestDataMissing;
+      case 'POS_CANCEL_NOT_SUPPORTED':
+        return t.paymentErrorPosCancelNotSupported;
+      case 'POS_CANCEL_FAILED':
+        return t.paymentErrorPosCancelFailed;
+      case 'PAYMENT_FINALIZE_NOT_REQUIRED':
+        return t.paymentErrorPaymentFinalizeNotRequired;
+      case 'CASH_RECEIPT_MISSING':
+        return t.paymentErrorCashReceiptMissing;
+      case 'CASH_BUSY':
+        return t.paymentErrorCashBusy;
+      case 'CASH_NO_PENDING':
+        return t.paymentErrorCashNoPending;
+      case 'QR_SCAN_CANCELLED':
+        return t.paymentErrorQrScanCancelled;
+      case 'QR_SCAN_RESET':
+        return t.paymentErrorQrScanReset;
+      case 'QR_SCAN_RELEASED':
+        return t.paymentErrorQrScanReleased;
+      default:
+        return raw;
+    }
+  }
+
+  static String? _resolveExternalErrorCodeDesc(AppLocalizations t, String rawCode) {
+    switch (rawCode) {
+      case 'POS_CANCEL_FAILED':
+        return t.paymentErrorPosCancelFailed;
+      default:
+        return null;
     }
   }
 }

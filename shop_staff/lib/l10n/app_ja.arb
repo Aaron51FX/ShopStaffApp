@@ -481,6 +481,67 @@
   "paymentActionConfirming": "確認中…",
   "paymentActionCancel": "支払い取消",
   "paymentActionCancelling": "取消中…",
+  "paymentPosFetchingPayData": "POS決済データ取得中",
+  "paymentPosWaitingUser": "端末操作待ち",
+  "paymentPosRequestPayData": "支払いデータ要求中",
+  "paymentPosLoading": "読み込み中（{mode}）",
+  "@paymentPosLoading": {
+    "placeholders": {
+      "mode": {}
+    }
+  },
+  "paymentPosTerminalDone": "端末操作完了：{action}",
+  "@paymentPosTerminalDone": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "paymentPosTerminalCancelled": "端末キャンセル code={code} mpfs={mpfs}",
+  "@paymentPosTerminalCancelled": {
+    "placeholders": {
+      "code": {},
+      "mpfs": {}
+    }
+  },
+  "paymentPosTimeout": "POS接続がタイムアウトしました",
+  "paymentPosReportResult": "決済結果を送信中",
+  "paymentPosPaymentSuccess": "支払い成功",
+  "paymentPosResultHandleFailed": "POS決済結果の処理に失敗しました：{detail}",
+  "@paymentPosResultHandleFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentPosCancelProcessing": "POS取引をキャンセル中…",
+  "paymentPosCancelFailed": "POS取引のキャンセルに失敗しました：{detail}",
+  "@paymentPosCancelFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentPosOperatorCancelled": "オペレーターが取引をキャンセルしました",
+  "paymentErrorPosIpMissing": "POS端末のIPが未設定です",
+  "paymentErrorPosPortInvalid": "POS端末のポートが未設定または無効です",
+  "paymentErrorPosConfigMissing": "POS端末の設定が不足しています",
+  "paymentErrorPosCardGatewayRequired": "POSカードゲートウェイが未設定です",
+  "paymentErrorPosSessionMissing": "POSセッションが存在しないか終了しています",
+  "paymentErrorPosCancelInstructionEmpty": "POSキャンセル指令が空です",
+  "paymentErrorPosRequestDataMissing": "POS決済の要求データが不足しています",
+  "paymentErrorPosCancelNotSupported": "このPOSセッションはキャンセルをサポートしていません",
+  "paymentErrorPosCancelFailed": "POSのキャンセルに失敗しました",
+  "paymentErrorPaymentFinalizeNotRequired": "この決済は確認不要です",
+  "paymentErrorCashReceiptMissing": "確認可能な現金レシートがありません",
+  "paymentErrorCashBusy": "前回の現金決済が進行中です",
+  "paymentErrorCashNoPending": "処理待ちの現金取引がありません",
+  "paymentErrorQrScanCancelled": "QRスキャンがキャンセルされました",
+  "paymentErrorQrScanReset": "新しい要求でスキャンがリセットされました",
+  "paymentErrorQrScanReleased": "QRスキャナーが解放されました",
+  "paymentErrorCodeLabel": "エラーコード：{code}",
+  "@paymentErrorCodeLabel": {
+    "placeholders": {
+      "code": {}
+    }
+  },
   "paymentErrorUnknown": "不明なエラー：{detail}",
   "@paymentErrorUnknown": {
     "placeholders": {

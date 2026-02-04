@@ -1143,6 +1143,108 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentActionCancelling => '取消中…';
 
   @override
+  String get paymentPosFetchingPayData => 'POS決済データ取得中';
+
+  @override
+  String get paymentPosWaitingUser => '端末操作待ち';
+
+  @override
+  String get paymentPosRequestPayData => '支払いデータ要求中';
+
+  @override
+  String paymentPosLoading(Object mode) {
+    return '読み込み中（$mode）';
+  }
+
+  @override
+  String paymentPosTerminalDone(Object action) {
+    return '端末操作完了：$action';
+  }
+
+  @override
+  String paymentPosTerminalCancelled(Object code, Object mpfs) {
+    return '端末キャンセル code=$code mpfs=$mpfs';
+  }
+
+  @override
+  String get paymentPosTimeout => 'POS接続がタイムアウトしました';
+
+  @override
+  String get paymentPosReportResult => '決済結果を送信中';
+
+  @override
+  String get paymentPosPaymentSuccess => '支払い成功';
+
+  @override
+  String paymentPosResultHandleFailed(Object detail) {
+    return 'POS決済結果の処理に失敗しました：$detail';
+  }
+
+  @override
+  String get paymentPosCancelProcessing => 'POS取引をキャンセル中…';
+
+  @override
+  String paymentPosCancelFailed(Object detail) {
+    return 'POS取引のキャンセルに失敗しました：$detail';
+  }
+
+  @override
+  String get paymentPosOperatorCancelled => 'オペレーターが取引をキャンセルしました';
+
+  @override
+  String get paymentErrorPosIpMissing => 'POS端末のIPが未設定です';
+
+  @override
+  String get paymentErrorPosPortInvalid => 'POS端末のポートが未設定または無効です';
+
+  @override
+  String get paymentErrorPosConfigMissing => 'POS端末の設定が不足しています';
+
+  @override
+  String get paymentErrorPosCardGatewayRequired => 'POSカードゲートウェイが未設定です';
+
+  @override
+  String get paymentErrorPosSessionMissing => 'POSセッションが存在しないか終了しています';
+
+  @override
+  String get paymentErrorPosCancelInstructionEmpty => 'POSキャンセル指令が空です';
+
+  @override
+  String get paymentErrorPosRequestDataMissing => 'POS決済の要求データが不足しています';
+
+  @override
+  String get paymentErrorPosCancelNotSupported => 'このPOSセッションはキャンセルをサポートしていません';
+
+  @override
+  String get paymentErrorPosCancelFailed => 'POSのキャンセルに失敗しました';
+
+  @override
+  String get paymentErrorPaymentFinalizeNotRequired => 'この決済は確認不要です';
+
+  @override
+  String get paymentErrorCashReceiptMissing => '確認可能な現金レシートがありません';
+
+  @override
+  String get paymentErrorCashBusy => '前回の現金決済が進行中です';
+
+  @override
+  String get paymentErrorCashNoPending => '処理待ちの現金取引がありません';
+
+  @override
+  String get paymentErrorQrScanCancelled => 'QRスキャンがキャンセルされました';
+
+  @override
+  String get paymentErrorQrScanReset => '新しい要求でスキャンがリセットされました';
+
+  @override
+  String get paymentErrorQrScanReleased => 'QRスキャナーが解放されました';
+
+  @override
+  String paymentErrorCodeLabel(Object code) {
+    return 'エラーコード：$code';
+  }
+
+  @override
   String paymentErrorUnknown(Object detail) {
     return '不明なエラー：$detail';
   }

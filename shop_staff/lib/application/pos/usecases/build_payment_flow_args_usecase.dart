@@ -32,10 +32,10 @@ class BuildPaymentFlowArgsUseCase {
       config['posPort'] = port;
 
       if (ip.isEmpty) {
-        throw StateError('未配置POS终端IP');
+        throw StateError('POS_IP_MISSING');
       }
       if (port == 0) {
-        throw StateError('未配置POS终端端口');
+        throw StateError('POS_PORT_INVALID');
       }
     }
 

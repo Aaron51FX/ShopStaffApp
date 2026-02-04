@@ -42,21 +42,23 @@ class PosPaymentServiceImpl implements PosPaymentService {
       final gateway = _cardGateway;
       if (gateway == null) {
         await controller.close();
-        throw StateError('PosCardPaymentGateway is required for card payments');
+        throw StateError('POS_CARD_GATEWAY_REQUIRED');
       }
-      pendingStatuses.add(const PosPaymentStatus(type: PosPaymentStatusType.processing, message: '获取POS支付数据'));
+      pendingStatuses.add(const PosPaymentStatus(
+        type: PosPaymentStatusType.processing,
+        messageKey: PaymentMessageKeys.posFetchingPayData,
+      ));
       try {
         cardRequest ??= await gateway.createPaymentRequest(request);
         if (cardRequest.hasError) {
-          final msg = cardRequest.exceptionMessage ?? 'POS支付数据异常';
+          final msg = cardRequest.exceptionMessage ?? 'POS_REQUEST_DATA_MISSING';
           await controller.close();
           throw StateError(msg);
         }
         final requestInfo = cardRequest.requestInfo;
         if (requestInfo == null || requestInfo.isEmpty) {
-          const msg = 'POS支付缺少请求数据';
           await controller.close();
-          throw StateError(msg);
+          throw StateError('POS_REQUEST_DATA_MISSING');
         }
         payload = payload.copyWith(requestData: requestInfo);
       } catch (e, stack) {
@@ -96,7 +98,10 @@ class PosPaymentServiceImpl implements PosPaymentService {
     final entry = _sessions[sessionId];
     if (entry == null) {
       return Stream.value(
-        const PosPaymentStatus(type: PosPaymentStatusType.failure, message: '会话不存在或已结束'),
+        const PosPaymentStatus(
+          type: PosPaymentStatusType.failure,
+          messageKey: PaymentMessageKeys.sessionMissing,
+        ),
       );
     }
     return entry.controller.stream;
@@ -106,7 +111,7 @@ class PosPaymentServiceImpl implements PosPaymentService {
   Future<void> cancel(String sessionId) async {
     final entry = _sessions[sessionId];
     if (entry == null) {
-      throw StateError('支付会话不存在或已结束');
+      throw StateError('POS_SESSION_MISSING');
     }
     if (entry.isCompleted) {
       return;
@@ -119,26 +124,36 @@ class PosPaymentServiceImpl implements PosPaymentService {
       }
     }
 
-    emit(const PosPaymentStatus(type: PosPaymentStatusType.processing, message: '正在取消POS交易…'));
+    emit(const PosPaymentStatus(
+      type: PosPaymentStatusType.processing,
+      messageKey: PaymentMessageKeys.posCancelProcessing,
+    ));
 
     try {
       if (entry.supportsCard && entry.cardGateway != null) {
         final instruction = await entry.ensureCancelInstruction(_logger);
         final payload = instruction.payload;
         if (payload.isEmpty) {
-          throw StateError('POS取消指令为空');
+          throw StateError('POS_CANCEL_INSTRUCTION_EMPTY');
         }
 
         await entry.manager.write(PosAction.cancel, payload);
       } else {
-        emit(const PosPaymentStatus(type: PosPaymentStatusType.cancelled, message: '操作员取消交易'));
+        emit(const PosPaymentStatus(
+          type: PosPaymentStatusType.cancelled,
+          messageKey: PaymentMessageKeys.posOperatorCancelled,
+        ));
         await _finishSession(sessionId);
       }
     } catch (e, stack) {
       _logger.severe('POS取消失败', e, stack);
-      emit(PosPaymentStatus(type: PosPaymentStatusType.failure, message: 'POS取消失败: $e'));
+      emit(PosPaymentStatus(
+        type: PosPaymentStatusType.failure,
+        messageKey: PaymentMessageKeys.posCancelFailed,
+        messageArgs: {'detail': e.toString()},
+      ));
       await _finishSession(sessionId);
-      throw StateError('POS取消失败: $e');
+      throw StateError('POS_CANCEL_FAILED');
     }
   }
 
@@ -160,11 +175,18 @@ class PosPaymentServiceImpl implements PosPaymentService {
         },
         onLoading: (mode) {
           if (entry.isCompleted || controller.isClosed) return;
-          controller.add(PosPaymentStatus(type: PosPaymentStatusType.processing, message: '加载中($mode)'));
+          controller.add(PosPaymentStatus(
+            type: PosPaymentStatusType.processing,
+            messageKey: PaymentMessageKeys.posLoading,
+            messageArgs: {'mode': mode},
+          ));
         },
         onLoadingEnd: () {
           if (entry.isCompleted || controller.isClosed) return;
-          controller.add(const PosPaymentStatus(type: PosPaymentStatusType.processing, message: '等待终端操作'));
+          controller.add(const PosPaymentStatus(
+            type: PosPaymentStatusType.processing,
+            messageKey: PaymentMessageKeys.posWaitingUser,
+          ));
         },
         onSuccess: (data) {
           if (entry.isCompleted || controller.isClosed) return;
@@ -172,13 +194,17 @@ class PosPaymentServiceImpl implements PosPaymentService {
         },
         onRequestPayData: () {
           if (entry.isCompleted || controller.isClosed) return;
-          controller.add(const PosPaymentStatus(type: PosPaymentStatusType.processing, message: '请求付款数据'));
+          controller.add(const PosPaymentStatus(
+            type: PosPaymentStatusType.processing,
+            messageKey: PaymentMessageKeys.posRequestPayData,
+          ));
         },
         onDone: (action) {
           if (entry.isCompleted || controller.isClosed) return;
           controller.add(PosPaymentStatus(
             type: PosPaymentStatusType.cancelled,
-            message: '终端完成操作: ${action.name}',
+            messageKey: PaymentMessageKeys.posTerminalDone,
+            messageArgs: {'action': action.name},
           ));
           unawaited(_finishSession(sessionId));
         },
@@ -186,14 +212,18 @@ class PosPaymentServiceImpl implements PosPaymentService {
           if (entry.isCompleted || controller.isClosed) return;
           controller.add(PosPaymentStatus(
             type: PosPaymentStatusType.cancelled,
-            message: '终端取消 code=$code mpfs=$mpfs',
+            messageKey: PaymentMessageKeys.posTerminalCancelled,
+            messageArgs: {'code': code, 'mpfs': mpfs},
             errorCode: code,
           ));
           unawaited(_finishSession(sessionId));
         },
         onTimeOut: () {
           if (entry.isCompleted || controller.isClosed) return;
-          controller.add(const PosPaymentStatus(type: PosPaymentStatusType.failure, message: 'POS连接超时'));
+          controller.add(const PosPaymentStatus(
+            type: PosPaymentStatusType.failure,
+            messageKey: PaymentMessageKeys.posTimeout,
+          ));
           unawaited(_finishSession(sessionId));
         },
       );
@@ -215,18 +245,28 @@ class PosPaymentServiceImpl implements PosPaymentService {
         final reportPayload = cardRequest?.data;
         // final reportPayload = cardData?.reportPayload;
         if (cardRequest == null && reportPayload != null) {
-          controller.add(const PosPaymentStatus(type: PosPaymentStatusType.processing, message: '上报支付结果'));
+          controller.add(const PosPaymentStatus(
+            type: PosPaymentStatusType.processing,
+            messageKey: PaymentMessageKeys.posReportResult,
+          ));
           await entry.cardGateway!.reportPayment(reportPayload: reportPayload, paymentInfo: data);
         }
       }
       if (!entry.isCompleted && !controller.isClosed) {
         _logger.fine('POS payment success data: $data');
-        controller.add(const PosPaymentStatus(type: PosPaymentStatusType.success, message: '支付成功'));
+        controller.add(const PosPaymentStatus(
+          type: PosPaymentStatusType.success,
+          messageKey: PaymentMessageKeys.posPaymentSuccess,
+        ));
       }
     } catch (e, stack) {
       _logger.severe('POS payment success handling failed', e, stack);
       if (!entry.isCompleted && !controller.isClosed) {
-        controller.add(PosPaymentStatus(type: PosPaymentStatusType.failure, message: 'POS支付结果处理失败: $e'));
+        controller.add(PosPaymentStatus(
+          type: PosPaymentStatusType.failure,
+          messageKey: PaymentMessageKeys.posResultHandleFailed,
+          messageArgs: {'detail': e.toString()},
+        ));
       }
     } finally {
       await _finishSession(sessionId);
@@ -289,11 +329,11 @@ class _PosSessionEntry {
     try {
       final data = await cardGateway!.createPaymentRequest(request);
       if (data.hasError) {
-        throw StateError(data.exceptionMessage ?? 'POS支付数据异常');
+        throw StateError(data.exceptionMessage ?? 'POS_REQUEST_DATA_MISSING');
       }
       final info = data.requestInfo;
       if (info == null || info.isEmpty) {
-        throw StateError('POS支付缺少请求数据');
+        throw StateError('POS_REQUEST_DATA_MISSING');
       }
       cardRequest = data;
       return cardRequest;
@@ -305,7 +345,7 @@ class _PosSessionEntry {
 
   Future<CardCancelInstruction> ensureCancelInstruction(Logger logger) async {
     if (!supportsCard || cardGateway == null) {
-      throw StateError('当前POS会话不支持取消指令');
+      throw StateError('POS_CANCEL_NOT_SUPPORTED');
     }
     final existing = cancelInstruction;
     if (existing != null && existing.payload.isNotEmpty) {
@@ -353,7 +393,7 @@ class LegacyPosPaymentPayload {
   static LegacyPosPaymentPayload fromRequest(PosPaymentRequest request) {
     final map = request.customPayload;
     if (map == null) {
-      throw ArgumentError('POS payment请求缺少终端配置(customPayload)');
+      throw ArgumentError('POS_CONFIG_MISSING');
     }
 
     String? _readString(String key) {
@@ -379,7 +419,7 @@ class LegacyPosPaymentPayload {
     }
 
     if (payment == null || ip == null || port == null) {
-      throw ArgumentError('POS payment请求缺少必要参数(paymentCode/ip/port/machineCode)');
+      throw ArgumentError('POS_CONFIG_MISSING');
     }
 
     return LegacyPosPaymentPayload(

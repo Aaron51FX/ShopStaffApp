@@ -64,7 +64,7 @@ class QrPaymentFlow implements PaymentFlow {
         final cardData = await _cardGateway.createPaymentRequest(request);
 
         if (!cardData.success) {
-          final message = cardData.exceptionMessage ?? '二维码支付失败';
+          final message = cardData.exceptionMessage ?? '';
           controller.add(PaymentStatus(
             type: PaymentStatusType.failure,
             messageKey: PaymentMessageKeys.qrFailure,
@@ -169,7 +169,7 @@ class QrPaymentFlow implements PaymentFlow {
             payload: {'code': code},
           ));
         } else {
-          final message = cardData.exceptionMessage ?? '二维码支付失败';
+          final message = cardData.exceptionMessage ?? '';
           controller.add(PaymentStatus(
             type: PaymentStatusType.failure,
             messageKey: PaymentMessageKeys.qrFailure,
@@ -304,32 +304,40 @@ class QrPaymentFlow implements PaymentFlow {
   }
 
   PaymentStatus _mapPosStatus(PosPaymentStatus status) {
+    final messageArgs = {
+      if (status.messageArgs != null) ...status.messageArgs!,
+      if (status.errorCode != null) 'errorCode': status.errorCode,
+    };
     switch (status.type) {
       case PosPaymentStatusType.pending:
         return PaymentStatus(
           type: PaymentStatusType.pending,
           message: status.message,
-          messageKey: status.message == null ? PaymentMessageKeys.posWaitingResponse : null,
+          messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.posWaitingResponse : null),
+          messageArgs: messageArgs.isEmpty ? null : messageArgs,
           phase: PaymentPhase.sending,
         );
       case PosPaymentStatusType.processing:
         return PaymentStatus(
           type: PaymentStatusType.processing,
           message: status.message,
-          messageKey: status.message == null ? PaymentMessageKeys.posProcessing : null,
+          messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.posProcessing : null),
+          messageArgs: messageArgs.isEmpty ? null : messageArgs,
           phase: PaymentPhase.waitingUser,
         );
       case PosPaymentStatusType.success:
         return PaymentStatus(
           type: PaymentStatusType.success,
           message: status.message,
-          messageKey: status.message == null ? PaymentMessageKeys.qrSuccess : null,
+          messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.qrSuccess : null),
+          messageArgs: messageArgs.isEmpty ? null : messageArgs,
         );
       case PosPaymentStatusType.failure:
         return PaymentStatus(
           type: PaymentStatusType.failure,
           message: status.message,
-          messageKey: status.message == null ? PaymentMessageKeys.qrFailure : null,
+          messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.qrFailure : null),
+          messageArgs: messageArgs.isEmpty ? null : messageArgs,
           errorType: PaymentErrorType.device,
           retryable: true,
         );
@@ -337,7 +345,8 @@ class QrPaymentFlow implements PaymentFlow {
         return PaymentStatus(
           type: PaymentStatusType.cancelled,
           message: status.message,
-          messageKey: status.message == null ? PaymentMessageKeys.qrCancelled : null,
+          messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.qrCancelled : null),
+          messageArgs: messageArgs.isEmpty ? null : messageArgs,
           errorType: PaymentErrorType.userCancelled,
           retryable: true,
         );
@@ -347,14 +356,17 @@ class QrPaymentFlow implements PaymentFlow {
   bool _isUserCancelled(Object error) {
     if (error is StateError) {
       final msg = error.message?.toString() ?? '';
-      if (msg.contains('扫码已取消')) return true;
+      if (msg == 'QR_SCAN_CANCELLED') return true;
     }
     final text = error.toString();
-    return text.contains('扫码已取消') || text.contains('cancelled');
+    return text.contains('QR_SCAN_CANCELLED') || text.contains('cancelled');
   }
 
   bool _isConfigError(Object error) {
-    return error is StateError && error.message == 'POS_CONFIG_MISSING';
+    if (error is StateError && error.message == 'POS_CONFIG_MISSING') return true;
+    if (error is ArgumentError && error.message == 'POS_CONFIG_MISSING') return true;
+    return error is StateError &&
+        (error.message == 'POS_IP_MISSING' || error.message == 'POS_PORT_INVALID');
   }
 
   bool _readResultFlag(Map<String, dynamic> data) {

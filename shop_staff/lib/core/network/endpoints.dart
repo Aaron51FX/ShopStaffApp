@@ -68,11 +68,11 @@ class Endpoints {
   String get receiptQuery => '$_b/pad/web/boot/retry/printByQuery';
   String get receiptQueryV2 => '$_b/pad/web/boot/retry/printByQuery/v2';
 
-  String get closePrintInfo => '$_b/pad/web/boot/query/printInfo';
-  String get gloryClosePrintInfo => '$_b/pad/web/glory/query/printInfo';
-  String get emailList => '$_b/pad/web/boot/emails';
-  String get adminVerify => '$_b/pad/web/boot/sendVerifyCode';
-  String get closeConfirm => '$_b/pad/web/boot/confirm/close';
+  String get rejishimeiPrintInfo => '$_b/pad/web/boot/query/printInfo/v2';
+  //String get gloryClosePrintInfo => '$_b/pad/web/glory/query/printInfo';
+  String get rejishimeiMailList => '$_b/pad/web/boot/emails';
+  String get rejishimeiAdminVerify => '$_b/pad/web/boot/sendVerifyCode';
+  String get rejishimeiConfirm => '$_b/pad/web/boot/confirm/close';
 
   String get posTest => '$_b/pad/web/boot/pos/test';
   String get troubleNotify => '$_b/pad/web/boot/notice';

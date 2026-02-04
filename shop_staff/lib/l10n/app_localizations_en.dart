@@ -1188,6 +1188,115 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentActionCancelling => 'Cancelling…';
 
   @override
+  String get paymentPosFetchingPayData => 'Fetching POS payment data';
+
+  @override
+  String get paymentPosWaitingUser => 'Waiting for terminal operation';
+
+  @override
+  String get paymentPosRequestPayData => 'Requesting payment data';
+
+  @override
+  String paymentPosLoading(Object mode) {
+    return 'Loading ($mode)';
+  }
+
+  @override
+  String paymentPosTerminalDone(Object action) {
+    return 'Terminal completed action: $action';
+  }
+
+  @override
+  String paymentPosTerminalCancelled(Object code, Object mpfs) {
+    return 'Terminal cancelled code=$code mpfs=$mpfs';
+  }
+
+  @override
+  String get paymentPosTimeout => 'POS connection timed out';
+
+  @override
+  String get paymentPosReportResult => 'Reporting payment result';
+
+  @override
+  String get paymentPosPaymentSuccess => 'Payment successful';
+
+  @override
+  String paymentPosResultHandleFailed(Object detail) {
+    return 'Failed to handle POS result: $detail';
+  }
+
+  @override
+  String get paymentPosCancelProcessing => 'Cancelling POS transaction…';
+
+  @override
+  String paymentPosCancelFailed(Object detail) {
+    return 'Failed to cancel POS transaction: $detail';
+  }
+
+  @override
+  String get paymentPosOperatorCancelled => 'Operator cancelled transaction';
+
+  @override
+  String get paymentErrorPosIpMissing => 'POS terminal IP is not configured';
+
+  @override
+  String get paymentErrorPosPortInvalid =>
+      'POS terminal port is missing or invalid';
+
+  @override
+  String get paymentErrorPosConfigMissing => 'POS configuration is missing';
+
+  @override
+  String get paymentErrorPosCardGatewayRequired =>
+      'POS card gateway is not configured';
+
+  @override
+  String get paymentErrorPosSessionMissing => 'POS session is missing or ended';
+
+  @override
+  String get paymentErrorPosCancelInstructionEmpty =>
+      'POS cancel instruction is empty';
+
+  @override
+  String get paymentErrorPosRequestDataMissing =>
+      'POS payment request data is missing';
+
+  @override
+  String get paymentErrorPosCancelNotSupported =>
+      'POS session does not support cancel';
+
+  @override
+  String get paymentErrorPosCancelFailed => 'POS cancel failed';
+
+  @override
+  String get paymentErrorPaymentFinalizeNotRequired =>
+      'Payment finalization is not required';
+
+  @override
+  String get paymentErrorCashReceiptMissing => 'No cash receipt to confirm';
+
+  @override
+  String get paymentErrorCashBusy =>
+      'Previous cash payment is still in progress';
+
+  @override
+  String get paymentErrorCashNoPending => 'No pending cash transaction';
+
+  @override
+  String get paymentErrorQrScanCancelled => 'QR scan cancelled';
+
+  @override
+  String get paymentErrorQrScanReset => 'QR scan reset by a new request';
+
+  @override
+  String get paymentErrorQrScanReleased => 'QR scanner released';
+
+  @override
+  String paymentErrorCodeLabel(Object code) {
+    return 'Error code: $code';
+  }
+
+  @override
   String paymentErrorUnknown(Object detail) {
     return 'Unknown error: $detail';
   }

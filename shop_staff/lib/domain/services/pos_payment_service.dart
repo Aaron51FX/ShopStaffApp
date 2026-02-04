@@ -23,12 +23,16 @@ class PosPaymentStatus {
   const PosPaymentStatus({
     required this.type,
     this.message,
+    this.messageKey,
+    this.messageArgs,
     this.approvalCode,
     this.errorCode,
   });
 
   final PosPaymentStatusType type;
   final String? message;
+  final String? messageKey;
+  final Map<String, dynamic>? messageArgs;
   final String? approvalCode;
   final String? errorCode;
 }

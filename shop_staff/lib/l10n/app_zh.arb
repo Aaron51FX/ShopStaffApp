@@ -481,6 +481,67 @@
   "paymentActionConfirming": "正在确认…",
   "paymentActionCancel": "取消支付",
   "paymentActionCancelling": "正在取消…",
+  "paymentPosFetchingPayData": "获取POS支付数据",
+  "paymentPosWaitingUser": "等待终端操作",
+  "paymentPosRequestPayData": "请求付款数据",
+  "paymentPosLoading": "加载中({mode})",
+  "@paymentPosLoading": {
+    "placeholders": {
+      "mode": {}
+    }
+  },
+  "paymentPosTerminalDone": "终端完成操作: {action}",
+  "@paymentPosTerminalDone": {
+    "placeholders": {
+      "action": {}
+    }
+  },
+  "paymentPosTerminalCancelled": "终端取消 code={code} mpfs={mpfs}",
+  "@paymentPosTerminalCancelled": {
+    "placeholders": {
+      "code": {},
+      "mpfs": {}
+    }
+  },
+  "paymentPosTimeout": "POS连接超时",
+  "paymentPosReportResult": "上报支付结果",
+  "paymentPosPaymentSuccess": "支付成功",
+  "paymentPosResultHandleFailed": "POS支付结果处理失败：{detail}",
+  "@paymentPosResultHandleFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentPosCancelProcessing": "正在取消POS交易…",
+  "paymentPosCancelFailed": "POS取消失败：{detail}",
+  "@paymentPosCancelFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentPosOperatorCancelled": "操作员取消交易",
+  "paymentErrorPosIpMissing": "未配置POS终端IP",
+  "paymentErrorPosPortInvalid": "未配置POS终端端口或端口格式错误",
+  "paymentErrorPosConfigMissing": "缺少POS终端配置",
+  "paymentErrorPosCardGatewayRequired": "POS刷卡网关未配置",
+  "paymentErrorPosSessionMissing": "POS会话不存在或已结束",
+  "paymentErrorPosCancelInstructionEmpty": "POS取消指令为空",
+  "paymentErrorPosRequestDataMissing": "POS支付缺少请求数据",
+  "paymentErrorPosCancelNotSupported": "当前POS会话不支持取消指令",
+  "paymentErrorPosCancelFailed": "POS取消失败",
+  "paymentErrorPaymentFinalizeNotRequired": "当前支付流程不需要确认",
+  "paymentErrorCashReceiptMissing": "暂无可确认的现金凭证",
+  "paymentErrorCashBusy": "上一笔现金支付仍在进行",
+  "paymentErrorCashNoPending": "没有待完成的现金交易",
+  "paymentErrorQrScanCancelled": "扫码已取消",
+  "paymentErrorQrScanReset": "扫码任务被新的请求重置",
+  "paymentErrorQrScanReleased": "扫码服务已释放",
+  "paymentErrorCodeLabel": "错误码：{code}",
+  "@paymentErrorCodeLabel": {
+    "placeholders": {
+      "code": {}
+    }
+  },
   "paymentErrorUnknown": "发生未知错误：{detail}",
   "@paymentErrorUnknown": {
     "placeholders": {

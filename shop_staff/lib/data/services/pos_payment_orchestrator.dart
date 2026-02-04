@@ -137,7 +137,7 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
   Future<void> cancel(String sessionId) async {
     final entry = _sessions[sessionId];
     if (entry == null) {
-      throw StateError('支付会话不存在');
+      throw StateError('POS_SESSION_MISSING');
     }
     try {
       await entry.run.cancel();
@@ -151,11 +151,11 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
   Future<void> finalize(String sessionId) async {
     final entry = _sessions[sessionId];
     if (entry == null) {
-      throw StateError('支付会话不存在');
+      throw StateError('POS_SESSION_MISSING');
     }
     final finalize = entry.finalize;
     if (finalize == null) {
-      throw StateError('当前支付流程不需要确认');
+      throw StateError('PAYMENT_FINALIZE_NOT_REQUIRED');
     }
     try {
       await finalize();

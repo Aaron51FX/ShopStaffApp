@@ -129,7 +129,7 @@ class CashPaymentFlow implements PaymentFlow {
     Future<void> finalize() async {
       if (isFinished) return;
       if (pendingReceipt == null) {
-        throw StateError('暂无可确认的现金凭证');
+        throw StateError('CASH_RECEIPT_MISSING');
       }
       if (confirmRequested) return;
       confirmRequested = true;

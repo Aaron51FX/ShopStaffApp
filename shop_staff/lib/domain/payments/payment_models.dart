@@ -70,6 +70,37 @@ abstract class PaymentMessageKeys {
   static const String errorUnknown = 'payment_error_unknown';
   static const String sessionMissing = 'payment_session_missing';
   static const String flowEnded = 'payment_flow_ended';
+  static const String posFetchingPayData = 'payment_pos_fetching_data';
+  static const String posWaitingUser = 'payment_pos_waiting_user';
+  static const String posRequestPayData = 'payment_pos_request_pay_data';
+  static const String posLoading = 'payment_pos_loading';
+  static const String posTerminalDone = 'payment_pos_terminal_done';
+  static const String posTerminalCancelled = 'payment_pos_terminal_cancelled';
+  static const String posTimeout = 'payment_pos_timeout';
+  static const String posReportResult = 'payment_pos_report_result';
+  static const String posPaymentSuccess = 'payment_pos_payment_success';
+  static const String posResultHandleFailed = 'payment_pos_result_handle_failed';
+  static const String posCancelProcessing = 'payment_pos_cancel_processing';
+  static const String posCancelFailed = 'payment_pos_cancel_failed';
+  static const String posOperatorCancelled = 'payment_pos_operator_cancelled';
+
+  // External error codes to be mapped into localized messages.
+  static const String errorPosIpMissing = 'payment_error_pos_ip_missing';
+  static const String errorPosPortInvalid = 'payment_error_pos_port_invalid';
+  static const String errorPosConfigMissing = 'payment_error_pos_config_missing';
+  static const String errorPosCardGatewayRequired = 'payment_error_pos_card_gateway_required';
+  static const String errorPosSessionMissing = 'payment_error_pos_session_missing';
+  static const String errorPosCancelInstructionEmpty = 'payment_error_pos_cancel_instruction_empty';
+  static const String errorPosRequestDataMissing = 'payment_error_pos_request_data_missing';
+  static const String errorPosCancelNotSupported = 'payment_error_pos_cancel_not_supported';
+  static const String errorPosCancelFailed = 'payment_error_pos_cancel_failed';
+  static const String errorPaymentFinalizeNotRequired = 'payment_error_payment_finalize_not_required';
+  static const String errorCashReceiptMissing = 'payment_error_cash_receipt_missing';
+  static const String errorCashBusy = 'payment_error_cash_busy';
+  static const String errorCashNoPending = 'payment_error_cash_no_pending';
+  static const String errorQrScanCancelled = 'payment_error_qr_scan_cancelled';
+  static const String errorQrScanReset = 'payment_error_qr_scan_reset';
+  static const String errorQrScanReleased = 'payment_error_qr_scan_released';
 }
 
 /// Canonical payment phases to drive precise UI controls (e.g. cancel availability).

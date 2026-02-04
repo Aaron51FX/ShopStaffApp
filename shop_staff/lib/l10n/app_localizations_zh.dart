@@ -1138,6 +1138,108 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentActionCancelling => '正在取消…';
 
   @override
+  String get paymentPosFetchingPayData => '获取POS支付数据';
+
+  @override
+  String get paymentPosWaitingUser => '等待终端操作';
+
+  @override
+  String get paymentPosRequestPayData => '请求付款数据';
+
+  @override
+  String paymentPosLoading(Object mode) {
+    return '加载中($mode)';
+  }
+
+  @override
+  String paymentPosTerminalDone(Object action) {
+    return '终端完成操作: $action';
+  }
+
+  @override
+  String paymentPosTerminalCancelled(Object code, Object mpfs) {
+    return '终端取消 code=$code mpfs=$mpfs';
+  }
+
+  @override
+  String get paymentPosTimeout => 'POS连接超时';
+
+  @override
+  String get paymentPosReportResult => '上报支付结果';
+
+  @override
+  String get paymentPosPaymentSuccess => '支付成功';
+
+  @override
+  String paymentPosResultHandleFailed(Object detail) {
+    return 'POS支付结果处理失败：$detail';
+  }
+
+  @override
+  String get paymentPosCancelProcessing => '正在取消POS交易…';
+
+  @override
+  String paymentPosCancelFailed(Object detail) {
+    return 'POS取消失败：$detail';
+  }
+
+  @override
+  String get paymentPosOperatorCancelled => '操作员取消交易';
+
+  @override
+  String get paymentErrorPosIpMissing => '未配置POS终端IP';
+
+  @override
+  String get paymentErrorPosPortInvalid => '未配置POS终端端口或端口格式错误';
+
+  @override
+  String get paymentErrorPosConfigMissing => '缺少POS终端配置';
+
+  @override
+  String get paymentErrorPosCardGatewayRequired => 'POS刷卡网关未配置';
+
+  @override
+  String get paymentErrorPosSessionMissing => 'POS会话不存在或已结束';
+
+  @override
+  String get paymentErrorPosCancelInstructionEmpty => 'POS取消指令为空';
+
+  @override
+  String get paymentErrorPosRequestDataMissing => 'POS支付缺少请求数据';
+
+  @override
+  String get paymentErrorPosCancelNotSupported => '当前POS会话不支持取消指令';
+
+  @override
+  String get paymentErrorPosCancelFailed => 'POS取消失败';
+
+  @override
+  String get paymentErrorPaymentFinalizeNotRequired => '当前支付流程不需要确认';
+
+  @override
+  String get paymentErrorCashReceiptMissing => '暂无可确认的现金凭证';
+
+  @override
+  String get paymentErrorCashBusy => '上一笔现金支付仍在进行';
+
+  @override
+  String get paymentErrorCashNoPending => '没有待完成的现金交易';
+
+  @override
+  String get paymentErrorQrScanCancelled => '扫码已取消';
+
+  @override
+  String get paymentErrorQrScanReset => '扫码任务被新的请求重置';
+
+  @override
+  String get paymentErrorQrScanReleased => '扫码服务已释放';
+
+  @override
+  String paymentErrorCodeLabel(Object code) {
+    return '错误码：$code';
+  }
+
+  @override
   String paymentErrorUnknown(Object detail) {
     return '发生未知错误：$detail';
   }
