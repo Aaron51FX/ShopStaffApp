@@ -114,7 +114,7 @@ class CashMachineServiceImpl implements CashMachineService {
       );
       _pendingReceipt = receipt;
       _awaitingCompletion = true;
-      _emit(CashMachineReceiptReadyEvent(receipt));
+      //_emit(CashMachineReceiptReadyEvent(receipt));
       _emitStage(CashMachineStage.accepting, '金额确认，等待投入现金…');
       return receipt;
     } catch (e, s) {
