@@ -16,9 +16,16 @@ abstract class PaymentFlowEffect {
 }
 
 class PaymentFlowToastEffect extends PaymentFlowEffect {
-  const PaymentFlowToastEffect({required this.message, this.isError = false});
+  const PaymentFlowToastEffect({
+    this.message,
+    this.messageKey,
+    this.messageArgs,
+    this.isError = false,
+  });
 
-  final String message;
+  final String? message;
+  final String? messageKey;
+  final Map<String, dynamic>? messageArgs;
   final bool isError;
 }
 
@@ -138,11 +145,20 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
           state = state.copyWith(result: result);
           switch (result.status) {
             case PaymentStatusType.success:
-              _emit(PaymentFlowToastEffect(message: result.message ?? '支付成功'));
+              _emit(PaymentFlowToastEffect(
+                message: result.message,
+                messageKey: result.messageKey ?? PaymentMessageKeys.statusSuccess,
+                messageArgs: result.messageArgs,
+              ));
               _emit(const PaymentFlowStartPrintEffect());
               break;
             case PaymentStatusType.failure:
-              _emit(PaymentFlowToastEffect(message: result.message ?? '支付失败', isError: true));
+              _emit(PaymentFlowToastEffect(
+                message: result.message,
+                messageKey: result.messageKey ?? PaymentMessageKeys.statusFailure,
+                messageArgs: result.messageArgs,
+                isError: true,
+              ));
               break;
             case PaymentStatusType.cancelled:
             default:
@@ -194,7 +210,12 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       await _useCase.finalize(id);
     } catch (e, stack) {
       _logger.warning('Confirm payment failed', e, stack);
-      _emit(PaymentFlowToastEffect(message: '确认现金支付失败: $e', isError: true));
+      _emit(PaymentFlowToastEffect(
+        message: e.toString(),
+        messageKey: PaymentMessageKeys.cashConfirmFailed,
+        messageArgs: {'detail': e.toString()},
+        isError: true,
+      ));
     } finally {
       state = state.copyWith(isConfirming: false);
     }
@@ -278,7 +299,12 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       final dialogNeedsUpdate = state.cancelDialog.status == CancelDialogStatus.loading;
       final nextDialog = dialogNeedsUpdate ? CancelDialogState.failure(message) : state.cancelDialog;
       state = state.copyWith(error: message, cancelDialog: nextDialog);
-      _emit(PaymentFlowToastEffect(message: message, isError: true));
+      _emit(PaymentFlowToastEffect(
+        message: message,
+        messageKey: PaymentMessageKeys.errorUnknown,
+        messageArgs: {'detail': message},
+        isError: true,
+      ));
     }
   }
 
@@ -307,6 +333,8 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     return PaymentStatus(
       type: status.type,
       message: status.message,
+      messageKey: status.messageKey,
+      messageArgs: status.messageArgs,
       details: clonedDetails,
       errorType: status.errorType,
       retryable: status.retryable,

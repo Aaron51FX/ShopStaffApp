@@ -358,5 +358,133 @@
   "orderHistoryLoadFailed": "Failed to load orders",
   "customerOptionsBasePricePrefix": "Base price ",
   "customerOptionsSelectedTitle": "Selected options",
-  "customerOptionsTotalLabel": "Current total"
+  "customerOptionsTotalLabel": "Current total",
+  "paymentFlowStarted": "Payment flow started ({channel})",
+  "@paymentFlowStarted": {
+    "placeholders": {
+      "channel": {}
+    }
+  },
+  "paymentStatusInitialized": "Initialized",
+  "paymentStatusPending": "Pending",
+  "paymentStatusWaitingUser": "Waiting for customer",
+  "paymentStatusProcessing": "Processing",
+  "paymentStatusSuccess": "Payment successful",
+  "paymentStatusFailure": "Payment failed",
+  "paymentStatusCancelled": "Payment cancelled",
+  "paymentStatusNoUpdates": "No status updates",
+  "paymentCardInitTerminal": "Initializing card terminal",
+  "paymentCardSuccess": "Card payment successful",
+  "paymentCardFailure": "Card payment failed",
+  "paymentCardCancelled": "Card payment cancelled",
+  "paymentCardCancelFailed": "Failed to cancel card payment: {detail}",
+  "@paymentCardCancelFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentCardInitFailed": "Failed to initialize card payment: {detail}",
+  "@paymentCardInitFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentPosStreamClosed": "POS connection closed",
+  "paymentQrWaitScan": "Align QR code with the scanner",
+  "paymentQrRequestBackend": "QR recognized, contacting backend…",
+  "paymentQrPosPrompt": "Follow POS terminal prompts to complete payment",
+  "paymentQrSuccess": "QR payment completed",
+  "paymentQrFailure": "QR payment failed: {detail}",
+  "@paymentQrFailure": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentQrCancelled": "QR payment cancelled",
+  "paymentQrConfigMissing": "Missing POS configuration. Unable to complete QR payment.",
+  "paymentPosWaitingResponse": "Waiting for terminal response",
+  "paymentPosProcessing": "Terminal processing",
+  "paymentCashPrepare": "Preparing cash payment",
+  "paymentCashAwaitConfirm": "Please verify the amount inserted and tap Confirm Payment",
+  "paymentCashConfirming": "Notifying backend…",
+  "paymentCashSuccess": "Cash payment completed",
+  "paymentCashFailure": "Cash payment failed: {detail}",
+  "@paymentCashFailure": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentCashConfirmFailed": "Cash confirmation failed: {detail}",
+  "@paymentCashConfirmFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentCashCancelled": "Cash payment cancelled",
+  "paymentCashStageIdle": "Cash machine ready",
+  "paymentCashStageChecking": "Checking cash machine…",
+  "paymentCashStageOpening": "Opening cash machine…",
+  "paymentCashStageAccepting": "Waiting for cash insertion",
+  "paymentCashStageCounting": "Counting cash…",
+  "paymentCashStageClosing": "Closing cash operation…",
+  "paymentCashStageCompleted": "Cash machine operation completed",
+  "paymentCashStageNearFull": "Cash box nearly full, please empty",
+  "paymentCashStageFull": "Cash box full, please empty",
+  "paymentCashStageError": "Cash machine error",
+  "paymentCashStageChange": "Making change…",
+  "paymentCashStageChangeFailed": "Change failed",
+  "paymentCashAmountCurrent": "Current cash amount: ¥{amount}",
+  "@paymentCashAmountCurrent": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentCashAmountFinal": "Confirmed cash amount: ¥{amount}",
+  "@paymentCashAmountFinal": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentSessionMissing": "Payment session not found",
+  "paymentFlowEnded": "Payment flow has ended",
+  "paymentFallbackCardConnecting": "Connecting to terminal…",
+  "paymentFallbackCardFollowPos": "Follow the POS terminal prompts",
+  "paymentFallbackCardProcessing": "Card payment in progress",
+  "paymentFallbackCashPrepare": "Please prepare cash",
+  "paymentFallbackCashWaiting": "Waiting for cash insertion",
+  "paymentFallbackCashProcessing": "Cash payment in progress",
+  "paymentFallbackQrAlign": "Align QR code with the scanner",
+  "paymentFallbackQrProcessing": "QR payment in progress",
+  "paymentFallbackProcessing": "Payment in progress",
+  "paymentInstructionCard": "Follow the terminal prompts to insert/swipe/tap; do not remove the card immediately.",
+  "paymentInstructionCash": "After inserting cash, please wait for change and collect the receipt.",
+  "paymentInstructionQr": "Use the customer's QR code and align it with the scanner.",
+  "paymentInstructionDefault": "Follow the on-screen or terminal instructions to complete payment.",
+  "paymentErrorHintDevice": "Device issue: check the POS terminal or cash machine connection.",
+  "paymentErrorHintConfig": "Configuration missing: verify terminal IP/port or payment settings.",
+  "paymentErrorHintNetwork": "Network issue: check connectivity and retry.",
+  "paymentErrorHintBackend": "Backend issue: retry later or switch payment method.",
+  "paymentErrorHintCancelled": "This payment was cancelled.",
+  "paymentRetryDevice": "Reconnect device",
+  "paymentRetryNetwork": "Retry network",
+  "paymentRetryDefault": "Retry",
+  "paymentRetryRestart": "Start again",
+  "paymentActionReturnPos": "Back to POS",
+  "paymentActionDoneReturn": "Done and return",
+  "paymentActionConfirm": "Confirm payment",
+  "paymentActionConfirmAmount": "Confirm payment ¥{amount}",
+  "@paymentActionConfirmAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentActionConfirming": "Confirming…",
+  "paymentActionCancel": "Cancel payment",
+  "paymentActionCancelling": "Cancelling…",
+  "paymentErrorUnknown": "Unknown error: {detail}",
+  "@paymentErrorUnknown": {
+    "placeholders": {
+      "detail": {}
+    }
+  }
 }

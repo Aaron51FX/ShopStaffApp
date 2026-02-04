@@ -33,7 +33,10 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
 
     final initialStatus = PaymentStatus(
       type: PaymentStatusType.pending,
-      message: '支付流程启动(${context.channel.displayName ?? context.channel.group})',
+      messageKey: PaymentMessageKeys.flowStarted,
+      messageArgs: {
+        'channel': context.channel.displayName ?? context.channel.group,
+      },
       phase: PaymentPhase.initializing,
     );
     controller.add(initialStatus);
@@ -57,7 +60,11 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
         if (!entry.completer.isCompleted) {
           // Fallback: mark as failure if the run completed without result.
           entry.completer.complete(
-            PaymentResult.failure(message: '支付流程已结束'),
+            PaymentResult.failure(
+              messageKey: PaymentMessageKeys.flowEnded,
+              errorType: PaymentErrorType.unknown,
+              retryable: true,
+            ),
           );
         }
       },
@@ -100,7 +107,12 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
     final entry = _sessions[sessionId];
     if (entry == null) {
       return Stream<PaymentStatus>.value(
-        const PaymentStatus(type: PaymentStatusType.failure, message: '支付会话不存在'),
+        const PaymentStatus(
+          type: PaymentStatusType.failure,
+          messageKey: PaymentMessageKeys.sessionMissing,
+          errorType: PaymentErrorType.unknown,
+          retryable: true,
+        ),
       );
     }
     return entry.controller.stream;
@@ -111,7 +123,11 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
     final entry = _sessions[sessionId];
     if (entry == null) {
       return Future.value(
-        PaymentResult.failure(message: '支付会话不存在'),
+        PaymentResult.failure(
+          messageKey: PaymentMessageKeys.sessionMissing,
+          errorType: PaymentErrorType.unknown,
+          retryable: true,
+        ),
       );
     }
     return entry.completer.future;
@@ -161,12 +177,16 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
         return PaymentStatus(
           type: PaymentStatusType.success,
           message: result.message,
+          messageKey: result.messageKey,
+          messageArgs: result.messageArgs,
           details: result.payload,
         );
       case PaymentStatusType.cancelled:
         return PaymentStatus(
           type: PaymentStatusType.cancelled,
           message: result.message,
+          messageKey: result.messageKey,
+          messageArgs: result.messageArgs,
           details: result.payload,
           errorType: result.errorType,
           retryable: result.retryable,
@@ -176,6 +196,8 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
         return PaymentStatus(
           type: PaymentStatusType.failure,
           message: result.message,
+          messageKey: result.messageKey,
+          messageArgs: result.messageArgs,
           details: result.payload,
           errorType: result.errorType,
           retryable: result.retryable,

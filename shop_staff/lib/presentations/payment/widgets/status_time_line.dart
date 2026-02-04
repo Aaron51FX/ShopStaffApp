@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_state.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_hero.dart';
 
@@ -12,13 +13,14 @@ class StatusTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final history = state.timeline;
+    final t = AppLocalizations.of(context);
     if (history.isEmpty) {
       if (state.error != null) {
         return Center(
           child: Text(state.error!, style: const TextStyle(color: Colors.redAccent)),
         );
       }
-      return const Center(child: Text('暂无状态更新'));
+      return Center(child: Text(t.paymentStatusNoUpdates));
     }
     return ListView.separated(
       itemCount: history.length,
@@ -27,28 +29,33 @@ class StatusTimeline extends StatelessWidget {
         final status = history[index];
         return ListTile(
           leading: Icon(StatusHero.iconForStatus(status.type, null)),
-          title: Text(status.message ?? _label(status.type)),
+          title: Text(StatusHero.resolveMessage(
+            t,
+            key: status.messageKey,
+            args: status.messageArgs,
+            fallback: status.message ?? _label(t, status.type),
+          )),
         );
       },
     );
   }
 
-  static String _label(PaymentStatusType type) {
+  static String _label(AppLocalizations t, PaymentStatusType type) {
     switch (type) {
       case PaymentStatusType.initialized:
-        return '初始化';
+        return t.paymentStatusInitialized;
       case PaymentStatusType.pending:
-        return '待处理';
+        return t.paymentStatusPending;
       case PaymentStatusType.waitingForUser:
-        return '等待顾客操作';
+        return t.paymentStatusWaitingUser;
       case PaymentStatusType.processing:
-        return '处理中';
+        return t.paymentStatusProcessing;
       case PaymentStatusType.success:
-        return '支付成功';
+        return t.paymentStatusSuccess;
       case PaymentStatusType.failure:
-        return '支付失败';
+        return t.paymentStatusFailure;
       case PaymentStatusType.cancelled:
-        return '支付已取消';
+        return t.paymentStatusCancelled;
     }
   }
 }

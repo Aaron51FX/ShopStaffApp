@@ -891,4 +891,259 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get customerOptionsTotalLabel => '現在合計';
+
+  @override
+  String paymentFlowStarted(Object channel) {
+    return '決済フロー開始（$channel）';
+  }
+
+  @override
+  String get paymentStatusInitialized => '初期化中';
+
+  @override
+  String get paymentStatusPending => '待機中';
+
+  @override
+  String get paymentStatusWaitingUser => 'お客様の操作待ち';
+
+  @override
+  String get paymentStatusProcessing => '処理中';
+
+  @override
+  String get paymentStatusSuccess => '支払い成功';
+
+  @override
+  String get paymentStatusFailure => '支払い失敗';
+
+  @override
+  String get paymentStatusCancelled => '支払いキャンセル';
+
+  @override
+  String get paymentStatusNoUpdates => 'ステータス更新なし';
+
+  @override
+  String get paymentCardInitTerminal => 'カード端末を初期化中';
+
+  @override
+  String get paymentCardSuccess => 'カード決済完了';
+
+  @override
+  String get paymentCardFailure => 'カード決済失敗';
+
+  @override
+  String get paymentCardCancelled => 'カード決済キャンセル';
+
+  @override
+  String paymentCardCancelFailed(Object detail) {
+    return 'カード決済のキャンセルに失敗しました：$detail';
+  }
+
+  @override
+  String paymentCardInitFailed(Object detail) {
+    return 'カード決済の初期化に失敗しました：$detail';
+  }
+
+  @override
+  String get paymentPosStreamClosed => 'POS端末の接続が切断されました';
+
+  @override
+  String get paymentQrWaitScan => 'QRコードをスキャナーに合わせてください';
+
+  @override
+  String get paymentQrRequestBackend => 'QR認識済み、バックエンドに問い合わせ中…';
+
+  @override
+  String get paymentQrPosPrompt => 'POS端末の案内に従って決済を完了してください';
+
+  @override
+  String get paymentQrSuccess => 'QR決済完了';
+
+  @override
+  String paymentQrFailure(Object detail) {
+    return 'QR決済失敗：$detail';
+  }
+
+  @override
+  String get paymentQrCancelled => 'QR決済キャンセル';
+
+  @override
+  String get paymentQrConfigMissing => 'POS端末設定が不足しています。QR決済を完了できません。';
+
+  @override
+  String get paymentPosWaitingResponse => '端末の応答待ち';
+
+  @override
+  String get paymentPosProcessing => '端末処理中';
+
+  @override
+  String get paymentCashPrepare => '現金決済の準備中';
+
+  @override
+  String get paymentCashAwaitConfirm => '投入金額を確認し「確認支払い」を押してください';
+
+  @override
+  String get paymentCashConfirming => 'バックエンドに通知中…';
+
+  @override
+  String get paymentCashSuccess => '現金決済完了';
+
+  @override
+  String paymentCashFailure(Object detail) {
+    return '現金決済失敗：$detail';
+  }
+
+  @override
+  String paymentCashConfirmFailed(Object detail) {
+    return '現金確定に失敗しました：$detail';
+  }
+
+  @override
+  String get paymentCashCancelled => '現金決済キャンセル';
+
+  @override
+  String get paymentCashStageIdle => '現金機は準備完了';
+
+  @override
+  String get paymentCashStageChecking => '現金機を検査中…';
+
+  @override
+  String get paymentCashStageOpening => '現金機を開いています…';
+
+  @override
+  String get paymentCashStageAccepting => '現金投入待ち';
+
+  @override
+  String get paymentCashStageCounting => '投入金額を確認中…';
+
+  @override
+  String get paymentCashStageClosing => '現金操作を終了中…';
+
+  @override
+  String get paymentCashStageCompleted => '現金機の操作が完了しました';
+
+  @override
+  String get paymentCashStageNearFull => '現金箱がもうすぐ満杯です。空にしてください';
+
+  @override
+  String get paymentCashStageFull => '現金箱が満杯です。空にしてください';
+
+  @override
+  String get paymentCashStageError => '現金機エラー';
+
+  @override
+  String get paymentCashStageChange => 'お釣り中…';
+
+  @override
+  String get paymentCashStageChangeFailed => 'お釣り失敗';
+
+  @override
+  String paymentCashAmountCurrent(Object amount) {
+    return '現在認識された現金金額：¥$amount';
+  }
+
+  @override
+  String paymentCashAmountFinal(Object amount) {
+    return '確認済み現金金額：¥$amount';
+  }
+
+  @override
+  String get paymentSessionMissing => '決済セッションが見つかりません';
+
+  @override
+  String get paymentFlowEnded => '決済フローが終了しました';
+
+  @override
+  String get paymentFallbackCardConnecting => '端末に接続中…';
+
+  @override
+  String get paymentFallbackCardFollowPos => 'POS端末の案内に従ってください';
+
+  @override
+  String get paymentFallbackCardProcessing => 'カード決済処理中';
+
+  @override
+  String get paymentFallbackCashPrepare => '現金をご準備ください';
+
+  @override
+  String get paymentFallbackCashWaiting => '現金投入待ち';
+
+  @override
+  String get paymentFallbackCashProcessing => '現金決済処理中';
+
+  @override
+  String get paymentFallbackQrAlign => 'QRコードをスキャナーに合わせてください';
+
+  @override
+  String get paymentFallbackQrProcessing => 'QR決済処理中';
+
+  @override
+  String get paymentFallbackProcessing => '決済処理中';
+
+  @override
+  String get paymentInstructionCard =>
+      '端末の案内に従って挿入・スワイプ・タッチし、完了するまでカードを抜かないでください。';
+
+  @override
+  String get paymentInstructionCash => '現金投入後、お釣りを待ってレシートをお受け取りください。';
+
+  @override
+  String get paymentInstructionQr => 'お客様のQRコードをスキャナーに合わせてください。';
+
+  @override
+  String get paymentInstructionDefault => '画面または端末の案内に従って決済を完了してください。';
+
+  @override
+  String get paymentErrorHintDevice => '機器の問題：POS端末または現金機の接続を確認してください。';
+
+  @override
+  String get paymentErrorHintConfig => '設定不足：端末IP/ポートや決済設定を確認してください。';
+
+  @override
+  String get paymentErrorHintNetwork => 'ネットワークの問題：接続を確認して再試行してください。';
+
+  @override
+  String get paymentErrorHintBackend => 'バックエンドの問題：後でもう一度お試しください。';
+
+  @override
+  String get paymentErrorHintCancelled => 'この決済はキャンセルされました。';
+
+  @override
+  String get paymentRetryDevice => '機器再接続';
+
+  @override
+  String get paymentRetryNetwork => 'ネットワーク再試行';
+
+  @override
+  String get paymentRetryDefault => '再試行';
+
+  @override
+  String get paymentRetryRestart => '再開';
+
+  @override
+  String get paymentActionReturnPos => 'POSに戻る';
+
+  @override
+  String get paymentActionDoneReturn => '完了して戻る';
+
+  @override
+  String get paymentActionConfirm => '支払い確認';
+
+  @override
+  String paymentActionConfirmAmount(Object amount) {
+    return '¥$amount を支払い確認';
+  }
+
+  @override
+  String get paymentActionConfirming => '確認中…';
+
+  @override
+  String get paymentActionCancel => '支払い取消';
+
+  @override
+  String get paymentActionCancelling => '取消中…';
+
+  @override
+  String paymentErrorUnknown(Object detail) {
+    return '不明なエラー：$detail';
+  }
 }

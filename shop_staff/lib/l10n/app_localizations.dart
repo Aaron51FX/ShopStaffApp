@@ -1797,6 +1797,474 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Current total'**
   String get customerOptionsTotalLabel;
+
+  /// No description provided for @paymentFlowStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment flow started ({channel})'**
+  String paymentFlowStarted(Object channel);
+
+  /// No description provided for @paymentStatusInitialized.
+  ///
+  /// In en, this message translates to:
+  /// **'Initialized'**
+  String get paymentStatusInitialized;
+
+  /// No description provided for @paymentStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get paymentStatusPending;
+
+  /// No description provided for @paymentStatusWaitingUser.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for customer'**
+  String get paymentStatusWaitingUser;
+
+  /// No description provided for @paymentStatusProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing'**
+  String get paymentStatusProcessing;
+
+  /// No description provided for @paymentStatusSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment successful'**
+  String get paymentStatusSuccess;
+
+  /// No description provided for @paymentStatusFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment failed'**
+  String get paymentStatusFailure;
+
+  /// No description provided for @paymentStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment cancelled'**
+  String get paymentStatusCancelled;
+
+  /// No description provided for @paymentStatusNoUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'No status updates'**
+  String get paymentStatusNoUpdates;
+
+  /// No description provided for @paymentCardInitTerminal.
+  ///
+  /// In en, this message translates to:
+  /// **'Initializing card terminal'**
+  String get paymentCardInitTerminal;
+
+  /// No description provided for @paymentCardSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Card payment successful'**
+  String get paymentCardSuccess;
+
+  /// No description provided for @paymentCardFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Card payment failed'**
+  String get paymentCardFailure;
+
+  /// No description provided for @paymentCardCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Card payment cancelled'**
+  String get paymentCardCancelled;
+
+  /// No description provided for @paymentCardCancelFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to cancel card payment: {detail}'**
+  String paymentCardCancelFailed(Object detail);
+
+  /// No description provided for @paymentCardInitFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to initialize card payment: {detail}'**
+  String paymentCardInitFailed(Object detail);
+
+  /// No description provided for @paymentPosStreamClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'POS connection closed'**
+  String get paymentPosStreamClosed;
+
+  /// No description provided for @paymentQrWaitScan.
+  ///
+  /// In en, this message translates to:
+  /// **'Align QR code with the scanner'**
+  String get paymentQrWaitScan;
+
+  /// No description provided for @paymentQrRequestBackend.
+  ///
+  /// In en, this message translates to:
+  /// **'QR recognized, contacting backend…'**
+  String get paymentQrRequestBackend;
+
+  /// No description provided for @paymentQrPosPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow POS terminal prompts to complete payment'**
+  String get paymentQrPosPrompt;
+
+  /// No description provided for @paymentQrSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'QR payment completed'**
+  String get paymentQrSuccess;
+
+  /// No description provided for @paymentQrFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'QR payment failed: {detail}'**
+  String paymentQrFailure(Object detail);
+
+  /// No description provided for @paymentQrCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'QR payment cancelled'**
+  String get paymentQrCancelled;
+
+  /// No description provided for @paymentQrConfigMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing POS configuration. Unable to complete QR payment.'**
+  String get paymentQrConfigMissing;
+
+  /// No description provided for @paymentPosWaitingResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for terminal response'**
+  String get paymentPosWaitingResponse;
+
+  /// No description provided for @paymentPosProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal processing'**
+  String get paymentPosProcessing;
+
+  /// No description provided for @paymentCashPrepare.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing cash payment'**
+  String get paymentCashPrepare;
+
+  /// No description provided for @paymentCashAwaitConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Please verify the amount inserted and tap Confirm Payment'**
+  String get paymentCashAwaitConfirm;
+
+  /// No description provided for @paymentCashConfirming.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifying backend…'**
+  String get paymentCashConfirming;
+
+  /// No description provided for @paymentCashSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash payment completed'**
+  String get paymentCashSuccess;
+
+  /// No description provided for @paymentCashFailure.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash payment failed: {detail}'**
+  String paymentCashFailure(Object detail);
+
+  /// No description provided for @paymentCashConfirmFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash confirmation failed: {detail}'**
+  String paymentCashConfirmFailed(Object detail);
+
+  /// No description provided for @paymentCashCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash payment cancelled'**
+  String get paymentCashCancelled;
+
+  /// No description provided for @paymentCashStageIdle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash machine ready'**
+  String get paymentCashStageIdle;
+
+  /// No description provided for @paymentCashStageChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking cash machine…'**
+  String get paymentCashStageChecking;
+
+  /// No description provided for @paymentCashStageOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening cash machine…'**
+  String get paymentCashStageOpening;
+
+  /// No description provided for @paymentCashStageAccepting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for cash insertion'**
+  String get paymentCashStageAccepting;
+
+  /// No description provided for @paymentCashStageCounting.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting cash…'**
+  String get paymentCashStageCounting;
+
+  /// No description provided for @paymentCashStageClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing cash operation…'**
+  String get paymentCashStageClosing;
+
+  /// No description provided for @paymentCashStageCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash machine operation completed'**
+  String get paymentCashStageCompleted;
+
+  /// No description provided for @paymentCashStageNearFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash box nearly full, please empty'**
+  String get paymentCashStageNearFull;
+
+  /// No description provided for @paymentCashStageFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash box full, please empty'**
+  String get paymentCashStageFull;
+
+  /// No description provided for @paymentCashStageError.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash machine error'**
+  String get paymentCashStageError;
+
+  /// No description provided for @paymentCashStageChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Making change…'**
+  String get paymentCashStageChange;
+
+  /// No description provided for @paymentCashStageChangeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Change failed'**
+  String get paymentCashStageChangeFailed;
+
+  /// No description provided for @paymentCashAmountCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current cash amount: ¥{amount}'**
+  String paymentCashAmountCurrent(Object amount);
+
+  /// No description provided for @paymentCashAmountFinal.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed cash amount: ¥{amount}'**
+  String paymentCashAmountFinal(Object amount);
+
+  /// No description provided for @paymentSessionMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment session not found'**
+  String get paymentSessionMissing;
+
+  /// No description provided for @paymentFlowEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment flow has ended'**
+  String get paymentFlowEnded;
+
+  /// No description provided for @paymentFallbackCardConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting to terminal…'**
+  String get paymentFallbackCardConnecting;
+
+  /// No description provided for @paymentFallbackCardFollowPos.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the POS terminal prompts'**
+  String get paymentFallbackCardFollowPos;
+
+  /// No description provided for @paymentFallbackCardProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Card payment in progress'**
+  String get paymentFallbackCardProcessing;
+
+  /// No description provided for @paymentFallbackCashPrepare.
+  ///
+  /// In en, this message translates to:
+  /// **'Please prepare cash'**
+  String get paymentFallbackCashPrepare;
+
+  /// No description provided for @paymentFallbackCashWaiting.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for cash insertion'**
+  String get paymentFallbackCashWaiting;
+
+  /// No description provided for @paymentFallbackCashProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash payment in progress'**
+  String get paymentFallbackCashProcessing;
+
+  /// No description provided for @paymentFallbackQrAlign.
+  ///
+  /// In en, this message translates to:
+  /// **'Align QR code with the scanner'**
+  String get paymentFallbackQrAlign;
+
+  /// No description provided for @paymentFallbackQrProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'QR payment in progress'**
+  String get paymentFallbackQrProcessing;
+
+  /// No description provided for @paymentFallbackProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment in progress'**
+  String get paymentFallbackProcessing;
+
+  /// No description provided for @paymentInstructionCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the terminal prompts to insert/swipe/tap; do not remove the card immediately.'**
+  String get paymentInstructionCard;
+
+  /// No description provided for @paymentInstructionCash.
+  ///
+  /// In en, this message translates to:
+  /// **'After inserting cash, please wait for change and collect the receipt.'**
+  String get paymentInstructionCash;
+
+  /// No description provided for @paymentInstructionQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the customer\'s QR code and align it with the scanner.'**
+  String get paymentInstructionQr;
+
+  /// No description provided for @paymentInstructionDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the on-screen or terminal instructions to complete payment.'**
+  String get paymentInstructionDefault;
+
+  /// No description provided for @paymentErrorHintDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Device issue: check the POS terminal or cash machine connection.'**
+  String get paymentErrorHintDevice;
+
+  /// No description provided for @paymentErrorHintConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration missing: verify terminal IP/port or payment settings.'**
+  String get paymentErrorHintConfig;
+
+  /// No description provided for @paymentErrorHintNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network issue: check connectivity and retry.'**
+  String get paymentErrorHintNetwork;
+
+  /// No description provided for @paymentErrorHintBackend.
+  ///
+  /// In en, this message translates to:
+  /// **'Backend issue: retry later or switch payment method.'**
+  String get paymentErrorHintBackend;
+
+  /// No description provided for @paymentErrorHintCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'This payment was cancelled.'**
+  String get paymentErrorHintCancelled;
+
+  /// No description provided for @paymentRetryDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect device'**
+  String get paymentRetryDevice;
+
+  /// No description provided for @paymentRetryNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry network'**
+  String get paymentRetryNetwork;
+
+  /// No description provided for @paymentRetryDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get paymentRetryDefault;
+
+  /// No description provided for @paymentRetryRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start again'**
+  String get paymentRetryRestart;
+
+  /// No description provided for @paymentActionReturnPos.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to POS'**
+  String get paymentActionReturnPos;
+
+  /// No description provided for @paymentActionDoneReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Done and return'**
+  String get paymentActionDoneReturn;
+
+  /// No description provided for @paymentActionConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm payment'**
+  String get paymentActionConfirm;
+
+  /// No description provided for @paymentActionConfirmAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm payment ¥{amount}'**
+  String paymentActionConfirmAmount(Object amount);
+
+  /// No description provided for @paymentActionConfirming.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming…'**
+  String get paymentActionConfirming;
+
+  /// No description provided for @paymentActionCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel payment'**
+  String get paymentActionCancel;
+
+  /// No description provided for @paymentActionCancelling.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelling…'**
+  String get paymentActionCancelling;
+
+  /// No description provided for @paymentErrorUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown error: {detail}'**
+  String paymentErrorUnknown(Object detail);
 }
 
 class _AppLocalizationsDelegate

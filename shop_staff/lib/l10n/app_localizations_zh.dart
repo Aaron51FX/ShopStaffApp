@@ -887,4 +887,258 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get customerOptionsTotalLabel => '当前总价';
+
+  @override
+  String paymentFlowStarted(Object channel) {
+    return '支付流程启动（$channel）';
+  }
+
+  @override
+  String get paymentStatusInitialized => '初始化';
+
+  @override
+  String get paymentStatusPending => '待处理';
+
+  @override
+  String get paymentStatusWaitingUser => '等待顾客操作';
+
+  @override
+  String get paymentStatusProcessing => '处理中';
+
+  @override
+  String get paymentStatusSuccess => '支付成功';
+
+  @override
+  String get paymentStatusFailure => '支付失败';
+
+  @override
+  String get paymentStatusCancelled => '支付已取消';
+
+  @override
+  String get paymentStatusNoUpdates => '暂无状态更新';
+
+  @override
+  String get paymentCardInitTerminal => '初始化信用卡终端';
+
+  @override
+  String get paymentCardSuccess => '信用卡支付成功';
+
+  @override
+  String get paymentCardFailure => '信用卡支付失败';
+
+  @override
+  String get paymentCardCancelled => '信用卡支付取消';
+
+  @override
+  String paymentCardCancelFailed(Object detail) {
+    return '信用卡支付取消失败：$detail';
+  }
+
+  @override
+  String paymentCardInitFailed(Object detail) {
+    return '信用卡支付初始化失败：$detail';
+  }
+
+  @override
+  String get paymentPosStreamClosed => 'POS终端连接已关闭';
+
+  @override
+  String get paymentQrWaitScan => '请将二维码对准扫描区域';
+
+  @override
+  String get paymentQrRequestBackend => '二维码已识别，正在请求后台…';
+
+  @override
+  String get paymentQrPosPrompt => '请按照POS终端提示完成支付';
+
+  @override
+  String get paymentQrSuccess => '二维码支付完成';
+
+  @override
+  String paymentQrFailure(Object detail) {
+    return '二维码支付失败：$detail';
+  }
+
+  @override
+  String get paymentQrCancelled => '操作员取消二维码支付';
+
+  @override
+  String get paymentQrConfigMissing => '缺少POS终端配置，无法完成扫码支付';
+
+  @override
+  String get paymentPosWaitingResponse => '等待终端响应';
+
+  @override
+  String get paymentPosProcessing => '终端处理中';
+
+  @override
+  String get paymentCashPrepare => '准备现金支付';
+
+  @override
+  String get paymentCashAwaitConfirm => '请核对投入金额，确认后点击“确认支付”';
+
+  @override
+  String get paymentCashConfirming => '正在通知后台…';
+
+  @override
+  String get paymentCashSuccess => '现金支付完成';
+
+  @override
+  String paymentCashFailure(Object detail) {
+    return '现金支付失败：$detail';
+  }
+
+  @override
+  String paymentCashConfirmFailed(Object detail) {
+    return '确认现金支付失败：$detail';
+  }
+
+  @override
+  String get paymentCashCancelled => '操作员取消现金支付';
+
+  @override
+  String get paymentCashStageIdle => '现金机已就绪';
+
+  @override
+  String get paymentCashStageChecking => '正在检测现金机…';
+
+  @override
+  String get paymentCashStageOpening => '正在打开现金机…';
+
+  @override
+  String get paymentCashStageAccepting => '等待顾客投入现金';
+
+  @override
+  String get paymentCashStageCounting => '正在确认投入金额…';
+
+  @override
+  String get paymentCashStageClosing => '正在结束现金操作…';
+
+  @override
+  String get paymentCashStageCompleted => '现金机操作完成';
+
+  @override
+  String get paymentCashStageNearFull => '现金机即将满，请清空现金箱';
+
+  @override
+  String get paymentCashStageFull => '现金机已满，请清空现金箱';
+
+  @override
+  String get paymentCashStageError => '现金机异常';
+
+  @override
+  String get paymentCashStageChange => '正在找零…';
+
+  @override
+  String get paymentCashStageChangeFailed => '找零失败';
+
+  @override
+  String paymentCashAmountCurrent(Object amount) {
+    return '当前识别现金金额：¥$amount';
+  }
+
+  @override
+  String paymentCashAmountFinal(Object amount) {
+    return '已确认现金金额：¥$amount';
+  }
+
+  @override
+  String get paymentSessionMissing => '支付会话不存在';
+
+  @override
+  String get paymentFlowEnded => '支付流程已结束';
+
+  @override
+  String get paymentFallbackCardConnecting => '正在连接终端…';
+
+  @override
+  String get paymentFallbackCardFollowPos => '请按照POS终端提示操作';
+
+  @override
+  String get paymentFallbackCardProcessing => '信用卡支付处理中';
+
+  @override
+  String get paymentFallbackCashPrepare => '请准备现金';
+
+  @override
+  String get paymentFallbackCashWaiting => '等待顾客投入现金';
+
+  @override
+  String get paymentFallbackCashProcessing => '现金支付处理中';
+
+  @override
+  String get paymentFallbackQrAlign => '请将二维码对准扫描区';
+
+  @override
+  String get paymentFallbackQrProcessing => '二维码支付处理中';
+
+  @override
+  String get paymentFallbackProcessing => '支付处理中';
+
+  @override
+  String get paymentInstructionCard => '请按照终端提示插卡、刷卡或挥卡，完成支付后不要立即拔卡。';
+
+  @override
+  String get paymentInstructionCash => '现金投入完成后，请等待机器找零并领取收据。';
+
+  @override
+  String get paymentInstructionQr => '请使用顾客手机的二维码对准扫描器，等待确认提示。';
+
+  @override
+  String get paymentInstructionDefault => '请按照屏幕或终端提示完成支付。';
+
+  @override
+  String get paymentErrorHintDevice => '设备异常：请检查POS终端或现金机连接。';
+
+  @override
+  String get paymentErrorHintConfig => '配置缺失：请检查终端IP/端口或支付参数设置。';
+
+  @override
+  String get paymentErrorHintNetwork => '网络异常：请检查网络连接后重试。';
+
+  @override
+  String get paymentErrorHintBackend => '后台异常：请稍后重试或切换支付方式。';
+
+  @override
+  String get paymentErrorHintCancelled => '已取消本次支付操作。';
+
+  @override
+  String get paymentRetryDevice => '重连设备';
+
+  @override
+  String get paymentRetryNetwork => '重试联网';
+
+  @override
+  String get paymentRetryDefault => '重试';
+
+  @override
+  String get paymentRetryRestart => '重新发起';
+
+  @override
+  String get paymentActionReturnPos => '返回POS';
+
+  @override
+  String get paymentActionDoneReturn => '完成并返回';
+
+  @override
+  String get paymentActionConfirm => '确认支付';
+
+  @override
+  String paymentActionConfirmAmount(Object amount) {
+    return '确认支付 ¥$amount';
+  }
+
+  @override
+  String get paymentActionConfirming => '正在确认…';
+
+  @override
+  String get paymentActionCancel => '取消支付';
+
+  @override
+  String get paymentActionCancelling => '正在取消…';
+
+  @override
+  String paymentErrorUnknown(Object detail) {
+    return '发生未知错误：$detail';
+  }
 }

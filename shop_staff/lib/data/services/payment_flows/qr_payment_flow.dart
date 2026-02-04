@@ -51,13 +51,13 @@ class QrPaymentFlow implements PaymentFlow {
       try {
         controller.add(const PaymentStatus(
           type: PaymentStatusType.waitingForUser,
-          message: '请将二维码对准扫描区域',
+          messageKey: PaymentMessageKeys.qrWaitScan,
           phase: PaymentPhase.waitingUser,
         ));
         final code = await _scannerService.acquireCode(context);
         controller.add(const PaymentStatus(
           type: PaymentStatusType.processing,
-          message: '二维码已识别，正在请求后台…',
+          messageKey: PaymentMessageKeys.qrRequestBackend,
           phase: PaymentPhase.requesting,
         ));
         final request = _buildPosRequest(context, code);
@@ -67,13 +67,16 @@ class QrPaymentFlow implements PaymentFlow {
           final message = cardData.exceptionMessage ?? '二维码支付失败';
           controller.add(PaymentStatus(
             type: PaymentStatusType.failure,
-            message: message,
+            messageKey: PaymentMessageKeys.qrFailure,
+            messageArgs: {'detail': message},
             errorType: PaymentErrorType.backend,
             retryable: true,
             phase: PaymentPhase.requesting,
           ));
           await finish(PaymentResult.failure(
             message: message,
+            messageKey: PaymentMessageKeys.qrFailure,
+            messageArgs: {'detail': message},
             errorType: PaymentErrorType.backend,
             retryable: true,
           ));
@@ -84,7 +87,7 @@ class QrPaymentFlow implements PaymentFlow {
         if (requestInfo != null && requestInfo.isNotEmpty) {
           controller.add(const PaymentStatus(
             type: PaymentStatusType.processing,
-            message: '请按照POS终端提示完成支付',
+            messageKey: PaymentMessageKeys.qrPosPrompt,
             phase: PaymentPhase.waitingUser,
           ));
           final sessionRequest = _requestWithPrefetchedData(context, request, cardData);
@@ -98,16 +101,24 @@ class QrPaymentFlow implements PaymentFlow {
               controller.add(mapped);
               if (mapped.isTerminal) {
                 if (mapped.type == PaymentStatusType.success) {
-                  unawaited(finish(PaymentResult.success(message: mapped.message)));
+                  unawaited(finish(PaymentResult.success(
+                    message: mapped.message,
+                    messageKey: mapped.messageKey,
+                    messageArgs: mapped.messageArgs,
+                  )));
                 } else if (mapped.type == PaymentStatusType.cancelled) {
                   unawaited(finish(PaymentResult.cancelled(
                     message: mapped.message,
+                    messageKey: mapped.messageKey,
+                    messageArgs: mapped.messageArgs,
                     errorType: mapped.errorType ?? PaymentErrorType.userCancelled,
                     retryable: mapped.retryable ?? true,
                   )));
                 } else {
                   unawaited(finish(PaymentResult.failure(
                     message: mapped.message,
+                    messageKey: mapped.messageKey,
+                    messageArgs: mapped.messageArgs,
                     errorType: mapped.errorType ?? PaymentErrorType.device,
                     retryable: mapped.retryable ?? true,
                   )));
@@ -120,12 +131,15 @@ class QrPaymentFlow implements PaymentFlow {
               _logger.warning('POS状态流异常: $error', error, trace);
               controller.add(PaymentStatus(
                 type: PaymentStatusType.failure,
-                message: error.toString(),
+                messageKey: PaymentMessageKeys.errorUnknown,
+                messageArgs: {'detail': error.toString()},
                 errorType: PaymentErrorType.device,
                 retryable: true,
               ));
               unawaited(finish(PaymentResult.failure(
                 message: error.toString(),
+                messageKey: PaymentMessageKeys.errorUnknown,
+                messageArgs: {'detail': error.toString()},
                 errorType: PaymentErrorType.device,
                 retryable: true,
               )));
@@ -138,7 +152,7 @@ class QrPaymentFlow implements PaymentFlow {
         if (resultFlag == true) {
           controller.add(const PaymentStatus(
             type: PaymentStatusType.success,
-            message: '二维码支付完成',
+            messageKey: PaymentMessageKeys.qrSuccess,
             phase: PaymentPhase.confirming,
           ));
           try {
@@ -150,18 +164,24 @@ class QrPaymentFlow implements PaymentFlow {
           } catch (e, stack) {
             _logger.warning('二维码支付结果上报失败', e, stack);
           }
-          await finish(PaymentResult.success(message: '二维码支付完成', payload: {'code': code}));
+          await finish(PaymentResult.success(
+            messageKey: PaymentMessageKeys.qrSuccess,
+            payload: {'code': code},
+          ));
         } else {
           final message = cardData.exceptionMessage ?? '二维码支付失败';
           controller.add(PaymentStatus(
             type: PaymentStatusType.failure,
-            message: message,
+            messageKey: PaymentMessageKeys.qrFailure,
+            messageArgs: {'detail': message},
             errorType: PaymentErrorType.backend,
             retryable: true,
             phase: PaymentPhase.requesting,
           ));
           await finish(PaymentResult.failure(
             message: message,
+            messageKey: PaymentMessageKeys.qrFailure,
+            messageArgs: {'detail': message},
             errorType: PaymentErrorType.backend,
             retryable: true,
           ));
@@ -170,13 +190,13 @@ class QrPaymentFlow implements PaymentFlow {
         if (_isUserCancelled(e)) {
           controller.add(const PaymentStatus(
             type: PaymentStatusType.cancelled,
-            message: '操作员取消二维码支付',
+            messageKey: PaymentMessageKeys.qrCancelled,
             errorType: PaymentErrorType.userCancelled,
             retryable: true,
             phase: PaymentPhase.initializing,
           ));
           await finish(PaymentResult.cancelled(
-            message: '操作员取消二维码支付',
+            messageKey: PaymentMessageKeys.qrCancelled,
             errorType: PaymentErrorType.userCancelled,
             retryable: true,
           ));
@@ -186,13 +206,20 @@ class QrPaymentFlow implements PaymentFlow {
         _logger.severe('QR payment flow failed', e, stack);
         controller.add(PaymentStatus(
           type: PaymentStatusType.failure,
-          message: '二维码支付失败: $e',
+          messageKey: errorType == PaymentErrorType.config
+              ? PaymentMessageKeys.qrConfigMissing
+              : PaymentMessageKeys.errorUnknown,
+          messageArgs: {'detail': e.toString()},
           errorType: errorType,
           retryable: true,
           phase: PaymentPhase.requesting,
         ));
         await finish(PaymentResult.failure(
           message: e.toString(),
+          messageKey: errorType == PaymentErrorType.config
+              ? PaymentMessageKeys.qrConfigMissing
+              : PaymentMessageKeys.errorUnknown,
+          messageArgs: {'detail': e.toString()},
           errorType: errorType,
           retryable: true,
         ));
@@ -217,13 +244,13 @@ class QrPaymentFlow implements PaymentFlow {
       }
       controller.add(const PaymentStatus(
         type: PaymentStatusType.cancelled,
-        message: '操作员取消二维码支付',
+        messageKey: PaymentMessageKeys.qrCancelled,
         errorType: PaymentErrorType.userCancelled,
         retryable: true,
         phase: PaymentPhase.initializing,
       ));
       await finish(PaymentResult.cancelled(
-        message: '操作员取消二维码支付',
+        messageKey: PaymentMessageKeys.qrCancelled,
         errorType: PaymentErrorType.userCancelled,
         retryable: true,
       ));
@@ -272,7 +299,7 @@ class QrPaymentFlow implements PaymentFlow {
 
   void _ensurePosConfig(Map<String, dynamic>? payload) {
     if (payload == null || payload['posIp'] == null || payload['posPort'] == null) {
-      throw StateError('缺少POS终端配置，无法完成扫码支付');
+      throw StateError('POS_CONFIG_MISSING');
     }
   }
 
@@ -281,28 +308,36 @@ class QrPaymentFlow implements PaymentFlow {
       case PosPaymentStatusType.pending:
         return PaymentStatus(
           type: PaymentStatusType.pending,
-          message: status.message ?? '等待终端响应',
+          message: status.message,
+          messageKey: status.message == null ? PaymentMessageKeys.posWaitingResponse : null,
           phase: PaymentPhase.sending,
         );
       case PosPaymentStatusType.processing:
         return PaymentStatus(
           type: PaymentStatusType.processing,
-          message: status.message ?? '终端处理中',
+          message: status.message,
+          messageKey: status.message == null ? PaymentMessageKeys.posProcessing : null,
           phase: PaymentPhase.waitingUser,
         );
       case PosPaymentStatusType.success:
-        return PaymentStatus(type: PaymentStatusType.success, message: status.message ?? '扫码支付完成');
+        return PaymentStatus(
+          type: PaymentStatusType.success,
+          message: status.message,
+          messageKey: status.message == null ? PaymentMessageKeys.qrSuccess : null,
+        );
       case PosPaymentStatusType.failure:
         return PaymentStatus(
           type: PaymentStatusType.failure,
-          message: status.message ?? '扫码支付失败',
+          message: status.message,
+          messageKey: status.message == null ? PaymentMessageKeys.qrFailure : null,
           errorType: PaymentErrorType.device,
           retryable: true,
         );
       case PosPaymentStatusType.cancelled:
         return PaymentStatus(
           type: PaymentStatusType.cancelled,
-          message: status.message ?? '扫码支付已取消',
+          message: status.message,
+          messageKey: status.message == null ? PaymentMessageKeys.qrCancelled : null,
           errorType: PaymentErrorType.userCancelled,
           retryable: true,
         );
@@ -319,7 +354,7 @@ class QrPaymentFlow implements PaymentFlow {
   }
 
   bool _isConfigError(Object error) {
-    return error is StateError && (error.message?.toString().contains('POS终端配置') ?? false);
+    return error is StateError && error.message == 'POS_CONFIG_MISSING';
   }
 
   bool _readResultFlag(Map<String, dynamic> data) {

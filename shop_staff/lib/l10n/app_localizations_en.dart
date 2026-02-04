@@ -926,4 +926,269 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customerOptionsTotalLabel => 'Current total';
+
+  @override
+  String paymentFlowStarted(Object channel) {
+    return 'Payment flow started ($channel)';
+  }
+
+  @override
+  String get paymentStatusInitialized => 'Initialized';
+
+  @override
+  String get paymentStatusPending => 'Pending';
+
+  @override
+  String get paymentStatusWaitingUser => 'Waiting for customer';
+
+  @override
+  String get paymentStatusProcessing => 'Processing';
+
+  @override
+  String get paymentStatusSuccess => 'Payment successful';
+
+  @override
+  String get paymentStatusFailure => 'Payment failed';
+
+  @override
+  String get paymentStatusCancelled => 'Payment cancelled';
+
+  @override
+  String get paymentStatusNoUpdates => 'No status updates';
+
+  @override
+  String get paymentCardInitTerminal => 'Initializing card terminal';
+
+  @override
+  String get paymentCardSuccess => 'Card payment successful';
+
+  @override
+  String get paymentCardFailure => 'Card payment failed';
+
+  @override
+  String get paymentCardCancelled => 'Card payment cancelled';
+
+  @override
+  String paymentCardCancelFailed(Object detail) {
+    return 'Failed to cancel card payment: $detail';
+  }
+
+  @override
+  String paymentCardInitFailed(Object detail) {
+    return 'Failed to initialize card payment: $detail';
+  }
+
+  @override
+  String get paymentPosStreamClosed => 'POS connection closed';
+
+  @override
+  String get paymentQrWaitScan => 'Align QR code with the scanner';
+
+  @override
+  String get paymentQrRequestBackend => 'QR recognized, contacting backend…';
+
+  @override
+  String get paymentQrPosPrompt =>
+      'Follow POS terminal prompts to complete payment';
+
+  @override
+  String get paymentQrSuccess => 'QR payment completed';
+
+  @override
+  String paymentQrFailure(Object detail) {
+    return 'QR payment failed: $detail';
+  }
+
+  @override
+  String get paymentQrCancelled => 'QR payment cancelled';
+
+  @override
+  String get paymentQrConfigMissing =>
+      'Missing POS configuration. Unable to complete QR payment.';
+
+  @override
+  String get paymentPosWaitingResponse => 'Waiting for terminal response';
+
+  @override
+  String get paymentPosProcessing => 'Terminal processing';
+
+  @override
+  String get paymentCashPrepare => 'Preparing cash payment';
+
+  @override
+  String get paymentCashAwaitConfirm =>
+      'Please verify the amount inserted and tap Confirm Payment';
+
+  @override
+  String get paymentCashConfirming => 'Notifying backend…';
+
+  @override
+  String get paymentCashSuccess => 'Cash payment completed';
+
+  @override
+  String paymentCashFailure(Object detail) {
+    return 'Cash payment failed: $detail';
+  }
+
+  @override
+  String paymentCashConfirmFailed(Object detail) {
+    return 'Cash confirmation failed: $detail';
+  }
+
+  @override
+  String get paymentCashCancelled => 'Cash payment cancelled';
+
+  @override
+  String get paymentCashStageIdle => 'Cash machine ready';
+
+  @override
+  String get paymentCashStageChecking => 'Checking cash machine…';
+
+  @override
+  String get paymentCashStageOpening => 'Opening cash machine…';
+
+  @override
+  String get paymentCashStageAccepting => 'Waiting for cash insertion';
+
+  @override
+  String get paymentCashStageCounting => 'Counting cash…';
+
+  @override
+  String get paymentCashStageClosing => 'Closing cash operation…';
+
+  @override
+  String get paymentCashStageCompleted => 'Cash machine operation completed';
+
+  @override
+  String get paymentCashStageNearFull => 'Cash box nearly full, please empty';
+
+  @override
+  String get paymentCashStageFull => 'Cash box full, please empty';
+
+  @override
+  String get paymentCashStageError => 'Cash machine error';
+
+  @override
+  String get paymentCashStageChange => 'Making change…';
+
+  @override
+  String get paymentCashStageChangeFailed => 'Change failed';
+
+  @override
+  String paymentCashAmountCurrent(Object amount) {
+    return 'Current cash amount: ¥$amount';
+  }
+
+  @override
+  String paymentCashAmountFinal(Object amount) {
+    return 'Confirmed cash amount: ¥$amount';
+  }
+
+  @override
+  String get paymentSessionMissing => 'Payment session not found';
+
+  @override
+  String get paymentFlowEnded => 'Payment flow has ended';
+
+  @override
+  String get paymentFallbackCardConnecting => 'Connecting to terminal…';
+
+  @override
+  String get paymentFallbackCardFollowPos => 'Follow the POS terminal prompts';
+
+  @override
+  String get paymentFallbackCardProcessing => 'Card payment in progress';
+
+  @override
+  String get paymentFallbackCashPrepare => 'Please prepare cash';
+
+  @override
+  String get paymentFallbackCashWaiting => 'Waiting for cash insertion';
+
+  @override
+  String get paymentFallbackCashProcessing => 'Cash payment in progress';
+
+  @override
+  String get paymentFallbackQrAlign => 'Align QR code with the scanner';
+
+  @override
+  String get paymentFallbackQrProcessing => 'QR payment in progress';
+
+  @override
+  String get paymentFallbackProcessing => 'Payment in progress';
+
+  @override
+  String get paymentInstructionCard =>
+      'Follow the terminal prompts to insert/swipe/tap; do not remove the card immediately.';
+
+  @override
+  String get paymentInstructionCash =>
+      'After inserting cash, please wait for change and collect the receipt.';
+
+  @override
+  String get paymentInstructionQr =>
+      'Use the customer\'s QR code and align it with the scanner.';
+
+  @override
+  String get paymentInstructionDefault =>
+      'Follow the on-screen or terminal instructions to complete payment.';
+
+  @override
+  String get paymentErrorHintDevice =>
+      'Device issue: check the POS terminal or cash machine connection.';
+
+  @override
+  String get paymentErrorHintConfig =>
+      'Configuration missing: verify terminal IP/port or payment settings.';
+
+  @override
+  String get paymentErrorHintNetwork =>
+      'Network issue: check connectivity and retry.';
+
+  @override
+  String get paymentErrorHintBackend =>
+      'Backend issue: retry later or switch payment method.';
+
+  @override
+  String get paymentErrorHintCancelled => 'This payment was cancelled.';
+
+  @override
+  String get paymentRetryDevice => 'Reconnect device';
+
+  @override
+  String get paymentRetryNetwork => 'Retry network';
+
+  @override
+  String get paymentRetryDefault => 'Retry';
+
+  @override
+  String get paymentRetryRestart => 'Start again';
+
+  @override
+  String get paymentActionReturnPos => 'Back to POS';
+
+  @override
+  String get paymentActionDoneReturn => 'Done and return';
+
+  @override
+  String get paymentActionConfirm => 'Confirm payment';
+
+  @override
+  String paymentActionConfirmAmount(Object amount) {
+    return 'Confirm payment ¥$amount';
+  }
+
+  @override
+  String get paymentActionConfirming => 'Confirming…';
+
+  @override
+  String get paymentActionCancel => 'Cancel payment';
+
+  @override
+  String get paymentActionCancelling => 'Cancelling…';
+
+  @override
+  String paymentErrorUnknown(Object detail) {
+    return 'Unknown error: $detail';
+  }
 }

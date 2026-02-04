@@ -358,5 +358,133 @@
   "orderHistoryLoadFailed": "加载失败",
   "customerOptionsBasePricePrefix": "基础价 ",
   "customerOptionsSelectedTitle": "已选配料",
-  "customerOptionsTotalLabel": "当前总价"
+  "customerOptionsTotalLabel": "当前总价",
+  "paymentFlowStarted": "支付流程启动（{channel}）",
+  "@paymentFlowStarted": {
+    "placeholders": {
+      "channel": {}
+    }
+  },
+  "paymentStatusInitialized": "初始化",
+  "paymentStatusPending": "待处理",
+  "paymentStatusWaitingUser": "等待顾客操作",
+  "paymentStatusProcessing": "处理中",
+  "paymentStatusSuccess": "支付成功",
+  "paymentStatusFailure": "支付失败",
+  "paymentStatusCancelled": "支付已取消",
+  "paymentStatusNoUpdates": "暂无状态更新",
+  "paymentCardInitTerminal": "初始化信用卡终端",
+  "paymentCardSuccess": "信用卡支付成功",
+  "paymentCardFailure": "信用卡支付失败",
+  "paymentCardCancelled": "信用卡支付取消",
+  "paymentCardCancelFailed": "信用卡支付取消失败：{detail}",
+  "@paymentCardCancelFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentCardInitFailed": "信用卡支付初始化失败：{detail}",
+  "@paymentCardInitFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentPosStreamClosed": "POS终端连接已关闭",
+  "paymentQrWaitScan": "请将二维码对准扫描区域",
+  "paymentQrRequestBackend": "二维码已识别，正在请求后台…",
+  "paymentQrPosPrompt": "请按照POS终端提示完成支付",
+  "paymentQrSuccess": "二维码支付完成",
+  "paymentQrFailure": "二维码支付失败：{detail}",
+  "@paymentQrFailure": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentQrCancelled": "操作员取消二维码支付",
+  "paymentQrConfigMissing": "缺少POS终端配置，无法完成扫码支付",
+  "paymentPosWaitingResponse": "等待终端响应",
+  "paymentPosProcessing": "终端处理中",
+  "paymentCashPrepare": "准备现金支付",
+  "paymentCashAwaitConfirm": "请核对投入金额，确认后点击“确认支付”",
+  "paymentCashConfirming": "正在通知后台…",
+  "paymentCashSuccess": "现金支付完成",
+  "paymentCashFailure": "现金支付失败：{detail}",
+  "@paymentCashFailure": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentCashConfirmFailed": "确认现金支付失败：{detail}",
+  "@paymentCashConfirmFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentCashCancelled": "操作员取消现金支付",
+  "paymentCashStageIdle": "现金机已就绪",
+  "paymentCashStageChecking": "正在检测现金机…",
+  "paymentCashStageOpening": "正在打开现金机…",
+  "paymentCashStageAccepting": "等待顾客投入现金",
+  "paymentCashStageCounting": "正在确认投入金额…",
+  "paymentCashStageClosing": "正在结束现金操作…",
+  "paymentCashStageCompleted": "现金机操作完成",
+  "paymentCashStageNearFull": "现金机即将满，请清空现金箱",
+  "paymentCashStageFull": "现金机已满，请清空现金箱",
+  "paymentCashStageError": "现金机异常",
+  "paymentCashStageChange": "正在找零…",
+  "paymentCashStageChangeFailed": "找零失败",
+  "paymentCashAmountCurrent": "当前识别现金金额：¥{amount}",
+  "@paymentCashAmountCurrent": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentCashAmountFinal": "已确认现金金额：¥{amount}",
+  "@paymentCashAmountFinal": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentSessionMissing": "支付会话不存在",
+  "paymentFlowEnded": "支付流程已结束",
+  "paymentFallbackCardConnecting": "正在连接终端…",
+  "paymentFallbackCardFollowPos": "请按照POS终端提示操作",
+  "paymentFallbackCardProcessing": "信用卡支付处理中",
+  "paymentFallbackCashPrepare": "请准备现金",
+  "paymentFallbackCashWaiting": "等待顾客投入现金",
+  "paymentFallbackCashProcessing": "现金支付处理中",
+  "paymentFallbackQrAlign": "请将二维码对准扫描区",
+  "paymentFallbackQrProcessing": "二维码支付处理中",
+  "paymentFallbackProcessing": "支付处理中",
+  "paymentInstructionCard": "请按照终端提示插卡、刷卡或挥卡，完成支付后不要立即拔卡。",
+  "paymentInstructionCash": "现金投入完成后，请等待机器找零并领取收据。",
+  "paymentInstructionQr": "请使用顾客手机的二维码对准扫描器，等待确认提示。",
+  "paymentInstructionDefault": "请按照屏幕或终端提示完成支付。",
+  "paymentErrorHintDevice": "设备异常：请检查POS终端或现金机连接。",
+  "paymentErrorHintConfig": "配置缺失：请检查终端IP/端口或支付参数设置。",
+  "paymentErrorHintNetwork": "网络异常：请检查网络连接后重试。",
+  "paymentErrorHintBackend": "后台异常：请稍后重试或切换支付方式。",
+  "paymentErrorHintCancelled": "已取消本次支付操作。",
+  "paymentRetryDevice": "重连设备",
+  "paymentRetryNetwork": "重试联网",
+  "paymentRetryDefault": "重试",
+  "paymentRetryRestart": "重新发起",
+  "paymentActionReturnPos": "返回POS",
+  "paymentActionDoneReturn": "完成并返回",
+  "paymentActionConfirm": "确认支付",
+  "paymentActionConfirmAmount": "确认支付 ¥{amount}",
+  "@paymentActionConfirmAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentActionConfirming": "正在确认…",
+  "paymentActionCancel": "取消支付",
+  "paymentActionCancelling": "正在取消…",
+  "paymentErrorUnknown": "发生未知错误：{detail}",
+  "@paymentErrorUnknown": {
+    "placeholders": {
+      "detail": {}
+    }
+  }
 }

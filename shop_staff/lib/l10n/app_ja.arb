@@ -358,5 +358,133 @@
   "orderHistoryLoadFailed": "注文履歴の読み込みに失敗しました",
   "customerOptionsBasePricePrefix": "基本価格 ",
   "customerOptionsSelectedTitle": "選択済みトッピング",
-  "customerOptionsTotalLabel": "現在合計"
+  "customerOptionsTotalLabel": "現在合計",
+  "paymentFlowStarted": "決済フロー開始（{channel}）",
+  "@paymentFlowStarted": {
+    "placeholders": {
+      "channel": {}
+    }
+  },
+  "paymentStatusInitialized": "初期化中",
+  "paymentStatusPending": "待機中",
+  "paymentStatusWaitingUser": "お客様の操作待ち",
+  "paymentStatusProcessing": "処理中",
+  "paymentStatusSuccess": "支払い成功",
+  "paymentStatusFailure": "支払い失敗",
+  "paymentStatusCancelled": "支払いキャンセル",
+  "paymentStatusNoUpdates": "ステータス更新なし",
+  "paymentCardInitTerminal": "カード端末を初期化中",
+  "paymentCardSuccess": "カード決済完了",
+  "paymentCardFailure": "カード決済失敗",
+  "paymentCardCancelled": "カード決済キャンセル",
+  "paymentCardCancelFailed": "カード決済のキャンセルに失敗しました：{detail}",
+  "@paymentCardCancelFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentCardInitFailed": "カード決済の初期化に失敗しました：{detail}",
+  "@paymentCardInitFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentPosStreamClosed": "POS端末の接続が切断されました",
+  "paymentQrWaitScan": "QRコードをスキャナーに合わせてください",
+  "paymentQrRequestBackend": "QR認識済み、バックエンドに問い合わせ中…",
+  "paymentQrPosPrompt": "POS端末の案内に従って決済を完了してください",
+  "paymentQrSuccess": "QR決済完了",
+  "paymentQrFailure": "QR決済失敗：{detail}",
+  "@paymentQrFailure": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentQrCancelled": "QR決済キャンセル",
+  "paymentQrConfigMissing": "POS端末設定が不足しています。QR決済を完了できません。",
+  "paymentPosWaitingResponse": "端末の応答待ち",
+  "paymentPosProcessing": "端末処理中",
+  "paymentCashPrepare": "現金決済の準備中",
+  "paymentCashAwaitConfirm": "投入金額を確認し「確認支払い」を押してください",
+  "paymentCashConfirming": "バックエンドに通知中…",
+  "paymentCashSuccess": "現金決済完了",
+  "paymentCashFailure": "現金決済失敗：{detail}",
+  "@paymentCashFailure": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentCashConfirmFailed": "現金確定に失敗しました：{detail}",
+  "@paymentCashConfirmFailed": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "paymentCashCancelled": "現金決済キャンセル",
+  "paymentCashStageIdle": "現金機は準備完了",
+  "paymentCashStageChecking": "現金機を検査中…",
+  "paymentCashStageOpening": "現金機を開いています…",
+  "paymentCashStageAccepting": "現金投入待ち",
+  "paymentCashStageCounting": "投入金額を確認中…",
+  "paymentCashStageClosing": "現金操作を終了中…",
+  "paymentCashStageCompleted": "現金機の操作が完了しました",
+  "paymentCashStageNearFull": "現金箱がもうすぐ満杯です。空にしてください",
+  "paymentCashStageFull": "現金箱が満杯です。空にしてください",
+  "paymentCashStageError": "現金機エラー",
+  "paymentCashStageChange": "お釣り中…",
+  "paymentCashStageChangeFailed": "お釣り失敗",
+  "paymentCashAmountCurrent": "現在認識された現金金額：¥{amount}",
+  "@paymentCashAmountCurrent": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentCashAmountFinal": "確認済み現金金額：¥{amount}",
+  "@paymentCashAmountFinal": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentSessionMissing": "決済セッションが見つかりません",
+  "paymentFlowEnded": "決済フローが終了しました",
+  "paymentFallbackCardConnecting": "端末に接続中…",
+  "paymentFallbackCardFollowPos": "POS端末の案内に従ってください",
+  "paymentFallbackCardProcessing": "カード決済処理中",
+  "paymentFallbackCashPrepare": "現金をご準備ください",
+  "paymentFallbackCashWaiting": "現金投入待ち",
+  "paymentFallbackCashProcessing": "現金決済処理中",
+  "paymentFallbackQrAlign": "QRコードをスキャナーに合わせてください",
+  "paymentFallbackQrProcessing": "QR決済処理中",
+  "paymentFallbackProcessing": "決済処理中",
+  "paymentInstructionCard": "端末の案内に従って挿入・スワイプ・タッチし、完了するまでカードを抜かないでください。",
+  "paymentInstructionCash": "現金投入後、お釣りを待ってレシートをお受け取りください。",
+  "paymentInstructionQr": "お客様のQRコードをスキャナーに合わせてください。",
+  "paymentInstructionDefault": "画面または端末の案内に従って決済を完了してください。",
+  "paymentErrorHintDevice": "機器の問題：POS端末または現金機の接続を確認してください。",
+  "paymentErrorHintConfig": "設定不足：端末IP/ポートや決済設定を確認してください。",
+  "paymentErrorHintNetwork": "ネットワークの問題：接続を確認して再試行してください。",
+  "paymentErrorHintBackend": "バックエンドの問題：後でもう一度お試しください。",
+  "paymentErrorHintCancelled": "この決済はキャンセルされました。",
+  "paymentRetryDevice": "機器再接続",
+  "paymentRetryNetwork": "ネットワーク再試行",
+  "paymentRetryDefault": "再試行",
+  "paymentRetryRestart": "再開",
+  "paymentActionReturnPos": "POSに戻る",
+  "paymentActionDoneReturn": "完了して戻る",
+  "paymentActionConfirm": "支払い確認",
+  "paymentActionConfirmAmount": "¥{amount} を支払い確認",
+  "@paymentActionConfirmAmount": {
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "paymentActionConfirming": "確認中…",
+  "paymentActionCancel": "支払い取消",
+  "paymentActionCancelling": "取消中…",
+  "paymentErrorUnknown": "不明なエラー：{detail}",
+  "@paymentErrorUnknown": {
+    "placeholders": {
+      "detail": {}
+    }
+  }
 }

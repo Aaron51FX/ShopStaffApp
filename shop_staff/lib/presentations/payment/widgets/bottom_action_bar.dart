@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_state.dart';
 
@@ -22,10 +23,11 @@ class BottomActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final padding = MediaQuery.of(context).padding;
     final isCash = args.channelGroup == PaymentChannels.cash;
+    final t = AppLocalizations.of(context);
     final canCancel = _canCancel(state, args);
     if (state.canExit) {
       final isSuccess = state.result?.status == PaymentStatusType.success;
-      final label = isSuccess ? '完成并返回' : '返回POS';
+      final label = isSuccess ? t.paymentActionDoneReturn : t.paymentActionReturnPos;
       return Padding(
         padding: EdgeInsets.fromLTRB(24, 12, 24, 12 + padding.bottom),
         child: ElevatedButton.icon(
@@ -40,7 +42,9 @@ class BottomActionBar extends StatelessWidget {
       final receipt = state.pendingReceipt;
       final amount = receipt?['acceptedAmount'];
       final formattedAmount = amount is num ? amount.toInt() : null;
-      final label = formattedAmount != null ? '确认支付 ¥$formattedAmount' : '确认支付';
+      final label = formattedAmount != null
+          ? t.paymentActionConfirmAmount(formattedAmount)
+          : t.paymentActionConfirm;
       return Padding(
         padding: EdgeInsets.fromLTRB(24, 12, 24, 12 + padding.bottom),
         child: ElevatedButton.icon(
@@ -48,7 +52,7 @@ class BottomActionBar extends StatelessWidget {
           icon: state.isConfirming
               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
               : const Icon(Icons.check_circle_outline),
-          label: Text(state.isConfirming ? '正在确认…' : label),
+          label: Text(state.isConfirming ? t.paymentActionConfirming : label),
         ),
       );
     }
@@ -60,7 +64,7 @@ class BottomActionBar extends StatelessWidget {
         icon: state.isCancelling
             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
             : const Icon(Icons.stop_circle_outlined),
-        label: Text(state.isCancelling ? '正在取消…' : '取消支付'),
+        label: Text(state.isCancelling ? t.paymentActionCancelling : t.paymentActionCancel),
         style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
       ),
     );

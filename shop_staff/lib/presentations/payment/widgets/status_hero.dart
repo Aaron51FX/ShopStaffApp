@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_state.dart';
 
@@ -26,17 +27,22 @@ class StatusHero extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveResult = state.result?.status;
     final hasError = state.error != null;
+    final t = AppLocalizations.of(context);
+    final localizedMessage = resolveMessage(
+      t,
+      key: current?.messageKey,
+      args: current?.messageArgs,
+      fallback: current?.message ?? _defaultMessage(t, args.channelGroup, current?.type),
+    );
     final effectiveErrorType = _effectiveErrorType(state);
     final retryable = _effectiveRetryable(state);
-    final message = hasError
-        ? state.error!
-        : current?.message ?? _defaultMessage(args.channelGroup, current?.type);
+    final message = hasError ? state.error! : localizedMessage;
     final icon = hasError ? Icons.error_rounded : StatusHero.iconForStatus(current?.type, effectiveResult);
     final color = hasError ? Colors.redAccent : _colorForStatus(theme, current?.type, effectiveResult);
     final showRetry = _shouldShowRetry(state, retryable) && onRetry != null;
     final showConfigAction = effectiveErrorType == PaymentErrorType.config && onOpenSettings != null;
     final showNetworkAction = effectiveErrorType == PaymentErrorType.network && onNetworkHelp != null;
-    final errorHint = _errorHintForType(effectiveErrorType);
+    final errorHint = _errorHintForType(t, effectiveErrorType);
 
     return Container(
       width: double.infinity,
@@ -68,7 +74,8 @@ class StatusHero extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 if (!hasError)
-                  Text(_instructionFor(args.channelGroup), style: const TextStyle(color: Colors.black54)),
+                  Text(_instructionFor(t, args.channelGroup),
+                      style: const TextStyle(color: Colors.black54)),
                 if (hasError && errorHint != null)
                   Text(errorHint, style: const TextStyle(color: Colors.black54)),
               ],
@@ -84,7 +91,7 @@ class StatusHero extends StatelessWidget {
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh_rounded, size: 20),
                     label: Text(
-                      _retryLabelForType(effectiveErrorType),
+                      _retryLabelForType(t, effectiveErrorType),
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
@@ -142,34 +149,34 @@ class StatusHero extends StatelessWidget {
     }
   }
 
-  static String _defaultMessage(String group, PaymentStatusType? type) {
+  static String _defaultMessage(AppLocalizations t, String group, PaymentStatusType? type) {
     switch (group) {
       case PaymentChannels.card:
-        if (type == PaymentStatusType.pending) return '正在连接终端…';
-        if (type == PaymentStatusType.processing) return '请按照POS终端提示操作';
-        return '信用卡支付处理中';
+        if (type == PaymentStatusType.pending) return t.paymentFallbackCardConnecting;
+        if (type == PaymentStatusType.processing) return t.paymentFallbackCardFollowPos;
+        return t.paymentFallbackCardProcessing;
       case PaymentChannels.cash:
-        if (type == PaymentStatusType.pending) return '请准备现金';
-        if (type == PaymentStatusType.waitingForUser) return '等待顾客投入现金';
-        return '现金支付处理中';
+        if (type == PaymentStatusType.pending) return t.paymentFallbackCashPrepare;
+        if (type == PaymentStatusType.waitingForUser) return t.paymentFallbackCashWaiting;
+        return t.paymentFallbackCashProcessing;
       case PaymentChannels.qr:
-        if (type == PaymentStatusType.waitingForUser) return '请将二维码对准扫描区';
-        return '二维码支付处理中';
+        if (type == PaymentStatusType.waitingForUser) return t.paymentFallbackQrAlign;
+        return t.paymentFallbackQrProcessing;
       default:
-        return '支付处理中';
+        return t.paymentFallbackProcessing;
     }
   }
 
-  static String _instructionFor(String group) {
+  static String _instructionFor(AppLocalizations t, String group) {
     switch (group) {
       case PaymentChannels.card:
-        return '请按照终端提示插卡、刷卡或挥卡，完成支付后不要立即拔卡。';
+        return t.paymentInstructionCard;
       case PaymentChannels.cash:
-        return '现金投入完成后，请等待机器找零并领取收据。';
+        return t.paymentInstructionCash;
       case PaymentChannels.qr:
-        return '请使用顾客手机的二维码对准扫描器，等待确认提示。';
+        return t.paymentInstructionQr;
       default:
-        return '请按照屏幕或终端提示完成支付。';
+        return t.paymentInstructionDefault;
     }
   }
 
@@ -192,43 +199,150 @@ class StatusHero extends StatelessWidget {
     return state.result?.retryable ?? state.currentStatus?.retryable ?? true;
   }
 
-  static String? _errorHintForType(PaymentErrorType? type) {
+  static String? _errorHintForType(AppLocalizations t, PaymentErrorType? type) {
     switch (type) {
       case PaymentErrorType.device:
-        return '设备异常：请检查POS终端或现金机连接。';
+        return t.paymentErrorHintDevice;
       case PaymentErrorType.config:
-        return '配置缺失：请检查终端IP/端口或支付参数设置。';
+        return t.paymentErrorHintConfig;
       case PaymentErrorType.network:
-        return '网络异常：请检查网络连接后重试。';
+        return t.paymentErrorHintNetwork;
       case PaymentErrorType.backend:
-        return '后台异常：请稍后重试或切换支付方式。';
+        return t.paymentErrorHintBackend;
       case PaymentErrorType.userCancelled:
-        return '已取消本次支付操作。';
+        return t.paymentErrorHintCancelled;
       case PaymentErrorType.unknown:
       default:
         return null;
     }
   }
 
-  static String _retryLabelForType(PaymentErrorType? type) {
+  static String _retryLabelForType(AppLocalizations t, PaymentErrorType? type) {
     switch (type) {
       case PaymentErrorType.device:
-        return '重连设备';
+        return t.paymentRetryDevice;
       case PaymentErrorType.network:
-        return '重试联网';
+        return t.paymentRetryNetwork;
       case PaymentErrorType.config:
-        return '重试';
+        return t.paymentRetryDefault;
       case PaymentErrorType.backend:
-        return '重试';
+        return t.paymentRetryDefault;
       case PaymentErrorType.userCancelled:
-        return '重新发起';
+        return t.paymentRetryRestart;
       case PaymentErrorType.unknown:
       default:
-        return '重试';
+        return t.paymentRetryDefault;
+    }
+  }
+
+  static String resolveMessage(
+    AppLocalizations t, {
+    required String? key,
+    Map<String, dynamic>? args,
+    required String fallback,
+  }) {
+    if (key == null) return fallback;
+    switch (key) {
+      case PaymentMessageKeys.flowStarted:
+        return t.paymentFlowStarted(args?['channel']?.toString() ?? '');
+      case PaymentMessageKeys.statusInitialized:
+        return t.paymentStatusInitialized;
+      case PaymentMessageKeys.statusPending:
+        return t.paymentStatusPending;
+      case PaymentMessageKeys.statusWaitingUser:
+        return t.paymentStatusWaitingUser;
+      case PaymentMessageKeys.statusProcessing:
+        return t.paymentStatusProcessing;
+      case PaymentMessageKeys.statusSuccess:
+        return t.paymentStatusSuccess;
+      case PaymentMessageKeys.statusFailure:
+        return t.paymentStatusFailure;
+      case PaymentMessageKeys.statusCancelled:
+        return t.paymentStatusCancelled;
+      case PaymentMessageKeys.statusNoUpdates:
+        return t.paymentStatusNoUpdates;
+      case PaymentMessageKeys.cardInitTerminal:
+        return t.paymentCardInitTerminal;
+      case PaymentMessageKeys.cardSuccess:
+        return t.paymentCardSuccess;
+      case PaymentMessageKeys.cardFailure:
+        return t.paymentCardFailure;
+      case PaymentMessageKeys.cardCancelled:
+        return t.paymentCardCancelled;
+      case PaymentMessageKeys.cardCancelFailed:
+        return t.paymentCardCancelFailed(args?['detail']?.toString() ?? '');
+      case PaymentMessageKeys.cardInitFailed:
+        return t.paymentCardInitFailed(args?['detail']?.toString() ?? '');
+      case PaymentMessageKeys.posStreamClosed:
+        return t.paymentPosStreamClosed;
+      case PaymentMessageKeys.qrWaitScan:
+        return t.paymentQrWaitScan;
+      case PaymentMessageKeys.qrRequestBackend:
+        return t.paymentQrRequestBackend;
+      case PaymentMessageKeys.qrPosPrompt:
+        return t.paymentQrPosPrompt;
+      case PaymentMessageKeys.qrSuccess:
+        return t.paymentQrSuccess;
+      case PaymentMessageKeys.qrFailure:
+        return t.paymentQrFailure(args?['detail']?.toString() ?? '');
+      case PaymentMessageKeys.qrCancelled:
+        return t.paymentQrCancelled;
+      case PaymentMessageKeys.qrConfigMissing:
+        return t.paymentQrConfigMissing;
+      case PaymentMessageKeys.posWaitingResponse:
+        return t.paymentPosWaitingResponse;
+      case PaymentMessageKeys.posProcessing:
+        return t.paymentPosProcessing;
+      case PaymentMessageKeys.cashPrepare:
+        return t.paymentCashPrepare;
+      case PaymentMessageKeys.cashAwaitConfirm:
+        return t.paymentCashAwaitConfirm;
+      case PaymentMessageKeys.cashConfirming:
+        return t.paymentCashConfirming;
+      case PaymentMessageKeys.cashSuccess:
+        return t.paymentCashSuccess;
+      case PaymentMessageKeys.cashFailure:
+        return t.paymentCashFailure(args?['detail']?.toString() ?? '');
+      case PaymentMessageKeys.cashConfirmFailed:
+        return t.paymentCashConfirmFailed(args?['detail']?.toString() ?? '');
+      case PaymentMessageKeys.cashCancelled:
+        return t.paymentCashCancelled;
+      case PaymentMessageKeys.cashStageIdle:
+        return t.paymentCashStageIdle;
+      case PaymentMessageKeys.cashStageChecking:
+        return t.paymentCashStageChecking;
+      case PaymentMessageKeys.cashStageOpening:
+        return t.paymentCashStageOpening;
+      case PaymentMessageKeys.cashStageAccepting:
+        return t.paymentCashStageAccepting;
+      case PaymentMessageKeys.cashStageCounting:
+        return t.paymentCashStageCounting;
+      case PaymentMessageKeys.cashStageClosing:
+        return t.paymentCashStageClosing;
+      case PaymentMessageKeys.cashStageCompleted:
+        return t.paymentCashStageCompleted;
+      case PaymentMessageKeys.cashStageNearFull:
+        return t.paymentCashStageNearFull;
+      case PaymentMessageKeys.cashStageFull:
+        return t.paymentCashStageFull;
+      case PaymentMessageKeys.cashStageError:
+        return t.paymentCashStageError;
+      case PaymentMessageKeys.cashStageChange:
+        return t.paymentCashStageChange;
+      case PaymentMessageKeys.cashStageChangeFailed:
+        return t.paymentCashStageChangeFailed;
+      case PaymentMessageKeys.cashAmountCurrent:
+        return t.paymentCashAmountCurrent(args?['amount']?.toString() ?? '');
+      case PaymentMessageKeys.cashAmountFinal:
+        return t.paymentCashAmountFinal(args?['amount']?.toString() ?? '');
+      case PaymentMessageKeys.errorUnknown:
+        return t.paymentErrorUnknown(args?['detail']?.toString() ?? '');
+      case PaymentMessageKeys.sessionMissing:
+        return t.paymentSessionMissing;
+      case PaymentMessageKeys.flowEnded:
+        return t.paymentFlowEnded;
+      default:
+        return fallback;
     }
   }
 }
-
-
-
-

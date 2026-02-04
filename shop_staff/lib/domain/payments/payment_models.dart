@@ -13,6 +13,65 @@ enum PaymentStatusType {
   cancelled,
 }
 
+/// Localization keys for payment flow messages.
+abstract class PaymentMessageKeys {
+  static const String flowStarted = 'payment_flow_started';
+  static const String statusInitialized = 'payment_status_initialized';
+  static const String statusPending = 'payment_status_pending';
+  static const String statusWaitingUser = 'payment_status_waiting_user';
+  static const String statusProcessing = 'payment_status_processing';
+  static const String statusSuccess = 'payment_status_success';
+  static const String statusFailure = 'payment_status_failure';
+  static const String statusCancelled = 'payment_status_cancelled';
+  static const String statusNoUpdates = 'payment_status_no_updates';
+
+  static const String cardInitTerminal = 'payment_card_init_terminal';
+  static const String cardSuccess = 'payment_card_success';
+  static const String cardFailure = 'payment_card_failure';
+  static const String cardCancelled = 'payment_card_cancelled';
+  static const String cardCancelFailed = 'payment_card_cancel_failed';
+  static const String cardInitFailed = 'payment_card_init_failed';
+  static const String posStreamClosed = 'payment_pos_stream_closed';
+
+  static const String qrWaitScan = 'payment_qr_wait_scan';
+  static const String qrRequestBackend = 'payment_qr_request_backend';
+  static const String qrPosPrompt = 'payment_qr_pos_prompt';
+  static const String qrSuccess = 'payment_qr_success';
+  static const String qrFailure = 'payment_qr_failure';
+  static const String qrCancelled = 'payment_qr_cancelled';
+  static const String qrConfigMissing = 'payment_qr_config_missing';
+
+  static const String posWaitingResponse = 'payment_pos_waiting_response';
+  static const String posProcessing = 'payment_pos_processing';
+
+  static const String cashPrepare = 'payment_cash_prepare';
+  static const String cashAwaitConfirm = 'payment_cash_await_confirm';
+  static const String cashConfirming = 'payment_cash_confirming';
+  static const String cashSuccess = 'payment_cash_success';
+  static const String cashFailure = 'payment_cash_failure';
+  static const String cashConfirmFailed = 'payment_cash_confirm_failed';
+  static const String cashCancelled = 'payment_cash_cancelled';
+
+  static const String cashStageIdle = 'payment_cash_stage_idle';
+  static const String cashStageChecking = 'payment_cash_stage_checking';
+  static const String cashStageOpening = 'payment_cash_stage_opening';
+  static const String cashStageAccepting = 'payment_cash_stage_accepting';
+  static const String cashStageCounting = 'payment_cash_stage_counting';
+  static const String cashStageClosing = 'payment_cash_stage_closing';
+  static const String cashStageCompleted = 'payment_cash_stage_completed';
+  static const String cashStageNearFull = 'payment_cash_stage_nearfull';
+  static const String cashStageFull = 'payment_cash_stage_full';
+  static const String cashStageError = 'payment_cash_stage_error';
+  static const String cashStageChange = 'payment_cash_stage_change';
+  static const String cashStageChangeFailed = 'payment_cash_stage_change_failed';
+  static const String cashAmountCurrent = 'payment_cash_amount_current';
+  static const String cashAmountFinal = 'payment_cash_amount_final';
+
+  static const String errorUnknown = 'payment_error_unknown';
+  static const String sessionMissing = 'payment_session_missing';
+  static const String flowEnded = 'payment_flow_ended';
+}
+
 /// Canonical payment phases to drive precise UI controls (e.g. cancel availability).
 enum PaymentPhase {
   initializing,
@@ -38,6 +97,8 @@ class PaymentStatus {
   const PaymentStatus({
     required this.type,
     this.message,
+    this.messageKey,
+    this.messageArgs,
     this.details,
     this.errorType,
     this.retryable,
@@ -46,6 +107,8 @@ class PaymentStatus {
 
   final PaymentStatusType type;
   final String? message;
+  final String? messageKey;
+  final Map<String, dynamic>? messageArgs;
   final Map<String, dynamic>? details;
   final PaymentErrorType? errorType;
   final bool? retryable;
@@ -63,6 +126,8 @@ class PaymentResult {
     required this.status,
     required this.success,
     this.message,
+    this.messageKey,
+    this.messageArgs,
     this.errorCode,
     this.payload,
     this.errorType,
@@ -72,22 +137,33 @@ class PaymentResult {
   final PaymentStatusType status;
   final bool success;
   final String? message;
+  final String? messageKey;
+  final Map<String, dynamic>? messageArgs;
   final String? errorCode;
   final Map<String, dynamic>? payload;
   final PaymentErrorType? errorType;
   final bool? retryable;
 
-  factory PaymentResult.success({String? message, Map<String, dynamic>? payload}) {
+  factory PaymentResult.success({
+    String? message,
+    String? messageKey,
+    Map<String, dynamic>? messageArgs,
+    Map<String, dynamic>? payload,
+  }) {
     return PaymentResult(
       status: PaymentStatusType.success,
       success: true,
       message: message,
+      messageKey: messageKey,
+      messageArgs: messageArgs,
       payload: payload,
     );
   }
 
   factory PaymentResult.failure({
     String? message,
+    String? messageKey,
+    Map<String, dynamic>? messageArgs,
     String? errorCode,
     Map<String, dynamic>? payload,
     PaymentErrorType errorType = PaymentErrorType.unknown,
@@ -97,6 +173,8 @@ class PaymentResult {
       status: PaymentStatusType.failure,
       success: false,
       message: message,
+      messageKey: messageKey,
+      messageArgs: messageArgs,
       errorCode: errorCode,
       payload: payload,
       errorType: errorType,
@@ -106,6 +184,8 @@ class PaymentResult {
 
   factory PaymentResult.cancelled({
     String? message,
+    String? messageKey,
+    Map<String, dynamic>? messageArgs,
     String? errorCode,
     Map<String, dynamic>? payload,
     PaymentErrorType errorType = PaymentErrorType.userCancelled,
@@ -115,6 +195,8 @@ class PaymentResult {
       status: PaymentStatusType.cancelled,
       success: false,
       message: message,
+      messageKey: messageKey,
+      messageArgs: messageArgs,
       errorCode: errorCode,
       payload: payload,
       errorType: errorType,

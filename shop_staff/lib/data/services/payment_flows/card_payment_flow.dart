@@ -37,18 +37,21 @@ class CardPaymentFlow implements PaymentFlow {
           return PaymentStatus(
             type: PaymentStatusType.pending,
             message: status.message,
+            messageKey: status.message == null ? PaymentMessageKeys.posWaitingResponse : null,
             phase: PaymentPhase.sending,
           );
         case PosPaymentStatusType.processing:
           return PaymentStatus(
             type: PaymentStatusType.processing,
             message: status.message,
+            messageKey: status.message == null ? PaymentMessageKeys.posProcessing : null,
             phase: PaymentPhase.waitingUser,
           );
         case PosPaymentStatusType.success:
           return PaymentStatus(
             type: PaymentStatusType.success,
-            message: status.message ?? '信用卡支付成功',
+            message: status.message,
+            messageKey: status.message == null ? PaymentMessageKeys.cardSuccess : null,
             details: {
               if (status.approvalCode != null) 'approvalCode': status.approvalCode,
             },
@@ -56,7 +59,8 @@ class CardPaymentFlow implements PaymentFlow {
         case PosPaymentStatusType.failure:
           return PaymentStatus(
             type: PaymentStatusType.failure,
-            message: status.message ?? '信用卡支付失败',
+            message: status.message,
+            messageKey: status.message == null ? PaymentMessageKeys.cardFailure : null,
             details: {
               if (status.errorCode != null) 'errorCode': status.errorCode,
             },
@@ -66,7 +70,8 @@ class CardPaymentFlow implements PaymentFlow {
         case PosPaymentStatusType.cancelled:
           return PaymentStatus(
             type: PaymentStatusType.cancelled,
-            message: status.message ?? '信用卡支付取消',
+            message: status.message,
+            messageKey: status.message == null ? PaymentMessageKeys.cardCancelled : null,
             details: {
               if (status.errorCode != null) 'errorCode': status.errorCode,
             },
@@ -83,11 +88,15 @@ class CardPaymentFlow implements PaymentFlow {
         if (mapped.type == PaymentStatusType.success) {
           unawaited(finish(PaymentResult.success(
             message: mapped.message,
+            messageKey: mapped.messageKey,
+            messageArgs: mapped.messageArgs,
             payload: mapped.details,
           )));
         } else if (mapped.type == PaymentStatusType.cancelled) {
           unawaited(finish(PaymentResult.cancelled(
             message: mapped.message,
+            messageKey: mapped.messageKey,
+            messageArgs: mapped.messageArgs,
             errorCode: mapped.details?['errorCode'] as String?,
             payload: mapped.details,
             errorType: mapped.errorType ?? PaymentErrorType.userCancelled,
@@ -96,6 +105,8 @@ class CardPaymentFlow implements PaymentFlow {
         } else if (mapped.type == PaymentStatusType.failure) {
           unawaited(finish(PaymentResult.failure(
             message: mapped.message,
+            messageKey: mapped.messageKey,
+            messageArgs: mapped.messageArgs,
             errorCode: mapped.details?['errorCode'] as String?,
             payload: mapped.details,
             errorType: mapped.errorType ?? PaymentErrorType.device,
@@ -109,7 +120,7 @@ class CardPaymentFlow implements PaymentFlow {
       try {
         controller.add(const PaymentStatus(
           type: PaymentStatusType.pending,
-          message: '初始化信用卡终端',
+          messageKey: PaymentMessageKeys.cardInitTerminal,
           phase: PaymentPhase.connecting,
         ));
         final request = PosPaymentRequest(
@@ -126,24 +137,37 @@ class CardPaymentFlow implements PaymentFlow {
           onError: (error, stack) {
             if (isFinished) return;
             _logger.warning('POS status stream error', error, stack);
-            unawaited(finish(PaymentResult.failure(message: error.toString())));
+            unawaited(finish(PaymentResult.failure(
+              message: error.toString(),
+              messageKey: PaymentMessageKeys.errorUnknown,
+              messageArgs: {'detail': error.toString()},
+              errorType: PaymentErrorType.device,
+              retryable: true,
+            )));
           },
           onDone: () {
             if (isFinished) return;
             // If the stream ends unexpectedly, mark as failure unless already completed.
-            unawaited(finish(PaymentResult.failure(message: 'POS终端连接已关闭')));
+            unawaited(finish(PaymentResult.failure(
+              messageKey: PaymentMessageKeys.posStreamClosed,
+              errorType: PaymentErrorType.device,
+              retryable: true,
+            )));
           },
         );
       } catch (e, stack) {
         _logger.severe('Failed to start card payment', e, stack);
         controller.add(PaymentStatus(
           type: PaymentStatusType.failure,
-          message: '信用卡支付初始化失败: $e',
+          messageKey: PaymentMessageKeys.cardInitFailed,
+          messageArgs: {'detail': e.toString()},
           errorType: PaymentErrorType.device,
           retryable: true,
         ));
         unawaited(finish(PaymentResult.failure(
           message: e.toString(),
+          messageKey: PaymentMessageKeys.cardInitFailed,
+          messageArgs: {'detail': e.toString()},
           errorType: PaymentErrorType.device,
           retryable: true,
         )));
@@ -162,12 +186,15 @@ class CardPaymentFlow implements PaymentFlow {
           _logger.severe('Failed to cancel card payment', e, stack);
           controller.add(PaymentStatus(
             type: PaymentStatusType.failure,
-            message: '信用卡支付取消失败: $e',
+            messageKey: PaymentMessageKeys.cardCancelFailed,
+            messageArgs: {'detail': e.toString()},
             errorType: PaymentErrorType.device,
             retryable: true,
           ));
           unawaited(finish(PaymentResult.failure(
             message: e.toString(),
+            messageKey: PaymentMessageKeys.cardCancelFailed,
+            messageArgs: {'detail': e.toString()},
             errorType: PaymentErrorType.device,
             retryable: true,
           )));
@@ -176,12 +203,12 @@ class CardPaymentFlow implements PaymentFlow {
       } else {
         controller.add(const PaymentStatus(
           type: PaymentStatusType.cancelled,
-          message: '操作员取消信用卡支付',
+          messageKey: PaymentMessageKeys.cardCancelled,
           errorType: PaymentErrorType.userCancelled,
           retryable: true,
         ));
         unawaited(finish(PaymentResult.cancelled(
-          message: '操作员取消信用卡支付',
+          messageKey: PaymentMessageKeys.cardCancelled,
           errorType: PaymentErrorType.userCancelled,
           retryable: true,
         )));

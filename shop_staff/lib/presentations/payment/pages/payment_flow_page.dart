@@ -22,6 +22,7 @@ import 'package:shop_staff/presentations/payment/widgets/qr_scan_dialog.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_hero.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_time_line.dart';
 import 'package:shop_staff/domain/settings/app_settings_models.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../viewmodels/payment_flow_viewmodel.dart';
 
@@ -54,10 +55,17 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         .listen((effect) async {
       if (!mounted) return;
       if (effect is PaymentFlowToastEffect) {
+        final t = AppLocalizations.of(context);
+        final message = StatusHero.resolveMessage(
+          t,
+          key: effect.messageKey,
+          args: effect.messageArgs,
+          fallback: effect.message ?? '',
+        );
         if (effect.isError) {
-          SimpleToast.errorGlobal(effect.message);
+          SimpleToast.errorGlobal(message);
         } else {
-          SimpleToast.successGlobal(effect.message);
+          SimpleToast.successGlobal(message);
         }
         return;
       }
@@ -244,7 +252,10 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
             if (state.canExit)
               TextButton(
                 onPressed: () => context.go('/pos'),
-                child: const Text('返回 POS', style: TextStyle(color: Colors.white)),
+                child: Text(
+                  AppLocalizations.of(context).paymentActionReturnPos,
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
           ],
         ),
