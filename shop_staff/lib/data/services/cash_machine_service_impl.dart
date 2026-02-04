@@ -101,7 +101,7 @@ class CashMachineServiceImpl implements CashMachineService {
 
       final start = await CashChanger.startDeposit();
       if (!start.isSuccess) _failAndThrow(start.error);
-      _emitStage(CashMachineStage.accepting, '正在打开现金机成功。');
+      _emitStage(CashMachineStage.accepting, '现金机打开成功。');
 
       final receipt = CashMachineReceipt(
         acceptedAmount: 0,
