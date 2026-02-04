@@ -41,9 +41,23 @@ class CashPaymentFlow implements PaymentFlow {
       await controller.close();
     }
 
+    void failFromStatus(PaymentStatus status) {
+      if (isFinished) return;
+      unawaited(finish(PaymentResult.failure(
+        message: status.message,
+        errorType: status.errorType ?? PaymentErrorType.device,
+        retryable: status.retryable ?? true,
+        payload: status.details,
+      )));
+    }
+
     Future<void> run() async {
       try {
-        controller.add(const PaymentStatus(type: PaymentStatusType.pending, message: '准备现金支付'));
+        controller.add(const PaymentStatus(
+          type: PaymentStatusType.pending,
+          message: '准备现金支付',
+          phase: PaymentPhase.initializing,
+        ));
         eventSubscription = _cashMachine.events.listen((event) {
           if (isFinished) return;
           if (event is CashMachineStageEvent) {
@@ -53,11 +67,21 @@ class CashPaymentFlow implements PaymentFlow {
           final status = _statusForEvent(event);
           if (status != null) {
             controller.add(status);
+            if (status.type == PaymentStatusType.failure) {
+              failFromStatus(status);
+            }
           }
         }, onError: (error, stack) {
           _logger.warning('现金机事件流异常', error, stack);
           if (!isFinished) {
-            controller.add(PaymentStatus(type: PaymentStatusType.failure, message: '现金机异常: $error'));
+            final status = PaymentStatus(
+              type: PaymentStatusType.failure,
+              message: '现金机异常: $error',
+              errorType: PaymentErrorType.device,
+              retryable: true,
+            );
+            controller.add(status);
+            failFromStatus(status);
           }
         });
         pendingReceipt = await _cashMachine.runPayment(context.order.total);
@@ -71,6 +95,7 @@ class CashPaymentFlow implements PaymentFlow {
               'stage': 'await_confirmation',
               'receipt': pendingReceipt?.toJson(),
             },
+            phase: PaymentPhase.waitingUser,
           ),
         );
       } catch (e, stack) {
@@ -79,8 +104,17 @@ class CashPaymentFlow implements PaymentFlow {
           return;
         }
         _logger.severe('Cash payment flow failed', e, stack);
-        controller.add(PaymentStatus(type: PaymentStatusType.failure, message: '现金支付失败: $e'));
-        await finish(PaymentResult.failure(message: e.toString()));
+        controller.add(PaymentStatus(
+          type: PaymentStatusType.failure,
+          message: '现金支付失败: $e',
+          errorType: PaymentErrorType.device,
+          retryable: true,
+        ));
+        await finish(PaymentResult.failure(
+          message: e.toString(),
+          errorType: PaymentErrorType.device,
+          retryable: true,
+        ));
       }
     }
 
@@ -94,7 +128,11 @@ class CashPaymentFlow implements PaymentFlow {
       if (confirmRequested) return;
       confirmRequested = true;
       try {
-        controller.add(const PaymentStatus(type: PaymentStatusType.processing, message: '正在通知后台…'));
+        controller.add(const PaymentStatus(
+          type: PaymentStatusType.processing,
+          message: '正在通知后台…',
+          phase: PaymentPhase.confirming,
+        ));
         final receipt = await _cashMachine.completePayment();
         final payload = receipt.toJson();
         await _backendGateway.confirmPayment(context, {
@@ -108,8 +146,17 @@ class CashPaymentFlow implements PaymentFlow {
       } catch (e, stack) {
         confirmRequested = false;
         _logger.severe('Finalize cash payment failed', e, stack);
-        controller.add(PaymentStatus(type: PaymentStatusType.failure, message: '确认现金支付失败: $e'));
-        await finish(PaymentResult.failure(message: e.toString()));
+        controller.add(PaymentStatus(
+          type: PaymentStatusType.failure,
+          message: '确认现金支付失败: $e',
+          errorType: PaymentErrorType.backend,
+          retryable: true,
+        ));
+        await finish(PaymentResult.failure(
+          message: e.toString(),
+          errorType: PaymentErrorType.backend,
+          retryable: true,
+        ));
         rethrow;
       }
     }
@@ -123,8 +170,17 @@ class CashPaymentFlow implements PaymentFlow {
       } catch (e, stack) {
         _logger.warning('Failed to cancel cash transaction', e, stack);
       }
-      controller.add(const PaymentStatus(type: PaymentStatusType.cancelled, message: '操作员取消现金支付'));
-      await finish(PaymentResult.cancelled(message: '操作员取消现金支付'));
+      controller.add(const PaymentStatus(
+        type: PaymentStatusType.cancelled,
+        message: '操作员取消现金支付',
+        errorType: PaymentErrorType.userCancelled,
+        retryable: true,
+      ));
+      await finish(PaymentResult.cancelled(
+        message: '操作员取消现金支付',
+        errorType: PaymentErrorType.userCancelled,
+        retryable: true,
+      ));
     }
 
     return PaymentFlowRun(
@@ -153,6 +209,9 @@ class CashPaymentFlow implements PaymentFlow {
         type: type,
         message: message,
         details: {'stage': event.stage.name},
+        errorType: type == PaymentStatusType.failure ? PaymentErrorType.device : null,
+        retryable: type == PaymentStatusType.failure ? true : null,
+        phase: type == PaymentStatusType.waitingForUser ? PaymentPhase.waitingUser : null,
       );
     } else if (event is CashMachineAmountEvent) {
       final label = event.isFinal ? '已确认现金金额' : '当前识别现金金额';
@@ -172,7 +231,12 @@ class CashPaymentFlow implements PaymentFlow {
         details: event.receipt.toJson(),
       );
     } else if (event is CashMachineErrorEvent) {
-      return PaymentStatus(type: PaymentStatusType.failure, message: event.message);
+      return PaymentStatus(
+        type: PaymentStatusType.failure,
+        message: event.message,
+        errorType: PaymentErrorType.device,
+        retryable: true,
+      );
     }
     return null;
   }

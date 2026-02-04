@@ -5,11 +5,20 @@ import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_ar
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_state.dart';
 
 class StatusHero extends StatelessWidget {
-  const StatusHero({super.key, required this.state, required this.args, this.onRetry});
+  const StatusHero({
+    super.key,
+    required this.state,
+    required this.args,
+    this.onRetry,
+    this.onOpenSettings,
+    this.onNetworkHelp,
+  });
 
   final PaymentFlowState state;
   final PaymentFlowPageArgs args;
   final VoidCallback? onRetry;
+  final VoidCallback? onOpenSettings;
+  final VoidCallback? onNetworkHelp;
 
   @override
   Widget build(BuildContext context) {
@@ -17,12 +26,17 @@ class StatusHero extends StatelessWidget {
     final theme = Theme.of(context);
     final effectiveResult = state.result?.status;
     final hasError = state.error != null;
+    final effectiveErrorType = _effectiveErrorType(state);
+    final retryable = _effectiveRetryable(state);
     final message = hasError
         ? state.error!
         : current?.message ?? _defaultMessage(args.channelGroup, current?.type);
     final icon = hasError ? Icons.error_rounded : StatusHero.iconForStatus(current?.type, effectiveResult);
     final color = hasError ? Colors.redAccent : _colorForStatus(theme, current?.type, effectiveResult);
-    final showRetry = _shouldShowRetry(state) && onRetry != null;
+    final showRetry = _shouldShowRetry(state, retryable) && onRetry != null;
+    final showConfigAction = effectiveErrorType == PaymentErrorType.config && onOpenSettings != null;
+    final showNetworkAction = effectiveErrorType == PaymentErrorType.network && onNetworkHelp != null;
+    final errorHint = _errorHintForType(effectiveErrorType);
 
     return Container(
       width: double.infinity,
@@ -55,15 +69,38 @@ class StatusHero extends StatelessWidget {
                 const SizedBox(height: 12),
                 if (!hasError)
                   Text(_instructionFor(args.channelGroup), style: const TextStyle(color: Colors.black54)),
+                if (hasError && errorHint != null)
+                  Text(errorHint, style: const TextStyle(color: Colors.black54)),
               ],
             ),
           ),
-          if (showRetry) ...[
+          if (showRetry || showConfigAction || showNetworkAction) ...[
             const SizedBox(width: 12),
-            TextButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded, size: 50),
-              label: const Text('重试', style: TextStyle(fontSize: 16)),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (showRetry)
+                  TextButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded, size: 20),
+                    label: Text(
+                      _retryLabelForType(effectiveErrorType),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                if (showConfigAction)
+                  TextButton.icon(
+                    onPressed: onOpenSettings,
+                    icon: const Icon(Icons.settings_rounded, size: 20),
+                    label: const Text('去设置', style: TextStyle(fontSize: 16)),
+                  ),
+                if (showNetworkAction)
+                  TextButton.icon(
+                    onPressed: onNetworkHelp,
+                    icon: const Icon(Icons.wifi_tethering_rounded, size: 20),
+                    label: const Text('检查网络', style: TextStyle(fontSize: 16)),
+                  ),
+              ],
             ),
           ],
         ],
@@ -136,18 +173,61 @@ class StatusHero extends StatelessWidget {
     }
   }
 
-  static bool _shouldShowRetry(PaymentFlowState state) {
+  static bool _shouldShowRetry(PaymentFlowState state, bool retryable) {
     if (state.isCancelling) return false;
-    if (state.error != null) return true;
+    if (state.error != null) return retryable;
     final result = state.result?.status;
     if (result == PaymentStatusType.failure || result == PaymentStatusType.cancelled) {
-      return true;
+      return retryable;
     }
     final currentType = state.currentStatus?.type;
-    return currentType == PaymentStatusType.failure || currentType == PaymentStatusType.cancelled;
+    return (currentType == PaymentStatusType.failure || currentType == PaymentStatusType.cancelled) && retryable;
+  }
+
+  static PaymentErrorType? _effectiveErrorType(PaymentFlowState state) {
+    return state.result?.errorType ?? state.currentStatus?.errorType;
+  }
+
+  static bool _effectiveRetryable(PaymentFlowState state) {
+    return state.result?.retryable ?? state.currentStatus?.retryable ?? true;
+  }
+
+  static String? _errorHintForType(PaymentErrorType? type) {
+    switch (type) {
+      case PaymentErrorType.device:
+        return '设备异常：请检查POS终端或现金机连接。';
+      case PaymentErrorType.config:
+        return '配置缺失：请检查终端IP/端口或支付参数设置。';
+      case PaymentErrorType.network:
+        return '网络异常：请检查网络连接后重试。';
+      case PaymentErrorType.backend:
+        return '后台异常：请稍后重试或切换支付方式。';
+      case PaymentErrorType.userCancelled:
+        return '已取消本次支付操作。';
+      case PaymentErrorType.unknown:
+      default:
+        return null;
+    }
+  }
+
+  static String _retryLabelForType(PaymentErrorType? type) {
+    switch (type) {
+      case PaymentErrorType.device:
+        return '重连设备';
+      case PaymentErrorType.network:
+        return '重试联网';
+      case PaymentErrorType.config:
+        return '重试';
+      case PaymentErrorType.backend:
+        return '重试';
+      case PaymentErrorType.userCancelled:
+        return '重新发起';
+      case PaymentErrorType.unknown:
+      default:
+        return '重试';
+    }
   }
 }
-
 
 
 

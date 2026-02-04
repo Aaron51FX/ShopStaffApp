@@ -49,22 +49,44 @@ class QrPaymentFlow implements PaymentFlow {
 
     Future<void> run() async {
       try {
-        controller.add(const PaymentStatus(type: PaymentStatusType.waitingForUser, message: '请将二维码对准扫描区域'));
+        controller.add(const PaymentStatus(
+          type: PaymentStatusType.waitingForUser,
+          message: '请将二维码对准扫描区域',
+          phase: PaymentPhase.waitingUser,
+        ));
         final code = await _scannerService.acquireCode(context);
-        controller.add(const PaymentStatus(type: PaymentStatusType.processing, message: '二维码已识别，正在请求后台…'));
+        controller.add(const PaymentStatus(
+          type: PaymentStatusType.processing,
+          message: '二维码已识别，正在请求后台…',
+          phase: PaymentPhase.requesting,
+        ));
         final request = _buildPosRequest(context, code);
         final cardData = await _cardGateway.createPaymentRequest(request);
 
         if (!cardData.success) {
           final message = cardData.exceptionMessage ?? '二维码支付失败';
-          controller.add(PaymentStatus(type: PaymentStatusType.failure, message: message));
-          await finish(PaymentResult.failure(message: message));
+          controller.add(PaymentStatus(
+            type: PaymentStatusType.failure,
+            message: message,
+            errorType: PaymentErrorType.backend,
+            retryable: true,
+            phase: PaymentPhase.requesting,
+          ));
+          await finish(PaymentResult.failure(
+            message: message,
+            errorType: PaymentErrorType.backend,
+            retryable: true,
+          ));
           return;
         }
 
         final requestInfo = cardData.requestInfo;
         if (requestInfo != null && requestInfo.isNotEmpty) {
-          controller.add(const PaymentStatus(type: PaymentStatusType.processing, message: '请按照POS终端提示完成支付'));
+          controller.add(const PaymentStatus(
+            type: PaymentStatusType.processing,
+            message: '请按照POS终端提示完成支付',
+            phase: PaymentPhase.waitingUser,
+          ));
           final sessionRequest = _requestWithPrefetchedData(context, request, cardData);
           _ensurePosConfig(sessionRequest.customPayload);
           final session = await _posPaymentService.startPayment(sessionRequest);
@@ -78,9 +100,17 @@ class QrPaymentFlow implements PaymentFlow {
                 if (mapped.type == PaymentStatusType.success) {
                   unawaited(finish(PaymentResult.success(message: mapped.message)));
                 } else if (mapped.type == PaymentStatusType.cancelled) {
-                  unawaited(finish(PaymentResult.cancelled(message: mapped.message)));
+                  unawaited(finish(PaymentResult.cancelled(
+                    message: mapped.message,
+                    errorType: mapped.errorType ?? PaymentErrorType.userCancelled,
+                    retryable: mapped.retryable ?? true,
+                  )));
                 } else {
-                  unawaited(finish(PaymentResult.failure(message: mapped.message)));
+                  unawaited(finish(PaymentResult.failure(
+                    message: mapped.message,
+                    errorType: mapped.errorType ?? PaymentErrorType.device,
+                    retryable: mapped.retryable ?? true,
+                  )));
                 }
               }
             },
@@ -88,8 +118,17 @@ class QrPaymentFlow implements PaymentFlow {
               if (isFinished) return;
               final trace = stack is StackTrace ? stack : StackTrace.current;
               _logger.warning('POS状态流异常: $error', error, trace);
-              controller.add(PaymentStatus(type: PaymentStatusType.failure, message: error.toString()));
-              unawaited(finish(PaymentResult.failure(message: error.toString())));
+              controller.add(PaymentStatus(
+                type: PaymentStatusType.failure,
+                message: error.toString(),
+                errorType: PaymentErrorType.device,
+                retryable: true,
+              ));
+              unawaited(finish(PaymentResult.failure(
+                message: error.toString(),
+                errorType: PaymentErrorType.device,
+                retryable: true,
+              )));
             },
           );
           return;
@@ -97,7 +136,11 @@ class QrPaymentFlow implements PaymentFlow {
 
         final resultFlag = _readResultFlag(cardData.data);
         if (resultFlag == true) {
-          controller.add(const PaymentStatus(type: PaymentStatusType.success, message: '二维码支付完成'));
+          controller.add(const PaymentStatus(
+            type: PaymentStatusType.success,
+            message: '二维码支付完成',
+            phase: PaymentPhase.confirming,
+          ));
           try {
             await _backendGateway.confirmPayment(context, {
               'method': PaymentChannels.qr,
@@ -110,13 +153,49 @@ class QrPaymentFlow implements PaymentFlow {
           await finish(PaymentResult.success(message: '二维码支付完成', payload: {'code': code}));
         } else {
           final message = cardData.exceptionMessage ?? '二维码支付失败';
-          controller.add(PaymentStatus(type: PaymentStatusType.failure, message: message));
-          await finish(PaymentResult.failure(message: message));
+          controller.add(PaymentStatus(
+            type: PaymentStatusType.failure,
+            message: message,
+            errorType: PaymentErrorType.backend,
+            retryable: true,
+            phase: PaymentPhase.requesting,
+          ));
+          await finish(PaymentResult.failure(
+            message: message,
+            errorType: PaymentErrorType.backend,
+            retryable: true,
+          ));
         }
       } catch (e, stack) {
+        if (_isUserCancelled(e)) {
+          controller.add(const PaymentStatus(
+            type: PaymentStatusType.cancelled,
+            message: '操作员取消二维码支付',
+            errorType: PaymentErrorType.userCancelled,
+            retryable: true,
+            phase: PaymentPhase.initializing,
+          ));
+          await finish(PaymentResult.cancelled(
+            message: '操作员取消二维码支付',
+            errorType: PaymentErrorType.userCancelled,
+            retryable: true,
+          ));
+          return;
+        }
+        final errorType = _isConfigError(e) ? PaymentErrorType.config : PaymentErrorType.unknown;
         _logger.severe('QR payment flow failed', e, stack);
-        controller.add(PaymentStatus(type: PaymentStatusType.failure, message: '二维码支付失败: $e'));
-        await finish(PaymentResult.failure(message: e.toString()));
+        controller.add(PaymentStatus(
+          type: PaymentStatusType.failure,
+          message: '二维码支付失败: $e',
+          errorType: errorType,
+          retryable: true,
+          phase: PaymentPhase.requesting,
+        ));
+        await finish(PaymentResult.failure(
+          message: e.toString(),
+          errorType: errorType,
+          retryable: true,
+        ));
       }
     }
 
@@ -136,8 +215,18 @@ class QrPaymentFlow implements PaymentFlow {
           _logger.warning('取消POS扫码支付失败', e, stack);
         }
       }
-      controller.add(const PaymentStatus(type: PaymentStatusType.cancelled, message: '操作员取消二维码支付'));
-      await finish(PaymentResult.cancelled(message: '操作员取消二维码支付'));
+      controller.add(const PaymentStatus(
+        type: PaymentStatusType.cancelled,
+        message: '操作员取消二维码支付',
+        errorType: PaymentErrorType.userCancelled,
+        retryable: true,
+        phase: PaymentPhase.initializing,
+      ));
+      await finish(PaymentResult.cancelled(
+        message: '操作员取消二维码支付',
+        errorType: PaymentErrorType.userCancelled,
+        retryable: true,
+      ));
     }
 
     unawaited(run());
@@ -190,16 +279,47 @@ class QrPaymentFlow implements PaymentFlow {
   PaymentStatus _mapPosStatus(PosPaymentStatus status) {
     switch (status.type) {
       case PosPaymentStatusType.pending:
-        return PaymentStatus(type: PaymentStatusType.pending, message: status.message ?? '等待终端响应');
+        return PaymentStatus(
+          type: PaymentStatusType.pending,
+          message: status.message ?? '等待终端响应',
+          phase: PaymentPhase.sending,
+        );
       case PosPaymentStatusType.processing:
-        return PaymentStatus(type: PaymentStatusType.processing, message: status.message ?? '终端处理中');
+        return PaymentStatus(
+          type: PaymentStatusType.processing,
+          message: status.message ?? '终端处理中',
+          phase: PaymentPhase.waitingUser,
+        );
       case PosPaymentStatusType.success:
         return PaymentStatus(type: PaymentStatusType.success, message: status.message ?? '扫码支付完成');
       case PosPaymentStatusType.failure:
-        return PaymentStatus(type: PaymentStatusType.failure, message: status.message ?? '扫码支付失败');
+        return PaymentStatus(
+          type: PaymentStatusType.failure,
+          message: status.message ?? '扫码支付失败',
+          errorType: PaymentErrorType.device,
+          retryable: true,
+        );
       case PosPaymentStatusType.cancelled:
-        return PaymentStatus(type: PaymentStatusType.cancelled, message: status.message ?? '扫码支付已取消');
+        return PaymentStatus(
+          type: PaymentStatusType.cancelled,
+          message: status.message ?? '扫码支付已取消',
+          errorType: PaymentErrorType.userCancelled,
+          retryable: true,
+        );
     }
+  }
+
+  bool _isUserCancelled(Object error) {
+    if (error is StateError) {
+      final msg = error.message?.toString() ?? '';
+      if (msg.contains('扫码已取消')) return true;
+    }
+    final text = error.toString();
+    return text.contains('扫码已取消') || text.contains('cancelled');
+  }
+
+  bool _isConfigError(Object error) {
+    return error is StateError && (error.message?.toString().contains('POS终端配置') ?? false);
   }
 
   bool _readResultFlag(Map<String, dynamic> data) {

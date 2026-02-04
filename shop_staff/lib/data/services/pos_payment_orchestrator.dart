@@ -34,6 +34,7 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
     final initialStatus = PaymentStatus(
       type: PaymentStatusType.pending,
       message: '支付流程启动(${context.channel.displayName ?? context.channel.group})',
+      phase: PaymentPhase.initializing,
     );
     controller.add(initialStatus);
     entry.lastStatus = initialStatus;
@@ -157,12 +158,28 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
   PaymentStatus _statusFromResult(PaymentResult result) {
     switch (result.status) {
       case PaymentStatusType.success:
-        return PaymentStatus(type: PaymentStatusType.success, message: result.message, details: result.payload);
+        return PaymentStatus(
+          type: PaymentStatusType.success,
+          message: result.message,
+          details: result.payload,
+        );
       case PaymentStatusType.cancelled:
-        return PaymentStatus(type: PaymentStatusType.cancelled, message: result.message, details: result.payload);
+        return PaymentStatus(
+          type: PaymentStatusType.cancelled,
+          message: result.message,
+          details: result.payload,
+          errorType: result.errorType,
+          retryable: result.retryable,
+        );
       case PaymentStatusType.failure:
       default:
-        return PaymentStatus(type: PaymentStatusType.failure, message: result.message, details: result.payload);
+        return PaymentStatus(
+          type: PaymentStatusType.failure,
+          message: result.message,
+          details: result.payload,
+          errorType: result.errorType,
+          retryable: result.retryable,
+        );
     }
   }
 }

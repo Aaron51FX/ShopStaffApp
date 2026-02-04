@@ -308,6 +308,9 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       type: status.type,
       message: status.message,
       details: clonedDetails,
+      errorType: status.errorType,
+      retryable: status.retryable,
+      phase: status.phase,
     );
   }
 

@@ -13,17 +13,43 @@ enum PaymentStatusType {
   cancelled,
 }
 
+/// Canonical payment phases to drive precise UI controls (e.g. cancel availability).
+enum PaymentPhase {
+  initializing,
+  connecting,
+  requesting,
+  sending,
+  waitingUser,
+  confirming,
+}
+
+/// Canonical error types to drive UI handling and recovery options.
+enum PaymentErrorType {
+  userCancelled,
+  device,
+  network,
+  config,
+  backend,
+  unknown,
+}
+
 /// Immutable descriptor of a payment status update.
 class PaymentStatus {
   const PaymentStatus({
     required this.type,
     this.message,
     this.details,
+    this.errorType,
+    this.retryable,
+    this.phase,
   });
 
   final PaymentStatusType type;
   final String? message;
   final Map<String, dynamic>? details;
+  final PaymentErrorType? errorType;
+  final bool? retryable;
+  final PaymentPhase? phase;
 
   bool get isTerminal =>
       type == PaymentStatusType.success ||
@@ -39,6 +65,8 @@ class PaymentResult {
     this.message,
     this.errorCode,
     this.payload,
+    this.errorType,
+    this.retryable,
   });
 
   final PaymentStatusType status;
@@ -46,6 +74,8 @@ class PaymentResult {
   final String? message;
   final String? errorCode;
   final Map<String, dynamic>? payload;
+  final PaymentErrorType? errorType;
+  final bool? retryable;
 
   factory PaymentResult.success({String? message, Map<String, dynamic>? payload}) {
     return PaymentResult(
@@ -56,23 +86,39 @@ class PaymentResult {
     );
   }
 
-  factory PaymentResult.failure({String? message, String? errorCode, Map<String, dynamic>? payload}) {
+  factory PaymentResult.failure({
+    String? message,
+    String? errorCode,
+    Map<String, dynamic>? payload,
+    PaymentErrorType errorType = PaymentErrorType.unknown,
+    bool retryable = true,
+  }) {
     return PaymentResult(
       status: PaymentStatusType.failure,
       success: false,
       message: message,
       errorCode: errorCode,
       payload: payload,
+      errorType: errorType,
+      retryable: retryable,
     );
   }
 
-  factory PaymentResult.cancelled({String? message, String? errorCode, Map<String, dynamic>? payload}) {
+  factory PaymentResult.cancelled({
+    String? message,
+    String? errorCode,
+    Map<String, dynamic>? payload,
+    PaymentErrorType errorType = PaymentErrorType.userCancelled,
+    bool retryable = true,
+  }) {
     return PaymentResult(
       status: PaymentStatusType.cancelled,
       success: false,
       message: message,
       errorCode: errorCode,
       payload: payload,
+      errorType: errorType,
+      retryable: retryable,
     );
   }
 }

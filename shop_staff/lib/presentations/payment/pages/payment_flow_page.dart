@@ -263,6 +263,18 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
                 state: state,
                 args: args,
                 onRetry: () => ref.read(provider.notifier).retryPayment(),
+                onOpenSettings: () => context.go('/settings'),
+                onNetworkHelp: () {
+                  ref.read(dialogControllerProvider.notifier).show<void>(
+                        const DialogRequest<void>(
+                          title: '网络异常',
+                          message: '请检查网线或Wi-Fi连接，确认路由器与终端在同一网络后重试。',
+                          actions: [
+                            DialogAction(label: '知道了', value: null, isPrimary: true),
+                          ],
+                        ),
+                      );
+                },
               ),
               const SizedBox(height: 24),
               Expanded(child: StatusTimeline(state: state)),

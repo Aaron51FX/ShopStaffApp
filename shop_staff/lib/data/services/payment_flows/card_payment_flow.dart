@@ -34,9 +34,17 @@ class CardPaymentFlow implements PaymentFlow {
     PaymentStatus _mapPosStatus(PosPaymentStatus status) {
       switch (status.type) {
         case PosPaymentStatusType.pending:
-          return PaymentStatus(type: PaymentStatusType.pending, message: status.message);
+          return PaymentStatus(
+            type: PaymentStatusType.pending,
+            message: status.message,
+            phase: PaymentPhase.sending,
+          );
         case PosPaymentStatusType.processing:
-          return PaymentStatus(type: PaymentStatusType.processing, message: status.message);
+          return PaymentStatus(
+            type: PaymentStatusType.processing,
+            message: status.message,
+            phase: PaymentPhase.waitingUser,
+          );
         case PosPaymentStatusType.success:
           return PaymentStatus(
             type: PaymentStatusType.success,
@@ -52,6 +60,8 @@ class CardPaymentFlow implements PaymentFlow {
             details: {
               if (status.errorCode != null) 'errorCode': status.errorCode,
             },
+            errorType: PaymentErrorType.device,
+            retryable: true,
           );
         case PosPaymentStatusType.cancelled:
           return PaymentStatus(
@@ -60,6 +70,8 @@ class CardPaymentFlow implements PaymentFlow {
             details: {
               if (status.errorCode != null) 'errorCode': status.errorCode,
             },
+            errorType: PaymentErrorType.userCancelled,
+            retryable: true,
           );
       }
     }
@@ -78,12 +90,16 @@ class CardPaymentFlow implements PaymentFlow {
             message: mapped.message,
             errorCode: mapped.details?['errorCode'] as String?,
             payload: mapped.details,
+            errorType: mapped.errorType ?? PaymentErrorType.userCancelled,
+            retryable: mapped.retryable ?? true,
           )));
         } else if (mapped.type == PaymentStatusType.failure) {
           unawaited(finish(PaymentResult.failure(
             message: mapped.message,
             errorCode: mapped.details?['errorCode'] as String?,
             payload: mapped.details,
+            errorType: mapped.errorType ?? PaymentErrorType.device,
+            retryable: mapped.retryable ?? true,
           )));
         }
       }
@@ -91,7 +107,11 @@ class CardPaymentFlow implements PaymentFlow {
 
     Future<void> run() async {
       try {
-        controller.add(const PaymentStatus(type: PaymentStatusType.pending, message: '初始化信用卡终端'));
+        controller.add(const PaymentStatus(
+          type: PaymentStatusType.pending,
+          message: '初始化信用卡终端',
+          phase: PaymentPhase.connecting,
+        ));
         final request = PosPaymentRequest(
           order: context.order,
           channelGroup: context.channel.group,
@@ -116,8 +136,17 @@ class CardPaymentFlow implements PaymentFlow {
         );
       } catch (e, stack) {
         _logger.severe('Failed to start card payment', e, stack);
-        controller.add(PaymentStatus(type: PaymentStatusType.failure, message: '信用卡支付初始化失败: $e'));
-        unawaited(finish(PaymentResult.failure(message: e.toString())));
+        controller.add(PaymentStatus(
+          type: PaymentStatusType.failure,
+          message: '信用卡支付初始化失败: $e',
+          errorType: PaymentErrorType.device,
+          retryable: true,
+        ));
+        unawaited(finish(PaymentResult.failure(
+          message: e.toString(),
+          errorType: PaymentErrorType.device,
+          retryable: true,
+        )));
       }
     }
 
@@ -131,13 +160,31 @@ class CardPaymentFlow implements PaymentFlow {
           await _posPaymentService.cancel(activeId);
         } catch (e, stack) {
           _logger.severe('Failed to cancel card payment', e, stack);
-          controller.add(PaymentStatus(type: PaymentStatusType.failure, message: '信用卡支付取消失败: $e'));
-          unawaited(finish(PaymentResult.failure(message: e.toString())));
+          controller.add(PaymentStatus(
+            type: PaymentStatusType.failure,
+            message: '信用卡支付取消失败: $e',
+            errorType: PaymentErrorType.device,
+            retryable: true,
+          ));
+          unawaited(finish(PaymentResult.failure(
+            message: e.toString(),
+            errorType: PaymentErrorType.device,
+            retryable: true,
+          )));
           rethrow;
         }
       } else {
-        controller.add(const PaymentStatus(type: PaymentStatusType.cancelled, message: '操作员取消信用卡支付'));
-        unawaited(finish(PaymentResult.cancelled(message: '操作员取消信用卡支付')));
+        controller.add(const PaymentStatus(
+          type: PaymentStatusType.cancelled,
+          message: '操作员取消信用卡支付',
+          errorType: PaymentErrorType.userCancelled,
+          retryable: true,
+        ));
+        unawaited(finish(PaymentResult.cancelled(
+          message: '操作员取消信用卡支付',
+          errorType: PaymentErrorType.userCancelled,
+          retryable: true,
+        )));
       }
     }
 
