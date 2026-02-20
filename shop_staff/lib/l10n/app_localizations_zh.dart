@@ -1135,7 +1135,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentActionCancel => '取消支付';
 
   @override
+  String get paymentCancelConfirmMessage => '确认要取消支付吗？';
+
+  @override
+  String get paymentCancelRetryAction => '重试取消';
+
+  @override
+  String get paymentCancelForceExitAction => '强制退出';
+
+  @override
   String get paymentActionCancelling => '正在取消…';
+
+  @override
+  String get paymentNetworkHelpMessage => '请检查网线或Wi-Fi连接，确认路由器与终端在同一网络后重试。';
 
   @override
   String get paymentPosFetchingPayData => '获取POS支付数据';
@@ -1185,6 +1197,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get paymentPosOperatorCancelled => '操作员取消交易';
+
+  @override
+  String get paymentForceExitRecorded => '已强制退出并记录异常单';
+
+  @override
+  String get paymentPrintDialogTitle => '打印票据';
+
+  @override
+  String get paymentPrintDialogSkip => '跳过';
+
+  @override
+  String get paymentPrintDialogComplete => '完成';
+
+  @override
+  String get paymentPrintDialogContinueBackground => '后台继续';
 
   @override
   String get paymentErrorPosIpMissing => '未配置POS终端IP';

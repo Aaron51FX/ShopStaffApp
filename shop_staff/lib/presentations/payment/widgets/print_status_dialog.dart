@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/printing/print_job_models.dart';
 
 class PrintStatusDialog extends StatelessWidget {
@@ -17,6 +18,7 @@ class PrintStatusDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final hasFailure = state.hasFailure;
     return Dialog(
       insetPadding: const EdgeInsets.all(24),
@@ -31,7 +33,10 @@ class PrintStatusDialog extends StatelessWidget {
               children: [
                 const Icon(Icons.print_rounded, size: 26),
                 const SizedBox(width: 8),
-                const Text('打印票据', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                Text(
+                  t.paymentPrintDialogTitle,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -63,14 +68,16 @@ class PrintStatusDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(onPressed: onSkip, child: const Text('跳过')),
+                TextButton(onPressed: onSkip, child: Text(t.paymentPrintDialogSkip)),
                 const SizedBox(width: 8),
                 if (hasFailure)
-                  FilledButton.tonal(onPressed: onRetry, child: const Text('重试')),
+                  FilledButton.tonal(onPressed: onRetry, child: Text(t.paymentRetryDefault)),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: onClose,
-                  child: Text(state.completed ? '完成' : '后台继续'),
+                  child: Text(
+                    state.completed ? t.paymentPrintDialogComplete : t.paymentPrintDialogContinueBackground,
+                  ),
                 ),
               ],
             ),

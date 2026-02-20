@@ -1140,7 +1140,20 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentActionCancel => '支払い取消';
 
   @override
+  String get paymentCancelConfirmMessage => 'この支払いをキャンセルしてもよろしいですか？';
+
+  @override
+  String get paymentCancelRetryAction => 'キャンセル再試行';
+
+  @override
+  String get paymentCancelForceExitAction => '強制終了';
+
+  @override
   String get paymentActionCancelling => '取消中…';
+
+  @override
+  String get paymentNetworkHelpMessage =>
+      '有線LANまたはWi-Fi接続を確認し、ルーターと端末が同じネットワーク上にあることを確認してから再試行してください。';
 
   @override
   String get paymentPosFetchingPayData => 'POS決済データ取得中';
@@ -1190,6 +1203,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get paymentPosOperatorCancelled => 'オペレーターが取引をキャンセルしました';
+
+  @override
+  String get paymentForceExitRecorded => '強制終了し、異常注文として記録しました';
+
+  @override
+  String get paymentPrintDialogTitle => 'レシート印刷';
+
+  @override
+  String get paymentPrintDialogSkip => 'スキップ';
+
+  @override
+  String get paymentPrintDialogComplete => '完了';
+
+  @override
+  String get paymentPrintDialogContinueBackground => 'バックグラウンドで続行';
 
   @override
   String get paymentErrorPosIpMissing => 'POS端末のIPが未設定です';

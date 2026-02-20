@@ -57,11 +57,11 @@ class CancelDialog extends StatelessWidget {
             if (showRecoveryActions) ...[
               TextButton(
                 onPressed: onRetryCancel,
-                child: const Text('重试取消'),
+                child: Text(t.paymentCancelRetryAction),
               ),
               FilledButton(
                 onPressed: onForceExit,
-                child: const Text('强制退出'),
+                child: Text(t.paymentCancelForceExitAction),
               ),
             ] else
               TextButton(

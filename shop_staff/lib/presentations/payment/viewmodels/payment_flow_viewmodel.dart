@@ -33,13 +33,13 @@ class PaymentFlowToastEffect extends PaymentFlowEffect {
 
 class PaymentFlowRequestCancelConfirmEffect extends PaymentFlowEffect {
   const PaymentFlowRequestCancelConfirmEffect({
-    required this.title,
-    required this.message,
+    this.title,
+    this.message,
     this.destructive = true,
   });
 
-  final String title;
-  final String message;
+  final String? title;
+  final String? message;
   final bool destructive;
 }
 
@@ -196,8 +196,6 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   void cancelPayment() {
     _emit(
       const PaymentFlowRequestCancelConfirmEffect(
-        title: '注意',
-        message: '确认要取消支付吗？',
         destructive: true,
       ),
     );
@@ -249,19 +247,20 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
           retryable: true,
         ),
         isCancelling: false,
-        cancelDialog: CancelDialogState.success('已强制退出并记录异常单'),
+        cancelDialog: CancelDialogState.success(null),
       );
       _emit(const PaymentFlowToastEffect(
-        message: '已强制退出并记录异常单',
+        messageKey: PaymentMessageKeys.paymentForceExitRecorded,
         isError: true,
       ));
     } catch (e, stack) {
       _logger.warning('Force exit after cancel failure failed', e, stack);
       state = state.copyWith(
-        cancelDialog: CancelDialogState.failure('强制退出失败: $e', requiresRecovery: true),
+        cancelDialog: CancelDialogState.failure(null, requiresRecovery: true),
       );
       _emit(PaymentFlowToastEffect(
-        message: '强制退出失败: $e',
+        messageKey: PaymentMessageKeys.posCancelFailed,
+        messageArgs: {'detail': e.toString()},
         isError: true,
       ));
     } finally {
@@ -302,15 +301,20 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     if (id == null || state.isCancelling || state.isFinished) return;
     state = state.copyWith(
       isCancelling: true,
-      cancelDialog: CancelDialogState.loading(_cancelLoadingMessage()),
+      cancelDialog: CancelDialogState.loading(null),
     );
     try {
       await _useCase.cancel(id);
     } catch (e, stack) {
       _logger.warning('Cancel payment failed', e, stack);
       state = state.copyWith(
-        cancelDialog: CancelDialogState.failure('取消失败: $e', requiresRecovery: true),
+        cancelDialog: CancelDialogState.failure(null, requiresRecovery: true),
       );
+      _emit(PaymentFlowToastEffect(
+        messageKey: PaymentMessageKeys.posCancelFailed,
+        messageArgs: {'detail': e.toString()},
+        isError: true,
+      ));
     } finally {
       state = state.copyWith(isCancelling: false);
     }
@@ -322,28 +326,6 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     }
   }
 
-  String _cancelLoadingMessage() {
-    switch (_args.channelGroup) {
-      case PaymentChannels.card:
-        return '正在取消信用卡支付…';
-      case PaymentChannels.cash:
-        return '正在取消现金支付…';
-      default:
-        return '正在取消支付…';
-    }
-  }
-
-  String _defaultCancelSuccessMessage() {
-    switch (_args.channelGroup) {
-      case PaymentChannels.card:
-        return 'POS终端已取消交易';
-      case PaymentChannels.cash:
-        return '现金支付已取消';
-      default:
-        return '支付已取消';
-    }
-  }
-
   CancelDialogState? _cancelDialogStateForStatus(
     PaymentStatus status,
     CancelDialogState currentDialog,
@@ -352,17 +334,10 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       return null;
     }
     if (status.type == PaymentStatusType.cancelled) {
-      final message = (status.message != null && status.message!.trim().isNotEmpty)
-          ? status.message
-          : _defaultCancelSuccessMessage();
-      return CancelDialogState.success(message);
+      return CancelDialogState.success(null);
     }
     if (status.type == PaymentStatusType.failure) {
-      final fallback = '取消失败，请稍后重试';
-      final message = (status.message != null && status.message!.trim().isNotEmpty)
-          ? status.message
-          : fallback;
-      return CancelDialogState.failure(message, requiresRecovery: true);
+      return CancelDialogState.failure(null, requiresRecovery: true);
     }
     return null;
   }

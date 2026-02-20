@@ -1185,7 +1185,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentActionCancel => 'Cancel payment';
 
   @override
+  String get paymentCancelConfirmMessage =>
+      'Are you sure you want to cancel this payment?';
+
+  @override
+  String get paymentCancelRetryAction => 'Retry cancel';
+
+  @override
+  String get paymentCancelForceExitAction => 'Force exit';
+
+  @override
   String get paymentActionCancelling => 'Cancelling…';
+
+  @override
+  String get paymentNetworkHelpMessage =>
+      'Check Ethernet or Wi-Fi connection and ensure the router and terminal are on the same network before retrying.';
 
   @override
   String get paymentPosFetchingPayData => 'Fetching POS payment data';
@@ -1235,6 +1249,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentPosOperatorCancelled => 'Operator cancelled transaction';
+
+  @override
+  String get paymentForceExitRecorded =>
+      'Force exited and recorded as an abnormal order';
+
+  @override
+  String get paymentPrintDialogTitle => 'Print receipts';
+
+  @override
+  String get paymentPrintDialogSkip => 'Skip';
+
+  @override
+  String get paymentPrintDialogComplete => 'Done';
+
+  @override
+  String get paymentPrintDialogContinueBackground => 'Continue in background';
 
   @override
   String get paymentErrorPosIpMissing => 'POS terminal IP is not configured';

@@ -2254,11 +2254,35 @@ abstract class AppLocalizations {
   /// **'Cancel payment'**
   String get paymentActionCancel;
 
+  /// No description provided for @paymentCancelConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this payment?'**
+  String get paymentCancelConfirmMessage;
+
+  /// No description provided for @paymentCancelRetryAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry cancel'**
+  String get paymentCancelRetryAction;
+
+  /// No description provided for @paymentCancelForceExitAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Force exit'**
+  String get paymentCancelForceExitAction;
+
   /// No description provided for @paymentActionCancelling.
   ///
   /// In en, this message translates to:
   /// **'Cancelling…'**
   String get paymentActionCancelling;
+
+  /// No description provided for @paymentNetworkHelpMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Ethernet or Wi-Fi connection and ensure the router and terminal are on the same network before retrying.'**
+  String get paymentNetworkHelpMessage;
 
   /// No description provided for @paymentPosFetchingPayData.
   ///
@@ -2337,6 +2361,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Operator cancelled transaction'**
   String get paymentPosOperatorCancelled;
+
+  /// No description provided for @paymentForceExitRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Force exited and recorded as an abnormal order'**
+  String get paymentForceExitRecorded;
+
+  /// No description provided for @paymentPrintDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Print receipts'**
+  String get paymentPrintDialogTitle;
+
+  /// No description provided for @paymentPrintDialogSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get paymentPrintDialogSkip;
+
+  /// No description provided for @paymentPrintDialogComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get paymentPrintDialogComplete;
+
+  /// No description provided for @paymentPrintDialogContinueBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue in background'**
+  String get paymentPrintDialogContinueBackground;
 
   /// No description provided for @paymentErrorPosIpMissing.
   ///

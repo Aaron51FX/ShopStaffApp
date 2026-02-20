@@ -99,13 +99,13 @@ class StatusHero extends StatelessWidget {
                   TextButton.icon(
                     onPressed: onOpenSettings,
                     icon: const Icon(Icons.settings_rounded, size: 20),
-                    label: const Text('去设置', style: TextStyle(fontSize: 16)),
+                    label: Text(t.settingsTitle, style: const TextStyle(fontSize: 16)),
                   ),
                 if (showNetworkAction)
                   TextButton.icon(
                     onPressed: onNetworkHelp,
                     icon: const Icon(Icons.wifi_tethering_rounded, size: 20),
-                    label: const Text('检查网络', style: TextStyle(fontSize: 16)),
+                    label: Text(t.paymentRetryNetwork, style: const TextStyle(fontSize: 16)),
                   ),
               ],
             ),
@@ -371,6 +371,9 @@ class StatusHero extends StatelessWidget {
         break;
       case PaymentMessageKeys.posOperatorCancelled:
         base = t.paymentPosOperatorCancelled;
+        break;
+      case PaymentMessageKeys.paymentForceExitRecorded:
+        base = t.paymentForceExitRecorded;
         break;
       case PaymentMessageKeys.cashPrepare:
         base = t.paymentCashPrepare;

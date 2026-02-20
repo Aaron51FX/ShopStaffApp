@@ -70,9 +70,10 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         return;
       }
       if (effect is PaymentFlowRequestCancelConfirmEffect) {
+        final t = AppLocalizations.of(context);
         final ok = await ref.read(dialogControllerProvider.notifier).confirm(
-              title: effect.title,
-              message: effect.message,
+              title: effect.title ?? t.paymentActionCancel,
+              message: effect.message ?? t.paymentCancelConfirmMessage,
               destructive: effect.destructive,
             );
         if (!mounted) return;
@@ -249,7 +250,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text(_titleForGroup(args)),
+          title: Text(_titleForGroup(context, args)),
           actions: [
             if (state.canExit)
               TextButton(
@@ -278,12 +279,13 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
                 onRetry: () => ref.read(provider.notifier).retryPayment(),
                 onOpenSettings: () => context.go('/settings'),
                 onNetworkHelp: () {
+                  final t = AppLocalizations.of(context);
                   ref.read(dialogControllerProvider.notifier).show<void>(
-                        const DialogRequest<void>(
-                          title: '网络异常',
-                          message: '请检查网线或Wi-Fi连接，确认路由器与终端在同一网络后重试。',
+                        DialogRequest<void>(
+                          title: t.commonNetworkLabel,
+                          message: t.paymentNetworkHelpMessage,
                           actions: [
-                            DialogAction(label: '知道了', value: null, isPrimary: true),
+                            DialogAction(label: t.posOptionMaxReachedOk, value: null, isPrimary: true),
                           ],
                         ),
                       );
@@ -304,17 +306,18 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
     );
   }
 
-  String _titleForGroup(PaymentFlowPageArgs args) {
+  String _titleForGroup(BuildContext context, PaymentFlowPageArgs args) {
+    final t = AppLocalizations.of(context);
     final name = args.channelDisplayName;
     switch (args.channelGroup) {
       case PaymentChannels.card:
-        return '信用卡支付${name != null ? ' - $name' : ''}';
+        return '${t.paymentGroupCardTitle}${name != null ? ' - $name' : ''}';
       case PaymentChannels.cash:
-        return '现金支付';
+        return t.paymentGroupCashTitle;
       case PaymentChannels.qr:
-        return '扫码支付${name != null ? ' - $name' : ''}';
+        return '${t.paymentGroupQrTitle}${name != null ? ' - $name' : ''}';
       default:
-        return '支付流程';
+        return t.paymentSelectionTitle;
     }
   }
 

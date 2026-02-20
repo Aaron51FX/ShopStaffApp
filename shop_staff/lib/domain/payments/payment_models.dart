@@ -83,6 +83,7 @@ abstract class PaymentMessageKeys {
   static const String posCancelProcessing = 'payment_pos_cancel_processing';
   static const String posCancelFailed = 'payment_pos_cancel_failed';
   static const String posOperatorCancelled = 'payment_pos_operator_cancelled';
+  static const String paymentForceExitRecorded = 'payment_force_exit_recorded';
 
   // External error codes to be mapped into localized messages.
   static const String errorPosIpMissing = 'payment_error_pos_ip_missing';
