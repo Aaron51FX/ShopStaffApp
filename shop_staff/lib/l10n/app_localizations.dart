@@ -2194,6 +2194,18 @@ abstract class AppLocalizations {
   /// **'This payment was cancelled.'**
   String get paymentErrorHintCancelled;
 
+  /// No description provided for @paymentSuggestionOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested action: open Settings and verify POS IP, port, and payment configuration.'**
+  String get paymentSuggestionOpenSettings;
+
+  /// No description provided for @paymentSuggestionCheckNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested action: check Ethernet/Wi-Fi and local network connectivity, then retry.'**
+  String get paymentSuggestionCheckNetwork;
+
   /// No description provided for @paymentRetryDevice.
   ///
   /// In en, this message translates to:

@@ -1103,6 +1103,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentErrorHintCancelled => '已取消本次支付操作。';
 
   @override
+  String get paymentSuggestionOpenSettings => '建议动作：前往设置检查POS终端IP、端口与支付配置。';
+
+  @override
+  String get paymentSuggestionCheckNetwork => '建议动作：检查网线/Wi-Fi及局域网连通性后重试。';
+
+  @override
   String get paymentRetryDevice => '重连设备';
 
   @override

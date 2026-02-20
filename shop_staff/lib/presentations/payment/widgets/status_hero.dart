@@ -42,7 +42,7 @@ class StatusHero extends StatelessWidget {
     final showRetry = _shouldShowRetry(state, retryable) && onRetry != null;
     final showConfigAction = effectiveErrorType == PaymentErrorType.config && onOpenSettings != null;
     final showNetworkAction = effectiveErrorType == PaymentErrorType.network && onNetworkHelp != null;
-    final errorHint = _errorHintForType(t, effectiveErrorType);
+    final errorHint = _errorHintForType(t, effectiveErrorType, _errorContextToken(state));
 
     return Container(
       width: double.infinity,
@@ -192,14 +192,38 @@ class StatusHero extends StatelessWidget {
   }
 
   static PaymentErrorType? _effectiveErrorType(PaymentFlowState state) {
-    return state.result?.errorType ?? state.currentStatus?.errorType;
+    final explicit = state.result?.errorType ?? state.currentStatus?.errorType;
+    if (explicit != null) return explicit;
+    final token = _errorContextToken(state);
+    if (token == null) return null;
+    return _inferErrorTypeByToken(token);
   }
 
   static bool _effectiveRetryable(PaymentFlowState state) {
     return state.result?.retryable ?? state.currentStatus?.retryable ?? true;
   }
 
-  static String? _errorHintForType(AppLocalizations t, PaymentErrorType? type) {
+  static String? _errorHintForType(
+    AppLocalizations t,
+    PaymentErrorType? type,
+    String? token,
+  ) {
+    switch (token) {
+      case 'POS_IP_MISSING':
+      case 'POS_PORT_INVALID':
+      case 'POS_CONFIG_MISSING':
+      case 'POS_CARD_GATEWAY_REQUIRED':
+        return t.paymentSuggestionOpenSettings;
+      case 'NETWORK_ERROR':
+      case 'NETWORK_TIMEOUT':
+      case 'SOCKET_ERROR':
+      case 'HOST_LOOKUP_ERROR':
+        return t.paymentSuggestionCheckNetwork;
+      case 'PAYMENT_FINALIZE_NOT_REQUIRED':
+        return t.paymentErrorPaymentFinalizeNotRequired;
+      default:
+        break;
+    }
     switch (type) {
       case PaymentErrorType.device:
         return t.paymentErrorHintDevice;
@@ -215,6 +239,90 @@ class StatusHero extends StatelessWidget {
       default:
         return null;
     }
+  }
+
+  static String? _errorContextToken(PaymentFlowState state) {
+    final candidates = <String?>[
+      state.result?.errorCode,
+      state.result?.payload?['errorCode']?.toString(),
+      state.currentStatus?.details?['errorCode']?.toString(),
+      state.currentStatus?.messageArgs?['errorCode']?.toString(),
+      state.currentStatus?.messageArgs?['detail']?.toString(),
+      state.result?.messageArgs?['detail']?.toString(),
+      state.error,
+    ];
+    for (final raw in candidates) {
+      final token = _normalizeErrorToken(raw);
+      if (token != null) return token;
+    }
+    return null;
+  }
+
+  static PaymentErrorType _inferErrorTypeByToken(String token) {
+    const configTokens = {
+      'POS_IP_MISSING',
+      'POS_PORT_INVALID',
+      'POS_CONFIG_MISSING',
+      'POS_CARD_GATEWAY_REQUIRED',
+    };
+    const userCancelledTokens = {
+      'QR_SCAN_CANCELLED',
+      'USER_CANCELLED',
+      'CANCELLED_BY_USER',
+    };
+    const networkTokens = {
+      'NETWORK_ERROR',
+      'NETWORK_TIMEOUT',
+      'SOCKET_ERROR',
+      'HOST_LOOKUP_ERROR',
+    };
+
+    if (configTokens.contains(token)) return PaymentErrorType.config;
+    if (userCancelledTokens.contains(token)) return PaymentErrorType.userCancelled;
+    if (networkTokens.contains(token)) return PaymentErrorType.network;
+
+    if (token.startsWith('POS_') || token.startsWith('CASH_') || token.startsWith('QR_SCAN_')) {
+      return PaymentErrorType.device;
+    }
+
+    return PaymentErrorType.unknown;
+  }
+
+  static String? _normalizeErrorToken(String? raw) {
+    if (raw == null) return null;
+    final text = raw.trim();
+    if (text.isEmpty) return null;
+
+    final knownTokens = <String>[
+      'POS_IP_MISSING',
+      'POS_PORT_INVALID',
+      'POS_CONFIG_MISSING',
+      'POS_CARD_GATEWAY_REQUIRED',
+      'POS_SESSION_MISSING',
+      'POS_CANCEL_INSTRUCTION_EMPTY',
+      'POS_REQUEST_DATA_MISSING',
+      'POS_CANCEL_NOT_SUPPORTED',
+      'POS_CANCEL_FAILED',
+      'PAYMENT_FINALIZE_NOT_REQUIRED',
+      'CASH_RECEIPT_MISSING',
+      'CASH_BUSY',
+      'CASH_NO_PENDING',
+      'QR_SCAN_CANCELLED',
+      'QR_SCAN_RESET',
+      'QR_SCAN_RELEASED',
+      'PAYMENT_STAGE_TIMEOUT',
+    ];
+
+    for (final token in knownTokens) {
+      if (text.contains(token)) return token;
+    }
+
+    final upper = text.toUpperCase();
+    if (upper.contains('HOST LOOKUP') || upper.contains('HOST_LOOKUP')) return 'HOST_LOOKUP_ERROR';
+    if (upper.contains('SOCKETEXCEPTION') || upper.contains('SOCKET EXCEPTION')) return 'SOCKET_ERROR';
+    if (upper.contains('TIMEOUT') || upper.contains('TIMED OUT')) return 'NETWORK_TIMEOUT';
+    if (upper.contains('NETWORK') || upper.contains('CONNECTION')) return 'NETWORK_ERROR';
+    return null;
   }
 
   static String _retryLabelForType(AppLocalizations t, PaymentErrorType? type) {
@@ -459,7 +567,9 @@ class StatusHero extends StatelessWidget {
 
   static String _resolveExternalDetail(AppLocalizations t, String raw) {
     if (raw.isEmpty) return raw;
-    switch (raw) {
+    final token = _normalizeErrorToken(raw);
+    if (token == null) return raw;
+    switch (token) {
       case 'POS_IP_MISSING':
         return t.paymentErrorPosIpMissing;
       case 'POS_PORT_INVALID':
@@ -500,9 +610,18 @@ class StatusHero extends StatelessWidget {
   }
 
   static String? _resolveExternalErrorCodeDesc(AppLocalizations t, String rawCode) {
-    switch (rawCode) {
+    final token = _normalizeErrorToken(rawCode) ?? rawCode;
+    switch (token) {
+      case 'POS_IP_MISSING':
+        return t.paymentErrorPosIpMissing;
+      case 'POS_PORT_INVALID':
+        return t.paymentErrorPosPortInvalid;
+      case 'POS_CONFIG_MISSING':
+        return t.paymentErrorPosConfigMissing;
       case 'POS_CANCEL_FAILED':
         return t.paymentErrorPosCancelFailed;
+      case 'PAYMENT_FINALIZE_NOT_REQUIRED':
+        return t.paymentErrorPaymentFinalizeNotRequired;
       default:
         return null;
     }

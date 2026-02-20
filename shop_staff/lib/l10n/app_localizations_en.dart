@@ -1153,6 +1153,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentErrorHintCancelled => 'This payment was cancelled.';
 
   @override
+  String get paymentSuggestionOpenSettings =>
+      'Suggested action: open Settings and verify POS IP, port, and payment configuration.';
+
+  @override
+  String get paymentSuggestionCheckNetwork =>
+      'Suggested action: check Ethernet/Wi-Fi and local network connectivity, then retry.';
+
+  @override
   String get paymentRetryDevice => 'Reconnect device';
 
   @override

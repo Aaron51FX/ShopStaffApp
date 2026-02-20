@@ -465,6 +465,8 @@
   "paymentErrorHintNetwork": "ネットワークの問題：接続を確認して再試行してください。",
   "paymentErrorHintBackend": "バックエンドの問題：後でもう一度お試しください。",
   "paymentErrorHintCancelled": "この決済はキャンセルされました。",
+  "paymentSuggestionOpenSettings": "推奨操作：設定画面でPOS端末のIP、ポート、決済設定を確認してください。",
+  "paymentSuggestionCheckNetwork": "推奨操作：有線LAN/Wi-Fiとローカルネットワーク接続を確認してから再試行してください。",
   "paymentRetryDevice": "機器再接続",
   "paymentRetryNetwork": "ネットワーク再試行",
   "paymentRetryDefault": "再試行",

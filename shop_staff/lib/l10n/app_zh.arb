@@ -465,6 +465,8 @@
   "paymentErrorHintNetwork": "网络异常：请检查网络连接后重试。",
   "paymentErrorHintBackend": "后台异常：请稍后重试或切换支付方式。",
   "paymentErrorHintCancelled": "已取消本次支付操作。",
+  "paymentSuggestionOpenSettings": "建议动作：前往设置检查POS终端IP、端口与支付配置。",
+  "paymentSuggestionCheckNetwork": "建议动作：检查网线/Wi-Fi及局域网连通性后重试。",
   "paymentRetryDevice": "重连设备",
   "paymentRetryNetwork": "重试联网",
   "paymentRetryDefault": "重试",

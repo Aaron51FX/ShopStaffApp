@@ -465,6 +465,8 @@
   "paymentErrorHintNetwork": "Network issue: check connectivity and retry.",
   "paymentErrorHintBackend": "Backend issue: retry later or switch payment method.",
   "paymentErrorHintCancelled": "This payment was cancelled.",
+  "paymentSuggestionOpenSettings": "Suggested action: open Settings and verify POS IP, port, and payment configuration.",
+  "paymentSuggestionCheckNetwork": "Suggested action: check Ethernet/Wi-Fi and local network connectivity, then retry.",
   "paymentRetryDevice": "Reconnect device",
   "paymentRetryNetwork": "Retry network",
   "paymentRetryDefault": "Retry",

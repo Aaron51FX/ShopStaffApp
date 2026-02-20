@@ -1108,6 +1108,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentErrorHintCancelled => 'この決済はキャンセルされました。';
 
   @override
+  String get paymentSuggestionOpenSettings =>
+      '推奨操作：設定画面でPOS端末のIP、ポート、決済設定を確認してください。';
+
+  @override
+  String get paymentSuggestionCheckNetwork =>
+      '推奨操作：有線LAN/Wi-Fiとローカルネットワーク接続を確認してから再試行してください。';
+
+  @override
   String get paymentRetryDevice => '機器再接続';
 
   @override
