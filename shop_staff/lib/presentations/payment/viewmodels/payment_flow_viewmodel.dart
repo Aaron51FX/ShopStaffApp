@@ -4,8 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/application/payments/payment_flow_usecase.dart';
 import 'package:shop_staff/application/payments/usecases/start_payment_usecase.dart';
+import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/cancel_dialog_state.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_state.dart';
@@ -64,8 +66,11 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   StreamSubscription<PaymentStatus>? _statusSubscription;
   Future<PaymentResult>? _resultFuture;
   bool _isRestarting = false;
+  bool _isForceExiting = false;
   final StreamController<PaymentFlowEffect> _effects =
       StreamController<PaymentFlowEffect>.broadcast();
+
+  static const String _abnormalForceExitReason = 'cancel_failure_force_exit';
 
   Stream<PaymentFlowEffect> get effects => _effects.stream;
 
@@ -75,6 +80,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   }
 
   PaymentFlowUseCase get _useCase => _ref.read(paymentFlowUseCaseProvider);
+  LocalOrdersUseCases get _localOrdersUseCases => _ref.read(localOrdersUseCasesProvider);
 
   Future<void> _start() async {
     try {
@@ -201,8 +207,76 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     await _cancelPayment();
   }
 
+  Future<void> retryCancelAfterFailure() async {
+    if (state.cancelDialog.status != CancelDialogStatus.failure) return;
+    if (state.isCancelling) return;
+    await _cancelPayment();
+  }
+
+  Future<void> forceExitAfterCancelFailure() async {
+    if (_isForceExiting) return;
+    if (state.cancelDialog.status != CancelDialogStatus.failure) return;
+    _isForceExiting = true;
+    final snapshot = state;
+    final sessionId = snapshot.sessionId;
+    final orderId = _args.order.orderId;
+    try {
+      await _teardownActiveSession(
+        releaseQrScanner: true,
+        cancelSession: false,
+        snapshot: snapshot,
+      );
+      await _recordAbnormalExit(orderId: orderId, sessionId: sessionId);
+      final forceExitStatus = PaymentStatus(
+        type: PaymentStatusType.cancelled,
+        messageKey: PaymentMessageKeys.posOperatorCancelled,
+        details: {
+          'stage': 'force_exit',
+          'orderId': orderId,
+          if (sessionId != null) 'sessionId': sessionId,
+          'recordedAs': LocalOrderPayMethods.abnormalCancelForceExit,
+        },
+        errorType: PaymentErrorType.unknown,
+        retryable: true,
+      );
+      state = state.copyWith(
+        currentStatus: forceExitStatus,
+        result: PaymentResult.cancelled(
+          messageKey: PaymentMessageKeys.posOperatorCancelled,
+          errorCode: 'CANCEL_FORCE_EXIT',
+          payload: forceExitStatus.details,
+          errorType: PaymentErrorType.unknown,
+          retryable: true,
+        ),
+        isCancelling: false,
+        cancelDialog: CancelDialogState.success('已强制退出并记录异常单'),
+      );
+      _emit(const PaymentFlowToastEffect(
+        message: '已强制退出并记录异常单',
+        isError: true,
+      ));
+    } catch (e, stack) {
+      _logger.warning('Force exit after cancel failure failed', e, stack);
+      state = state.copyWith(
+        cancelDialog: CancelDialogState.failure('强制退出失败: $e', requiresRecovery: true),
+      );
+      _emit(PaymentFlowToastEffect(
+        message: '强制退出失败: $e',
+        isError: true,
+      ));
+    } finally {
+      _isForceExiting = false;
+    }
+  }
+
   Future<void> confirmManualPayment() async {
-    if (!state.requiresManualCompletion || !state.confirmationReady || state.isConfirming) return;
+    if (!state.requiresManualCompletion ||
+        !state.confirmationReady ||
+        state.isConfirming ||
+        state.isCancelling ||
+        state.isFinished) {
+      return;
+    }
     final id = state.sessionId;
     if (id == null) return;
     state = state.copyWith(isConfirming: true);
@@ -210,10 +284,11 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       await _useCase.finalize(id);
     } catch (e, stack) {
       _logger.warning('Confirm payment failed', e, stack);
+      final detail = e.toString();
       _emit(PaymentFlowToastEffect(
-        message: e.toString(),
+        message: detail,
         messageKey: PaymentMessageKeys.cashConfirmFailed,
-        messageArgs: {'detail': e.toString()},
+        messageArgs: {'detail': detail},
         isError: true,
       ));
     } finally {
@@ -234,7 +309,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     } catch (e, stack) {
       _logger.warning('Cancel payment failed', e, stack);
       state = state.copyWith(
-        cancelDialog: CancelDialogState.failure('取消失败: $e'),
+        cancelDialog: CancelDialogState.failure('取消失败: $e', requiresRecovery: true),
       );
     } finally {
       state = state.copyWith(isCancelling: false);
@@ -287,9 +362,38 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       final message = (status.message != null && status.message!.trim().isNotEmpty)
           ? status.message
           : fallback;
-      return CancelDialogState.failure(message);
+      return CancelDialogState.failure(message, requiresRecovery: true);
     }
     return null;
+  }
+
+  Future<void> _recordAbnormalExit({
+    required String orderId,
+    String? sessionId,
+  }) async {
+    final existing = await _localOrdersUseCases.getById(orderId);
+    if (existing != null) {
+      if (existing.payMethod != LocalOrderPayMethods.abnormalCancelForceExit ||
+          existing.isPaid ||
+          !existing.abnormalExit ||
+          existing.abnormalReason != _abnormalForceExitReason ||
+          existing.abnormalSessionId != sessionId) {
+        await _localOrdersUseCases.save(
+          existing.copyWith(
+            isPaid: false,
+            payMethod: LocalOrderPayMethods.abnormalCancelForceExit,
+            abnormalExit: true,
+            abnormalReason: _abnormalForceExitReason,
+            abnormalSessionId: sessionId,
+          ),
+        );
+      }
+      return;
+    }
+    _logger.warning(
+      'Unable to mark abnormal force-exit order because local record is missing: '
+      'orderId=$orderId sessionId=$sessionId',
+    );
   }
 
   void _handleError(Object error, StackTrace stack) {

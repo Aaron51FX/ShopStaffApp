@@ -8,6 +8,7 @@ class LocalOrdersState extends Equatable {
     required this.error,
     required this.orders,
     required this.query,
+    required this.onlyAbnormal,
     required this.selectedOrderId,
   });
 
@@ -15,6 +16,7 @@ class LocalOrdersState extends Equatable {
   final String? error;
   final List<LocalOrderRecord> orders;
   final String query;
+  final bool onlyAbnormal;
   final String? selectedOrderId;
 
   factory LocalOrdersState.initial() {
@@ -23,6 +25,7 @@ class LocalOrdersState extends Equatable {
       error: null,
       orders: <LocalOrderRecord>[],
       query: '',
+      onlyAbnormal: false,
       selectedOrderId: null,
     );
   }
@@ -32,6 +35,7 @@ class LocalOrdersState extends Equatable {
     String? error,
     List<LocalOrderRecord>? orders,
     String? query,
+    bool? onlyAbnormal,
     String? selectedOrderId,
     bool clearSelected = false,
   }) {
@@ -40,10 +44,11 @@ class LocalOrdersState extends Equatable {
       error: error,
       orders: orders ?? this.orders,
       query: query ?? this.query,
+      onlyAbnormal: onlyAbnormal ?? this.onlyAbnormal,
       selectedOrderId: clearSelected ? null : (selectedOrderId ?? this.selectedOrderId),
     );
   }
 
   @override
-  List<Object?> get props => [loading, error, orders, query, selectedOrderId];
+  List<Object?> get props => [loading, error, orders, query, onlyAbnormal, selectedOrderId];
 }

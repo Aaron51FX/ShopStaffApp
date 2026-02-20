@@ -489,6 +489,8 @@ class StatusHero extends StatelessWidget {
         return t.paymentErrorQrScanReset;
       case 'QR_SCAN_RELEASED':
         return t.paymentErrorQrScanReleased;
+      case 'PAYMENT_STAGE_TIMEOUT':
+        return t.paymentStatusNoUpdates;
       default:
         return raw;
     }

@@ -41,6 +41,10 @@ class LocalOrdersViewModel extends StateNotifier<LocalOrdersState> {
     state = state.copyWith(query: q);
   }
 
+  void setOnlyAbnormal(bool enabled) {
+    state = state.copyWith(onlyAbnormal: enabled, clearSelected: true);
+  }
+
   void selectOrder(String? orderId) {
     if (orderId == null || orderId.isEmpty) {
       state = state.copyWith(clearSelected: true);
@@ -59,15 +63,21 @@ class LocalOrdersViewModel extends StateNotifier<LocalOrdersState> {
   }
 
   List<LocalOrderRecord> get filtered {
+    final source = state.onlyAbnormal
+        ? state.orders.where((o) => o.isAbnormalForceExit).toList()
+        : state.orders;
     final q = state.query.trim().toLowerCase();
-    if (q.isEmpty) return state.orders;
-    return state.orders.where((o) => _match(o, q)).toList();
+    if (q.isEmpty) return source;
+    return source.where((o) => _match(o, q)).toList();
   }
 
   bool _match(LocalOrderRecord order, String q) {
     if (order.orderId.toLowerCase().contains(q)) return true;
     final total = order.clientTotal.toStringAsFixed(2);
     if (total.contains(q)) return true;
+    if (order.payMethod.toLowerCase().contains(q)) return true;
+    if ((order.abnormalReason ?? '').toLowerCase().contains(q)) return true;
+    if ((order.abnormalSessionId ?? '').toLowerCase().contains(q)) return true;
     for (final item in order.items) {
       if (item.product.name.toLowerCase().contains(q)) return true;
     }

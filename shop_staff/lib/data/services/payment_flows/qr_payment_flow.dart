@@ -29,6 +29,12 @@ class QrPaymentFlow implements PaymentFlow {
   final PosCardPaymentGateway _cardGateway;
   final Logger _logger;
 
+  static const Duration _scanTimeout = Duration(seconds: 60);
+  static const Duration _backendRequestTimeout = Duration(seconds: 30);
+  static const Duration _posStartTimeout = Duration(seconds: 20);
+  static const Duration _posStatusInactivityTimeout = Duration(seconds: 90);
+  static const String _stageTimeoutDetail = 'PAYMENT_STAGE_TIMEOUT';
+
   @override
   PaymentFlowRun start(PaymentContext context) {
     final controller = StreamController<PaymentStatus>.broadcast();
@@ -36,15 +42,71 @@ class QrPaymentFlow implements PaymentFlow {
     var isFinished = false;
     String? activeSessionId;
     StreamSubscription<PosPaymentStatus>? sessionSubscription;
+    Timer? stageTimer;
 
     Future<void> finish(PaymentResult result) async {
       if (isFinished) return;
       isFinished = true;
+      stageTimer?.cancel();
+      stageTimer = null;
       if (!completer.isCompleted) {
         completer.complete(result);
       }
       await sessionSubscription?.cancel();
       await controller.close();
+    }
+
+    void clearStageTimer() {
+      stageTimer?.cancel();
+      stageTimer = null;
+    }
+
+    Future<void> failWithTimeout({
+      required String stage,
+      required String messageKey,
+      required PaymentErrorType errorType,
+      Map<String, dynamic>? payload,
+    }) async {
+      if (isFinished) return;
+      _logger.warning('QR payment stage timed out: $stage');
+      final args = {'detail': _stageTimeoutDetail};
+      controller.add(PaymentStatus(
+        type: PaymentStatusType.failure,
+        messageKey: messageKey,
+        messageArgs: args,
+        details: {'stage': stage, if (payload != null) ...payload},
+        errorType: errorType,
+        retryable: true,
+      ));
+      await finish(PaymentResult.failure(
+        messageKey: messageKey,
+        messageArgs: args,
+        payload: {'stage': stage, if (payload != null) ...payload},
+        errorType: errorType,
+        retryable: true,
+      ));
+    }
+
+    void armPosStageTimeout({required Duration timeout, required String stage}) {
+      clearStageTimer();
+      stageTimer = Timer(timeout, () {
+        if (isFinished) return;
+        unawaited(() async {
+          final sessionId = activeSessionId;
+          if (sessionId != null) {
+            try {
+              await _posPaymentService.cancel(sessionId);
+            } catch (error, stack) {
+              _logger.warning('Failed to cancel POS session after timeout', error, stack);
+            }
+          }
+          await failWithTimeout(
+            stage: stage,
+            messageKey: PaymentMessageKeys.posTimeout,
+            errorType: PaymentErrorType.device,
+          );
+        }());
+      });
     }
 
     Future<void> run() async {
@@ -54,14 +116,18 @@ class QrPaymentFlow implements PaymentFlow {
           messageKey: PaymentMessageKeys.qrWaitScan,
           phase: PaymentPhase.waitingUser,
         ));
-        final code = await _scannerService.acquireCode(context);
+        final code = await _scannerService
+            .acquireCode(context)
+            .timeout(_scanTimeout, onTimeout: () => throw TimeoutException('qr_scan'));
         controller.add(const PaymentStatus(
           type: PaymentStatusType.processing,
           messageKey: PaymentMessageKeys.qrRequestBackend,
           phase: PaymentPhase.requesting,
         ));
         final request = _buildPosRequest(context, code);
-        final cardData = await _cardGateway.createPaymentRequest(request);
+        final cardData = await _cardGateway
+            .createPaymentRequest(request)
+            .timeout(_backendRequestTimeout, onTimeout: () => throw TimeoutException('qr_backend_request'));
 
         if (!cardData.success) {
           final message = cardData.exceptionMessage ?? '';
@@ -92,14 +158,23 @@ class QrPaymentFlow implements PaymentFlow {
           ));
           final sessionRequest = _requestWithPrefetchedData(context, request, cardData);
           _ensurePosConfig(sessionRequest.customPayload);
+          armPosStageTimeout(timeout: _posStartTimeout, stage: 'pos_start');
           final session = await _posPaymentService.startPayment(sessionRequest);
           activeSessionId = session.sessionId;
           controller.add(_mapPosStatus(session.initialStatus));
+          if (session.initialStatus.type == PosPaymentStatusType.success ||
+              session.initialStatus.type == PosPaymentStatusType.failure ||
+              session.initialStatus.type == PosPaymentStatusType.cancelled) {
+            clearStageTimer();
+          } else {
+            armPosStageTimeout(timeout: _posStatusInactivityTimeout, stage: 'pos_waiting');
+          }
           sessionSubscription = _posPaymentService.watchStatus(session.sessionId).listen(
             (status) {
               final mapped = _mapPosStatus(status);
               controller.add(mapped);
               if (mapped.isTerminal) {
+                clearStageTimer();
                 if (mapped.type == PaymentStatusType.success) {
                   unawaited(finish(PaymentResult.success(
                     message: mapped.message,
@@ -123,6 +198,8 @@ class QrPaymentFlow implements PaymentFlow {
                     retryable: mapped.retryable ?? true,
                   )));
                 }
+              } else {
+                armPosStageTimeout(timeout: _posStatusInactivityTimeout, stage: 'pos_waiting');
               }
             },
             onError: (error, stack) {
@@ -140,6 +217,14 @@ class QrPaymentFlow implements PaymentFlow {
                 message: error.toString(),
                 messageKey: PaymentMessageKeys.errorUnknown,
                 messageArgs: {'detail': error.toString()},
+                errorType: PaymentErrorType.device,
+                retryable: true,
+              )));
+            },
+            onDone: () {
+              if (isFinished) return;
+              unawaited(finish(PaymentResult.failure(
+                messageKey: PaymentMessageKeys.posStreamClosed,
                 errorType: PaymentErrorType.device,
                 retryable: true,
               )));
@@ -187,6 +272,23 @@ class QrPaymentFlow implements PaymentFlow {
           ));
         }
       } catch (e, stack) {
+        if (e is TimeoutException) {
+          final stage = e.message?.toString() ?? 'unknown';
+          if (stage.startsWith('pos_')) {
+            await failWithTimeout(
+              stage: stage,
+              messageKey: PaymentMessageKeys.posTimeout,
+              errorType: PaymentErrorType.device,
+            );
+          } else {
+            await failWithTimeout(
+              stage: stage,
+              messageKey: PaymentMessageKeys.qrFailure,
+              errorType: PaymentErrorType.network,
+            );
+          }
+          return;
+        }
         if (_isUserCancelled(e)) {
           controller.add(const PaymentStatus(
             type: PaymentStatusType.cancelled,
@@ -230,6 +332,7 @@ class QrPaymentFlow implements PaymentFlow {
       if (isFinished) {
         return;
       }
+      clearStageTimer();
       try {
         await _scannerService.cancelScan();
       } catch (e, stack) {
@@ -355,7 +458,7 @@ class QrPaymentFlow implements PaymentFlow {
 
   bool _isUserCancelled(Object error) {
     if (error is StateError) {
-      final msg = error.message?.toString() ?? '';
+      final msg = error.message.toString();
       if (msg == 'QR_SCAN_CANCELLED') return true;
     }
     final text = error.toString();

@@ -174,6 +174,8 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
                   this.context.go('/entry');
                 });
               },
+              onRetryCancel: () => ref.read(provider.notifier).retryCancelAfterFailure(),
+              onForceExit: () => ref.read(provider.notifier).forceExitAfterCancelFailure(),
             );
           },
         );

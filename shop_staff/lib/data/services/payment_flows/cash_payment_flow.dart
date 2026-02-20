@@ -20,6 +20,11 @@ class CashPaymentFlow implements PaymentFlow {
   final PaymentBackendGateway _backendGateway;
   final Logger _logger;
 
+  static const Duration _machineInactivityTimeout = Duration(seconds: 90);
+  static const Duration _awaitConfirmTimeout = Duration(minutes: 3);
+  static const Duration _finalizeTimeout = Duration(seconds: 45);
+  static const String _stageTimeoutDetail = 'PAYMENT_STAGE_TIMEOUT';
+
   @override
   PaymentFlowRun start(PaymentContext context) {
     final controller = StreamController<PaymentStatus>.broadcast();
@@ -29,16 +34,80 @@ class CashPaymentFlow implements PaymentFlow {
     CashMachineStage? lastStage;
     CashMachineReceipt? pendingReceipt;
     var confirmRequested = false;
+    var awaitingManualConfirm = false;
+    Timer? stageTimer;
+
+    void emitStatus(PaymentStatus status) {
+      if (isFinished || controller.isClosed) return;
+      controller.add(status);
+    }
 
     Future<void> finish(PaymentResult result) async {
       if (isFinished) return;
       isFinished = true;
+      stageTimer?.cancel();
+      stageTimer = null;
       await eventSubscription?.cancel();
       eventSubscription = null;
       if (!completer.isCompleted) {
         completer.complete(result);
       }
       await controller.close();
+    }
+
+    void clearStageTimer() {
+      stageTimer?.cancel();
+      stageTimer = null;
+    }
+
+    Future<void> failWithTimeout({
+      required String stage,
+      required String messageKey,
+      required PaymentErrorType errorType,
+    }) async {
+      if (isFinished) return;
+      _logger.warning('Cash payment stage timed out: $stage');
+      final args = {'detail': _stageTimeoutDetail};
+      awaitingManualConfirm = false;
+      pendingReceipt = null;
+      emitStatus(PaymentStatus(
+        type: PaymentStatusType.failure,
+        messageKey: messageKey,
+        messageArgs: args,
+        details: {'stage': stage},
+        errorType: errorType,
+        retryable: true,
+      ));
+      await finish(PaymentResult.failure(
+        messageKey: messageKey,
+        messageArgs: args,
+        payload: {'stage': stage},
+        errorType: errorType,
+        retryable: true,
+      ));
+    }
+
+    void armStageTimeout({
+      required Duration timeout,
+      required String stage,
+      required String messageKey,
+      required PaymentErrorType errorType,
+      bool cancelMachine = false,
+    }) {
+      clearStageTimer();
+      stageTimer = Timer(timeout, () {
+        if (isFinished) return;
+        unawaited(() async {
+          if (cancelMachine) {
+            try {
+              await _cashMachine.cancelPayment();
+            } catch (error, stack) {
+              _logger.warning('Cancel cash machine after timeout failed', error, stack);
+            }
+          }
+          await failWithTimeout(stage: stage, messageKey: messageKey, errorType: errorType);
+        }());
+      });
     }
 
     void failFromStatus(PaymentStatus status) {
@@ -55,21 +124,37 @@ class CashPaymentFlow implements PaymentFlow {
 
     Future<void> run() async {
       try {
-        controller.add(const PaymentStatus(
+        emitStatus(const PaymentStatus(
           type: PaymentStatusType.pending,
           messageKey: PaymentMessageKeys.cashPrepare,
           phase: PaymentPhase.initializing,
         ));
+        armStageTimeout(
+          timeout: _machineInactivityTimeout,
+          stage: 'cash_machine_progress',
+          messageKey: PaymentMessageKeys.cashFailure,
+          errorType: PaymentErrorType.device,
+          cancelMachine: true,
+        );
         eventSubscription = _cashMachine.events.listen((event) {
           if (isFinished) return;
+          armStageTimeout(
+            timeout: _machineInactivityTimeout,
+            stage: 'cash_machine_progress',
+            messageKey: PaymentMessageKeys.cashFailure,
+            errorType: PaymentErrorType.device,
+            cancelMachine: true,
+          );
           if (event is CashMachineStageEvent) {
             if (event.stage == lastStage) return;
             lastStage = event.stage;
           }
           final status = _statusForEvent(event);
           if (status != null) {
-            controller.add(status);
+            emitStatus(status);
             if (status.type == PaymentStatusType.failure) {
+              awaitingManualConfirm = false;
+              pendingReceipt = null;
               failFromStatus(status);
             }
           }
@@ -83,14 +168,24 @@ class CashPaymentFlow implements PaymentFlow {
               errorType: PaymentErrorType.device,
               retryable: true,
             );
-            controller.add(status);
+            awaitingManualConfirm = false;
+            pendingReceipt = null;
+            emitStatus(status);
             failFromStatus(status);
           }
         });
         pendingReceipt = await _cashMachine.runPayment(context.order.total);
         if (isFinished) return;
+        awaitingManualConfirm = true;
+        armStageTimeout(
+          timeout: _awaitConfirmTimeout,
+          stage: 'await_finalize',
+          messageKey: PaymentMessageKeys.cashFailure,
+          errorType: PaymentErrorType.userCancelled,
+          cancelMachine: true,
+        );
 
-        controller.add(
+        emitStatus(
           PaymentStatus(
             type: PaymentStatusType.pending,
             messageKey: PaymentMessageKeys.cashAwaitConfirm,
@@ -107,7 +202,9 @@ class CashPaymentFlow implements PaymentFlow {
           return;
         }
         _logger.severe('Cash payment flow failed', e, stack);
-        controller.add(PaymentStatus(
+        awaitingManualConfirm = false;
+        pendingReceipt = null;
+        emitStatus(PaymentStatus(
           type: PaymentStatusType.failure,
           messageKey: PaymentMessageKeys.cashFailure,
           messageArgs: {'detail': e.toString()},
@@ -128,27 +225,43 @@ class CashPaymentFlow implements PaymentFlow {
 
     Future<void> finalize() async {
       if (isFinished) return;
+      if (!awaitingManualConfirm) {
+        throw StateError('PAYMENT_FINALIZE_NOT_REQUIRED');
+      }
       if (pendingReceipt == null) {
         throw StateError('CASH_RECEIPT_MISSING');
       }
-      if (confirmRequested) return;
+      if (confirmRequested) {
+        throw StateError('PAYMENT_FINALIZE_NOT_REQUIRED');
+      }
       confirmRequested = true;
+      awaitingManualConfirm = false;
       try {
-        controller.add(const PaymentStatus(
+        armStageTimeout(
+          timeout: _finalizeTimeout,
+          stage: 'finalize_cash',
+          messageKey: PaymentMessageKeys.cashConfirmFailed,
+          errorType: PaymentErrorType.backend,
+          cancelMachine: true,
+        );
+        emitStatus(const PaymentStatus(
           type: PaymentStatusType.processing,
           messageKey: PaymentMessageKeys.cashConfirming,
           phase: PaymentPhase.confirming,
         ));
         final receipt = await _cashMachine.completePayment();
+        if (isFinished) return;
         final payload = receipt.toJson();
         await _backendGateway.confirmPayment(context, {
           'method': PaymentChannels.cash,
           'receipt': payload,
         });
-        controller.add(const PaymentStatus(
+        if (isFinished) return;
+        emitStatus(const PaymentStatus(
           type: PaymentStatusType.success,
           messageKey: PaymentMessageKeys.cashSuccess,
         ));
+        clearStageTimer();
         await finish(PaymentResult.success(
           messageKey: PaymentMessageKeys.cashSuccess,
           payload: {
@@ -179,12 +292,15 @@ class CashPaymentFlow implements PaymentFlow {
       if (isFinished) {
         return;
       }
+      awaitingManualConfirm = false;
+      pendingReceipt = null;
+      clearStageTimer();
       try {
         await _cashMachine.cancelPayment();
       } catch (e, stack) {
         _logger.warning('Failed to cancel cash transaction', e, stack);
       }
-      controller.add(const PaymentStatus(
+      emitStatus(const PaymentStatus(
         type: PaymentStatusType.cancelled,
         messageKey: PaymentMessageKeys.cashCancelled,
         errorType: PaymentErrorType.userCancelled,
@@ -208,7 +324,9 @@ class CashPaymentFlow implements PaymentFlow {
   PaymentStatus? _statusForEvent(CashMachineEvent event) {
     if (event is CashMachineStageEvent) {
       final message = event.message;
-      final messageKey = message == null ? _messageKeyForStage(event.stage) : null;
+      final messageKey = (message == null || message.isEmpty)
+          ? _messageKeyForStage(event.stage)
+          : null;
       var type = PaymentStatusType.processing;
       switch (event.stage) {
         case CashMachineStage.accepting:
@@ -252,7 +370,7 @@ class CashPaymentFlow implements PaymentFlow {
       return PaymentStatus(
         type: PaymentStatusType.failure,
         message: event.message,
-        messageKey: event.message == null ? PaymentMessageKeys.cashStageError : null,
+        messageKey: event.message.isEmpty ? PaymentMessageKeys.cashStageError : null,
         errorType: PaymentErrorType.device,
         retryable: true,
       );

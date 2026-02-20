@@ -43,18 +43,33 @@ class LocalOrdersPage extends ConsumerWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: t.orderHistorySearchHint,
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: AppColors.stone100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: t.orderHistorySearchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    filled: true,
+                    fillColor: AppColors.stone100,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  onChanged: vm.setQuery,
                 ),
-              ),
-              onChanged: vm.setQuery,
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    FilterChip(
+                      selected: state.onlyAbnormal,
+                      onSelected: vm.setOnlyAbnormal,
+                      label: const Text('仅异常强制退出'),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           if (state.loading)
@@ -202,7 +217,7 @@ class _OrderTile extends StatelessWidget {
                         ),
                         if (order.payMethod.isNotEmpty)
                           Text(
-                            order.payMethod,
+                            order.isAbnormalForceExit ? '异常强退' : order.payMethod,
                             style: const TextStyle(color: AppColors.stone600),
                           ),
                       ],
@@ -289,8 +304,14 @@ class _OrderDetailsPanel extends StatelessWidget {
                 _kv(t.orderHistoryDetailStatusLabel, order.isPaid ? t.orderHistoryPaid : t.orderHistoryUnpaid),
                 _kv(
                   t.orderHistoryDetailPayMethodLabel,
-                  order.payMethod.isNotEmpty ? order.payMethod : t.orderHistoryPayMethodUnknown,
+                  order.payMethod.isNotEmpty
+                      ? (order.isAbnormalForceExit ? '异常强制退出' : order.payMethod)
+                      : t.orderHistoryPayMethodUnknown,
                 ),
+                if (order.isAbnormalForceExit)
+                  _kv('异常原因', order.abnormalReason ?? 'cancel_failure_force_exit'),
+                if ((order.abnormalSessionId ?? '').isNotEmpty)
+                  _kv('会话ID', order.abnormalSessionId!),
                 _kv(t.orderHistoryDetailAmountLabel, '¥${order.clientTotal.toStringAsFixed(2)}'),
                 _kv(t.orderHistoryDetailModeLabel, order.takeout ? t.posOrderModeTakeout : t.posOrderModeDineIn),
                 _kv(t.orderHistoryDetailItemCountLabel, order.items.length.toString()),

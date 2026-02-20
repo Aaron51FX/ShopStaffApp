@@ -10,6 +10,9 @@ class CardPaymentFlow implements PaymentFlow {
       : _posPaymentService = posPaymentService,
         _logger = logger ?? Logger('CardPaymentFlow');
 
+  static const Duration _startTimeout = Duration(seconds: 20);
+  static const Duration _statusInactivityTimeout = Duration(seconds: 90);
+
   final PosPaymentService _posPaymentService;
   final Logger _logger;
 
@@ -20,15 +23,56 @@ class CardPaymentFlow implements PaymentFlow {
     var isFinished = false;
     String? posSessionId;
     StreamSubscription<PosPaymentStatus>? subscription;
+    Timer? stageTimer;
 
     Future<void> finish(PaymentResult result) async {
       if (isFinished) return;
       isFinished = true;
+      stageTimer?.cancel();
+      stageTimer = null;
       if (!completer.isCompleted) {
         completer.complete(result);
       }
       await subscription?.cancel();
       await controller.close();
+    }
+
+    void clearStageTimer() {
+      stageTimer?.cancel();
+      stageTimer = null;
+    }
+
+    void armStageTimeout({required Duration timeout, required String stage}) {
+      clearStageTimer();
+      stageTimer = Timer(timeout, () {
+        if (isFinished) return;
+        _logger.warning('Card payment stage timed out: $stage');
+        controller.add(PaymentStatus(
+          type: PaymentStatusType.failure,
+          messageKey: PaymentMessageKeys.posTimeout,
+          messageArgs: const {'detail': 'PAYMENT_STAGE_TIMEOUT'},
+          details: {'stage': stage},
+          errorType: PaymentErrorType.device,
+          retryable: true,
+        ));
+        unawaited(() async {
+          final activeId = posSessionId;
+          if (activeId != null) {
+            try {
+              await _posPaymentService.cancel(activeId);
+            } catch (error, stack) {
+              _logger.warning('Card payment timeout cancel failed', error, stack);
+            }
+          }
+          await finish(PaymentResult.failure(
+            messageKey: PaymentMessageKeys.posTimeout,
+            messageArgs: const {'detail': 'PAYMENT_STAGE_TIMEOUT'},
+            payload: {'stage': stage},
+            errorType: PaymentErrorType.device,
+            retryable: true,
+          ));
+        }());
+      });
     }
 
     PaymentStatus _mapPosStatus(PosPaymentStatus status) {
@@ -94,6 +138,7 @@ class CardPaymentFlow implements PaymentFlow {
       final mapped = _mapPosStatus(status);
       controller.add(mapped);
       if (mapped.isTerminal) {
+        clearStageTimer();
         if (mapped.type == PaymentStatusType.success) {
           unawaited(finish(PaymentResult.success(
             message: mapped.message,
@@ -122,6 +167,8 @@ class CardPaymentFlow implements PaymentFlow {
             retryable: mapped.retryable ?? true,
           )));
         }
+      } else {
+        armStageTimeout(timeout: _statusInactivityTimeout, stage: 'pos_status_waiting');
       }
     }
 
@@ -132,6 +179,7 @@ class CardPaymentFlow implements PaymentFlow {
           messageKey: PaymentMessageKeys.cardInitTerminal,
           phase: PaymentPhase.connecting,
         ));
+        armStageTimeout(timeout: _startTimeout, stage: 'start_payment');
         final request = PosPaymentRequest(
           order: context.order,
           channelGroup: context.channel.group,
@@ -187,6 +235,7 @@ class CardPaymentFlow implements PaymentFlow {
       if (isFinished) {
         return;
       }
+      clearStageTimer();
       final activeId = posSessionId;
       if (activeId != null) {
         try {

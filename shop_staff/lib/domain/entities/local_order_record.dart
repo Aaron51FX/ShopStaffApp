@@ -3,6 +3,9 @@ import 'package:equatable/equatable.dart';
 import 'cart_item.dart';
 import 'order_submission_result.dart';
 
+abstract class LocalOrderPayMethods {
+  static const String abnormalCancelForceExit = 'ABNORMAL_CANCEL_FORCE_EXIT';
+}
 
 class LocalOrderRecord extends Equatable {
   const LocalOrderRecord({
@@ -17,6 +20,9 @@ class LocalOrderRecord extends Equatable {
     required this.discount,
     required this.clientTotal,
     required this.orderResult,
+    this.abnormalExit = false,
+    this.abnormalReason,
+    this.abnormalSessionId,
   });
 
   final String orderId;
@@ -39,9 +45,24 @@ class LocalOrderRecord extends Equatable {
   /// Backend response from order submit.
   final OrderSubmissionResult orderResult;
 
+  /// Whether this order was force-exited from payment cancellation failure recovery.
+  final bool abnormalExit;
+
+  /// Optional machine-readable abnormal reason.
+  final String? abnormalReason;
+
+  /// Optional payment session id when abnormal exit occurred.
+  final String? abnormalSessionId;
+
+  bool get isAbnormalForceExit =>
+      abnormalExit || payMethod == LocalOrderPayMethods.abnormalCancelForceExit;
+
   LocalOrderRecord copyWith({
     bool? isPaid,
     String? payMethod,
+    bool? abnormalExit,
+    String? abnormalReason,
+    String? abnormalSessionId,
   }) {
     return LocalOrderRecord(
       orderId: orderId,
@@ -55,6 +76,9 @@ class LocalOrderRecord extends Equatable {
       discount: discount,
       clientTotal: clientTotal,
       orderResult: orderResult,
+      abnormalExit: abnormalExit ?? this.abnormalExit,
+      abnormalReason: abnormalReason ?? this.abnormalReason,
+      abnormalSessionId: abnormalSessionId ?? this.abnormalSessionId,
     );
   }
 
@@ -71,5 +95,8 @@ class LocalOrderRecord extends Equatable {
         discount,
         clientTotal,
         orderResult,
+        abnormalExit,
+        abnormalReason,
+        abnormalSessionId,
       ];
 }

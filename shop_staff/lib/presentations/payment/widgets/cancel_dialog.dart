@@ -4,10 +4,18 @@ import 'package:shop_staff/presentations/payment/viewmodels/cancel_dialog_state.
 import 'package:shop_staff/l10n/app_localizations.dart';
 
 class CancelDialog extends StatelessWidget {
-  const CancelDialog({super.key, required this.state, required this.onClose});
+  const CancelDialog({
+    super.key,
+    required this.state,
+    required this.onClose,
+    this.onRetryCancel,
+    this.onForceExit,
+  });
 
   final CancelDialogState state;
   final VoidCallback onClose;
+  final VoidCallback? onRetryCancel;
+  final VoidCallback? onForceExit;
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +36,8 @@ class CancelDialog extends StatelessWidget {
       case CancelDialogStatus.success:
       case CancelDialogStatus.failure:
         final isSuccess = state.status == CancelDialogStatus.success;
+        final showRecoveryActions =
+            !isSuccess && state.requiresRecovery && onRetryCancel != null && onForceExit != null;
         final icon = isSuccess ? Icons.check_circle_rounded : Icons.error_outline;
         final color = isSuccess ? Colors.green : Colors.redAccent;
         final title = isSuccess ? t.cancelDialogSuccessTitle : t.cancelDialogFailureTitle;
@@ -44,10 +54,20 @@ class CancelDialog extends StatelessWidget {
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: onClose,
-              child: Text(isSuccess ? t.cancelDialogDone : t.cancelDialogConfirm),
-            ),
+            if (showRecoveryActions) ...[
+              TextButton(
+                onPressed: onRetryCancel,
+                child: const Text('重试取消'),
+              ),
+              FilledButton(
+                onPressed: onForceExit,
+                child: const Text('强制退出'),
+              ),
+            ] else
+              TextButton(
+                onPressed: onClose,
+                child: Text(isSuccess ? t.cancelDialogDone : t.cancelDialogConfirm),
+              ),
           ],
         );
       case CancelDialogStatus.hidden:
