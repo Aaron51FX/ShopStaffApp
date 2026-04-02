@@ -1224,6 +1224,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get paymentPosTerminalProcessing =>
+      'Terminal is processing. Please wait.';
+
+  @override
+  String get paymentPosFinalizing => 'Finalizing the transaction. Please wait.';
+
+  @override
   String paymentPosTerminalDone(Object action) {
     return 'Terminal completed action: $action';
   }
@@ -1249,6 +1256,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentPosCancelProcessing => 'Cancelling POS transaction…';
+
+  @override
+  String get paymentPosCancelWaitResult =>
+      'The transaction is still processing. Cancellation is not available now. Please wait for the terminal result.';
 
   @override
   String paymentPosCancelFailed(Object detail) {

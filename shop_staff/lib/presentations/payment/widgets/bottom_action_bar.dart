@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
@@ -7,7 +6,8 @@ import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_ar
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_state.dart';
 
 class BottomActionBar extends StatelessWidget {
-  const BottomActionBar({super.key, 
+  const BottomActionBar({
+    super.key,
     required this.state,
     required this.args,
     required this.cancel,
@@ -27,7 +27,9 @@ class BottomActionBar extends StatelessWidget {
     final canCancel = _canCancel(state, args);
     if (state.canExit) {
       final isSuccess = state.result?.status == PaymentStatusType.success;
-      final label = isSuccess ? t.paymentActionDoneReturn : t.paymentActionReturnPos;
+      final label = isSuccess
+          ? t.paymentActionDoneReturn
+          : t.paymentActionReturnPos;
       return Padding(
         padding: EdgeInsets.fromLTRB(24, 12, 24, 12 + padding.bottom),
         child: ElevatedButton.icon(
@@ -38,7 +40,10 @@ class BottomActionBar extends StatelessWidget {
       );
     }
 
-    if (isCash && state.requiresManualCompletion && state.confirmationReady && !state.isFinished) {
+    if (isCash &&
+        state.requiresManualCompletion &&
+        state.confirmationReady &&
+        !state.isFinished) {
       final receipt = state.pendingReceipt;
       final amount = receipt?['acceptedAmount'];
       final formattedAmount = amount is num ? amount.toInt() : null;
@@ -50,7 +55,11 @@ class BottomActionBar extends StatelessWidget {
         child: ElevatedButton.icon(
           onPressed: state.isConfirming ? null : confirm,
           icon: state.isConfirming
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
               : const Icon(Icons.check_circle_outline),
           label: Text(state.isConfirming ? t.paymentActionConfirming : label),
         ),
@@ -62,9 +71,17 @@ class BottomActionBar extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: (state.isCancelling || !canCancel) ? null : cancel,
         icon: state.isCancelling
-            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
             : const Icon(Icons.stop_circle_outlined),
-        label: Text(state.isCancelling ? t.paymentActionCancelling : t.paymentActionCancel),
+        label: Text(
+          state.isCancelling
+              ? t.paymentActionCancelling
+              : t.paymentActionCancel,
+        ),
         style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
       ),
     );
@@ -80,11 +97,13 @@ class BottomActionBar extends StatelessWidget {
     if (!state.hasStarted) return true;
     if (state.error != null) return true;
     final result = state.result?.status;
-    if (result == PaymentStatusType.failure || result == PaymentStatusType.cancelled) {
+    if (result == PaymentStatusType.failure ||
+        result == PaymentStatusType.cancelled) {
       return true;
     }
     final current = state.currentStatus?.type;
-    if (current == PaymentStatusType.failure || current == PaymentStatusType.cancelled) {
+    if (current == PaymentStatusType.failure ||
+        current == PaymentStatusType.cancelled) {
       return true;
     }
     if (current == PaymentStatusType.initialized) return true;
@@ -100,6 +119,8 @@ class BottomActionBar extends StatelessWidget {
           return false;
         case PaymentPhase.waitingUser:
           return true;
+        case PaymentPhase.waitingTerminalResult:
+          return false;
         case PaymentPhase.confirming:
           return false;
       }

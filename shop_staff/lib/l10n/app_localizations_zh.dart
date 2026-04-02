@@ -1170,6 +1170,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get paymentPosTerminalProcessing => '终端处理中，请稍候';
+
+  @override
+  String get paymentPosFinalizing => '正在完成交易，请稍候';
+
+  @override
   String paymentPosTerminalDone(Object action) {
     return '终端完成操作: $action';
   }
@@ -1195,6 +1201,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get paymentPosCancelProcessing => '正在取消POS交易…';
+
+  @override
+  String get paymentPosCancelWaitResult => '交易处理中，当前不可取消，请等待终端返回结果';
 
   @override
   String paymentPosCancelFailed(Object detail) {

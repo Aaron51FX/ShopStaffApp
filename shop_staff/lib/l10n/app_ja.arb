@@ -496,6 +496,8 @@
       "mode": {}
     }
   },
+  "paymentPosTerminalProcessing": "端末処理中です。しばらくお待ちください。",
+  "paymentPosFinalizing": "取引を確定しています。しばらくお待ちください。",
   "paymentPosTerminalDone": "端末操作完了：{action}",
   "@paymentPosTerminalDone": {
     "placeholders": {
@@ -519,6 +521,7 @@
     }
   },
   "paymentPosCancelProcessing": "POS取引をキャンセル中…",
+  "paymentPosCancelWaitResult": "取引処理中のため、現在は取消できません。端末の結果をお待ちください。",
   "paymentPosCancelFailed": "POS取引のキャンセルに失敗しました：{detail}",
   "@paymentPosCancelFailed": {
     "placeholders": {

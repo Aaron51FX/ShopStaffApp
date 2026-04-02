@@ -2320,6 +2320,18 @@ abstract class AppLocalizations {
   /// **'Loading ({mode})'**
   String paymentPosLoading(Object mode);
 
+  /// No description provided for @paymentPosTerminalProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal is processing. Please wait.'**
+  String get paymentPosTerminalProcessing;
+
+  /// No description provided for @paymentPosFinalizing.
+  ///
+  /// In en, this message translates to:
+  /// **'Finalizing the transaction. Please wait.'**
+  String get paymentPosFinalizing;
+
   /// No description provided for @paymentPosTerminalDone.
   ///
   /// In en, this message translates to:
@@ -2361,6 +2373,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancelling POS transaction…'**
   String get paymentPosCancelProcessing;
+
+  /// No description provided for @paymentPosCancelWaitResult.
+  ///
+  /// In en, this message translates to:
+  /// **'The transaction is still processing. Cancellation is not available now. Please wait for the terminal result.'**
+  String get paymentPosCancelWaitResult;
 
   /// No description provided for @paymentPosCancelFailed.
   ///

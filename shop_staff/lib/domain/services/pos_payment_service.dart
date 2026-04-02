@@ -1,4 +1,5 @@
 import '../entities/order_submission_result.dart';
+import '../payments/payment_models.dart';
 
 /// Represents a request to start a POS payment flow for a specific order and channel.
 class PosPaymentRequest {
@@ -25,16 +26,24 @@ class PosPaymentStatus {
     this.message,
     this.messageKey,
     this.messageArgs,
+    this.details,
     this.approvalCode,
     this.errorCode,
+    this.errorType,
+    this.retryable,
+    this.phase,
   });
 
   final PosPaymentStatusType type;
   final String? message;
   final String? messageKey;
   final Map<String, dynamic>? messageArgs;
+  final Map<String, dynamic>? details;
   final String? approvalCode;
   final String? errorCode;
+  final PaymentErrorType? errorType;
+  final bool? retryable;
+  final PaymentPhase? phase;
 }
 
 /// A handle returned when a POS payment session is initiated.

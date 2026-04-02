@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
@@ -32,25 +31,37 @@ class StatusHero extends StatelessWidget {
       t,
       key: current?.messageKey,
       args: current?.messageArgs,
-      fallback: current?.message ?? _defaultMessage(t, args.channelGroup, current?.type),
+      fallback:
+          current?.message ??
+          _defaultMessage(t, args.channelGroup, current?.type),
     );
     final effectiveErrorType = _effectiveErrorType(state);
     final retryable = _effectiveRetryable(state);
     final message = hasError ? state.error! : localizedMessage;
-    final icon = hasError ? Icons.error_rounded : StatusHero.iconForStatus(current?.type, effectiveResult);
-    final color = hasError ? Colors.redAccent : _colorForStatus(theme, current?.type, effectiveResult);
+    final icon = hasError
+        ? Icons.error_rounded
+        : StatusHero.iconForStatus(current?.type, effectiveResult);
+    final color = hasError
+        ? Colors.redAccent
+        : _colorForStatus(theme, current?.type, effectiveResult);
     final showRetry = _shouldShowRetry(state, retryable) && onRetry != null;
-    final showConfigAction = effectiveErrorType == PaymentErrorType.config && onOpenSettings != null;
-    final showNetworkAction = effectiveErrorType == PaymentErrorType.network && onNetworkHelp != null;
-    final errorHint = _errorHintForType(t, effectiveErrorType, _errorContextToken(state));
+    final showConfigAction =
+        effectiveErrorType == PaymentErrorType.config && onOpenSettings != null;
+    final showNetworkAction =
+        effectiveErrorType == PaymentErrorType.network && onNetworkHelp != null;
+    final errorHint = _errorHintForType(
+      t,
+      effectiveErrorType,
+      _errorContextToken(state),
+    );
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,17 +78,26 @@ class StatusHero extends StatelessWidget {
                     Flexible(
                       child: Text(
                         message,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: color),
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 if (!hasError)
-                  Text(_instructionFor(t, args.channelGroup),
-                      style: const TextStyle(color: Colors.black54)),
+                  Text(
+                    _instructionFor(t, args.channelGroup),
+                    style: const TextStyle(color: Colors.black54),
+                  ),
                 if (hasError && errorHint != null)
-                  Text(errorHint, style: const TextStyle(color: Colors.black54)),
+                  Text(
+                    errorHint,
+                    style: const TextStyle(color: Colors.black54),
+                  ),
               ],
             ),
           ),
@@ -99,13 +119,19 @@ class StatusHero extends StatelessWidget {
                   TextButton.icon(
                     onPressed: onOpenSettings,
                     icon: const Icon(Icons.settings_rounded, size: 20),
-                    label: Text(t.settingsTitle, style: const TextStyle(fontSize: 16)),
+                    label: Text(
+                      t.settingsTitle,
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   ),
                 if (showNetworkAction)
                   TextButton.icon(
                     onPressed: onNetworkHelp,
                     icon: const Icon(Icons.wifi_tethering_rounded, size: 20),
-                    label: Text(t.paymentRetryNetwork, style: const TextStyle(fontSize: 16)),
+                    label: Text(
+                      t.paymentRetryNetwork,
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   ),
               ],
             ),
@@ -115,7 +141,10 @@ class StatusHero extends StatelessWidget {
     );
   }
 
-  static IconData iconForStatus(PaymentStatusType? type, PaymentStatusType? resultType) {
+  static IconData iconForStatus(
+    PaymentStatusType? type,
+    PaymentStatusType? resultType,
+  ) {
     final effective = resultType ?? type;
     switch (effective) {
       case PaymentStatusType.success:
@@ -135,7 +164,11 @@ class StatusHero extends StatelessWidget {
     }
   }
 
-  static Color _colorForStatus(ThemeData theme, PaymentStatusType? type, PaymentStatusType? resultType) {
+  static Color _colorForStatus(
+    ThemeData theme,
+    PaymentStatusType? type,
+    PaymentStatusType? resultType,
+  ) {
     final effective = resultType ?? type;
     switch (effective) {
       case PaymentStatusType.success:
@@ -149,18 +182,32 @@ class StatusHero extends StatelessWidget {
     }
   }
 
-  static String _defaultMessage(AppLocalizations t, String group, PaymentStatusType? type) {
+  static String _defaultMessage(
+    AppLocalizations t,
+    String group,
+    PaymentStatusType? type,
+  ) {
     switch (group) {
       case PaymentChannels.card:
-        if (type == PaymentStatusType.pending) return t.paymentFallbackCardConnecting;
-        if (type == PaymentStatusType.processing) return t.paymentFallbackCardFollowPos;
+        if (type == PaymentStatusType.pending) {
+          return t.paymentFallbackCardConnecting;
+        }
+        if (type == PaymentStatusType.processing) {
+          return t.paymentFallbackCardFollowPos;
+        }
         return t.paymentFallbackCardProcessing;
       case PaymentChannels.cash:
-        if (type == PaymentStatusType.pending) return t.paymentFallbackCashPrepare;
-        if (type == PaymentStatusType.waitingForUser) return t.paymentFallbackCashWaiting;
+        if (type == PaymentStatusType.pending) {
+          return t.paymentFallbackCashPrepare;
+        }
+        if (type == PaymentStatusType.waitingForUser) {
+          return t.paymentFallbackCashWaiting;
+        }
         return t.paymentFallbackCashProcessing;
       case PaymentChannels.qr:
-        if (type == PaymentStatusType.waitingForUser) return t.paymentFallbackQrAlign;
+        if (type == PaymentStatusType.waitingForUser) {
+          return t.paymentFallbackQrAlign;
+        }
         return t.paymentFallbackQrProcessing;
       default:
         return t.paymentFallbackProcessing;
@@ -184,11 +231,14 @@ class StatusHero extends StatelessWidget {
     if (state.isCancelling) return false;
     if (state.error != null) return retryable;
     final result = state.result?.status;
-    if (result == PaymentStatusType.failure || result == PaymentStatusType.cancelled) {
+    if (result == PaymentStatusType.failure ||
+        result == PaymentStatusType.cancelled) {
       return retryable;
     }
     final currentType = state.currentStatus?.type;
-    return (currentType == PaymentStatusType.failure || currentType == PaymentStatusType.cancelled) && retryable;
+    return (currentType == PaymentStatusType.failure ||
+            currentType == PaymentStatusType.cancelled) &&
+        retryable;
   }
 
   static PaymentErrorType? _effectiveErrorType(PaymentFlowState state) {
@@ -277,11 +327,19 @@ class StatusHero extends StatelessWidget {
       'HOST_LOOKUP_ERROR',
     };
 
-    if (configTokens.contains(token)) return PaymentErrorType.config;
-    if (userCancelledTokens.contains(token)) return PaymentErrorType.userCancelled;
-    if (networkTokens.contains(token)) return PaymentErrorType.network;
+    if (configTokens.contains(token)) {
+      return PaymentErrorType.config;
+    }
+    if (userCancelledTokens.contains(token)) {
+      return PaymentErrorType.userCancelled;
+    }
+    if (networkTokens.contains(token)) {
+      return PaymentErrorType.network;
+    }
 
-    if (token.startsWith('POS_') || token.startsWith('CASH_') || token.startsWith('QR_SCAN_')) {
+    if (token.startsWith('POS_') ||
+        token.startsWith('CASH_') ||
+        token.startsWith('QR_SCAN_')) {
       return PaymentErrorType.device;
     }
 
@@ -289,9 +347,13 @@ class StatusHero extends StatelessWidget {
   }
 
   static String? _normalizeErrorToken(String? raw) {
-    if (raw == null) return null;
+    if (raw == null) {
+      return null;
+    }
     final text = raw.trim();
-    if (text.isEmpty) return null;
+    if (text.isEmpty) {
+      return null;
+    }
 
     final knownTokens = <String>[
       'POS_IP_MISSING',
@@ -314,14 +376,25 @@ class StatusHero extends StatelessWidget {
     ];
 
     for (final token in knownTokens) {
-      if (text.contains(token)) return token;
+      if (text.contains(token)) {
+        return token;
+      }
     }
 
     final upper = text.toUpperCase();
-    if (upper.contains('HOST LOOKUP') || upper.contains('HOST_LOOKUP')) return 'HOST_LOOKUP_ERROR';
-    if (upper.contains('SOCKETEXCEPTION') || upper.contains('SOCKET EXCEPTION')) return 'SOCKET_ERROR';
-    if (upper.contains('TIMEOUT') || upper.contains('TIMED OUT')) return 'NETWORK_TIMEOUT';
-    if (upper.contains('NETWORK') || upper.contains('CONNECTION')) return 'NETWORK_ERROR';
+    if (upper.contains('HOST LOOKUP') || upper.contains('HOST_LOOKUP')) {
+      return 'HOST_LOOKUP_ERROR';
+    }
+    if (upper.contains('SOCKETEXCEPTION') ||
+        upper.contains('SOCKET EXCEPTION')) {
+      return 'SOCKET_ERROR';
+    }
+    if (upper.contains('TIMEOUT') || upper.contains('TIMED OUT')) {
+      return 'NETWORK_TIMEOUT';
+    }
+    if (upper.contains('NETWORK') || upper.contains('CONNECTION')) {
+      return 'NETWORK_ERROR';
+    }
     return null;
   }
 
@@ -353,6 +426,7 @@ class StatusHero extends StatelessWidget {
       final raw = args?['detail']?.toString() ?? '';
       return _resolveExternalDetail(t, raw);
     }
+
     String? resolveErrorCodeSuffix() {
       final rawCode = args?['errorCode']?.toString();
       if (rawCode == null || rawCode.isEmpty) return null;
@@ -360,6 +434,7 @@ class StatusHero extends StatelessWidget {
       if (desc != null && desc.isNotEmpty) return desc;
       return t.paymentErrorCodeLabel(rawCode);
     }
+
     if (key == null) return fallback;
     late final String base;
     switch (key) {
@@ -449,6 +524,15 @@ class StatusHero extends StatelessWidget {
         break;
       case PaymentMessageKeys.posLoading:
         base = t.paymentPosLoading(args?['mode']?.toString() ?? '');
+        break;
+      case PaymentMessageKeys.posTerminalProcessing:
+        base = t.paymentPosTerminalProcessing;
+        break;
+      case PaymentMessageKeys.posFinalizing:
+        base = t.paymentPosFinalizing;
+        break;
+      case PaymentMessageKeys.posCancelWaitResult:
+        base = t.paymentPosCancelWaitResult;
         break;
       case PaymentMessageKeys.posTerminalDone:
         base = t.paymentPosTerminalDone(args?['action']?.toString() ?? '');
@@ -609,7 +693,10 @@ class StatusHero extends StatelessWidget {
     }
   }
 
-  static String? _resolveExternalErrorCodeDesc(AppLocalizations t, String rawCode) {
+  static String? _resolveExternalErrorCodeDesc(
+    AppLocalizations t,
+    String rawCode,
+  ) {
     final token = _normalizeErrorToken(rawCode) ?? rawCode;
     switch (token) {
       case 'POS_IP_MISSING':

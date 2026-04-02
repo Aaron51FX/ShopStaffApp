@@ -4,6 +4,8 @@ import 'package:logging/logging.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/services/pos_payment_service.dart';
 
+import 'pos_payment_status_adapter.dart';
+
 /// Card flow bridges to the POS terminal service and normalizes status updates.
 class CardPaymentFlow implements PaymentFlow {
   CardPaymentFlow({required PosPaymentService posPaymentService, Logger? logger})
@@ -12,6 +14,13 @@ class CardPaymentFlow implements PaymentFlow {
 
   static const Duration _startTimeout = Duration(seconds: 20);
   static const Duration _statusInactivityTimeout = Duration(seconds: 90);
+  static const PosPaymentStatusAdapter _statusAdapter = PosPaymentStatusAdapter(
+    PosPaymentStatusAdapterConfig(
+      successMessageKey: PaymentMessageKeys.cardSuccess,
+      failureMessageKey: PaymentMessageKeys.cardFailure,
+      cancelledMessageKey: PaymentMessageKeys.cardCancelled,
+    ),
+  );
 
   final PosPaymentService _posPaymentService;
   final Logger _logger;
@@ -75,97 +84,14 @@ class CardPaymentFlow implements PaymentFlow {
       });
     }
 
-    PaymentStatus _mapPosStatus(PosPaymentStatus status) {
-      final messageArgs = {
-        if (status.messageArgs != null) ...status.messageArgs!,
-        if (status.errorCode != null) 'errorCode': status.errorCode,
-      };
-      switch (status.type) {
-        case PosPaymentStatusType.pending:
-          return PaymentStatus(
-            type: PaymentStatusType.pending,
-            message: status.message,
-            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.posWaitingResponse : null),
-            messageArgs: messageArgs.isEmpty ? null : messageArgs,
-            phase: PaymentPhase.sending,
-          );
-        case PosPaymentStatusType.processing:
-          return PaymentStatus(
-            type: PaymentStatusType.processing,
-            message: status.message,
-            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.posProcessing : null),
-            messageArgs: messageArgs.isEmpty ? null : messageArgs,
-            phase: PaymentPhase.waitingUser,
-          );
-        case PosPaymentStatusType.success:
-          return PaymentStatus(
-            type: PaymentStatusType.success,
-            message: status.message,
-            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.cardSuccess : null),
-            messageArgs: messageArgs.isEmpty ? null : messageArgs,
-            details: {
-              if (status.approvalCode != null) 'approvalCode': status.approvalCode,
-            },
-          );
-        case PosPaymentStatusType.failure:
-          return PaymentStatus(
-            type: PaymentStatusType.failure,
-            message: status.message,
-            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.cardFailure : null),
-            messageArgs: messageArgs.isEmpty ? null : messageArgs,
-            details: {
-              if (status.errorCode != null) 'errorCode': status.errorCode,
-            },
-            errorType: PaymentErrorType.device,
-            retryable: true,
-          );
-        case PosPaymentStatusType.cancelled:
-          return PaymentStatus(
-            type: PaymentStatusType.cancelled,
-            message: status.message,
-            messageKey: status.messageKey ?? (status.message == null ? PaymentMessageKeys.cardCancelled : null),
-            messageArgs: messageArgs.isEmpty ? null : messageArgs,
-            details: {
-              if (status.errorCode != null) 'errorCode': status.errorCode,
-            },
-            errorType: PaymentErrorType.userCancelled,
-            retryable: true,
-          );
-      }
-    }
-
     void handlePosStatus(PosPaymentStatus status) {
-      final mapped = _mapPosStatus(status);
+      final mapped = _statusAdapter.map(status);
       controller.add(mapped);
       if (mapped.isTerminal) {
         clearStageTimer();
-        if (mapped.type == PaymentStatusType.success) {
-          unawaited(finish(PaymentResult.success(
-            message: mapped.message,
-            messageKey: mapped.messageKey,
-            messageArgs: mapped.messageArgs,
-            payload: mapped.details,
-          )));
-        } else if (mapped.type == PaymentStatusType.cancelled) {
-          unawaited(finish(PaymentResult.cancelled(
-            message: mapped.message,
-            messageKey: mapped.messageKey,
-            messageArgs: mapped.messageArgs,
-            errorCode: mapped.details?['errorCode'] as String?,
-            payload: mapped.details,
-            errorType: mapped.errorType ?? PaymentErrorType.userCancelled,
-            retryable: mapped.retryable ?? true,
-          )));
-        } else if (mapped.type == PaymentStatusType.failure) {
-          unawaited(finish(PaymentResult.failure(
-            message: mapped.message,
-            messageKey: mapped.messageKey,
-            messageArgs: mapped.messageArgs,
-            errorCode: mapped.details?['errorCode'] as String?,
-            payload: mapped.details,
-            errorType: mapped.errorType ?? PaymentErrorType.device,
-            retryable: mapped.retryable ?? true,
-          )));
+        final result = _statusAdapter.toTerminalResult(status);
+        if (result != null) {
+          unawaited(finish(result));
         }
       } else {
         armStageTimeout(timeout: _statusInactivityTimeout, stage: 'pos_status_waiting');
@@ -188,7 +114,6 @@ class CardPaymentFlow implements PaymentFlow {
         );
         final session = await _posPaymentService.startPayment(request);
         posSessionId = session.sessionId;
-        handlePosStatus(session.initialStatus);
         subscription = _posPaymentService.watchStatus(session.sessionId).listen(
           handlePosStatus,
           onError: (error, stack) {

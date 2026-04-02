@@ -496,6 +496,8 @@
       "mode": {}
     }
   },
+  "paymentPosTerminalProcessing": "终端处理中，请稍候",
+  "paymentPosFinalizing": "正在完成交易，请稍候",
   "paymentPosTerminalDone": "终端完成操作: {action}",
   "@paymentPosTerminalDone": {
     "placeholders": {
@@ -519,6 +521,7 @@
     }
   },
   "paymentPosCancelProcessing": "正在取消POS交易…",
+  "paymentPosCancelWaitResult": "交易处理中，当前不可取消，请等待终端返回结果",
   "paymentPosCancelFailed": "POS取消失败：{detail}",
   "@paymentPosCancelFailed": {
     "placeholders": {

@@ -14,9 +14,10 @@ class PosPaymentServiceImpl implements PosPaymentService {
     LegacyPosSocketManager Function()? managerFactory,
     PosCardPaymentGateway? cardGateway,
     Logger? logger,
-  })  : _managerFactory = managerFactory ?? (() => LegacyPosSocketManager(logger: logger)),
-        _cardGateway = cardGateway,
-        _logger = logger ?? Logger('PosPaymentServiceImpl');
+  }) : _managerFactory =
+           managerFactory ?? (() => LegacyPosSocketManager(logger: logger)),
+       _cardGateway = cardGateway,
+       _logger = logger ?? Logger('PosPaymentServiceImpl');
 
   final LegacyPosSocketManager Function() _managerFactory;
   final PosCardPaymentGateway? _cardGateway;
@@ -27,70 +28,43 @@ class PosPaymentServiceImpl implements PosPaymentService {
   @override
   Future<PosPaymentSession> startPayment(PosPaymentRequest request) async {
     final sessionId = _generateSessionId();
-    final controller = StreamController<PosPaymentStatus>.broadcast();
-    const initialStatus = PosPaymentStatus(type: PosPaymentStatusType.pending);
-    final pendingStatuses = <PosPaymentStatus>[initialStatus];
+    final controller = StreamController<PosPaymentStatus>();
+    const initialStatus = PosPaymentStatus(
+      type: PosPaymentStatusType.pending,
+      messageKey: PaymentMessageKeys.posWaitingResponse,
+      phase: PaymentPhase.connecting,
+    );
 
-    var payload = LegacyPosPaymentPayload.fromRequest(request);
-    CardPaymentRequestData? cardRequest;
-    final prefetched = request.customPayload?[prefetchedCardRequestKey];
-    if (prefetched is CardPaymentRequestData) {
-      cardRequest = prefetched;
-    }
-
-    if (_shouldUseCardGateway(request)) {
-      final gateway = _cardGateway;
-      if (gateway == null) {
-        await controller.close();
-        throw StateError('POS_CARD_GATEWAY_REQUIRED');
-      }
-      pendingStatuses.add(const PosPaymentStatus(
-        type: PosPaymentStatusType.processing,
-        messageKey: PaymentMessageKeys.posFetchingPayData,
-      ));
-      try {
-        cardRequest ??= await gateway.createPaymentRequest(request);
-        if (cardRequest.hasError) {
-          final msg = cardRequest.exceptionMessage ?? 'POS_REQUEST_DATA_MISSING';
-          await controller.close();
-          throw StateError(msg);
-        }
-        final requestInfo = cardRequest.requestInfo;
-        if (requestInfo == null || requestInfo.isEmpty) {
-          await controller.close();
-          throw StateError('POS_REQUEST_DATA_MISSING');
-        }
-        payload = payload.copyWith(requestData: requestInfo);
-      } catch (e, stack) {
-        _logger.severe('Failed to prepare card payment data', e, stack);
-        await controller.close();
-        rethrow;
-      }
-    }
-
-    final manager = _managerFactory();
     final entry = _PosSessionEntry(
       controller: controller,
-      manager: manager,
-      payload: payload,
+      manager: _managerFactory(),
+      payload: LegacyPosPaymentPayload.fromRequest(request),
       request: request,
+      initialStatus: initialStatus,
       cardGateway: _shouldUseCardGateway(request) ? _cardGateway : null,
-      initialCardRequest: cardRequest,
-      initialCancelData: payload.cancelData,
     );
+    try {
+      await _prepareEntry(entry);
+    } catch (e, stack) {
+      _logger.severe('Failed to prepare POS payment session', e, stack);
+      await controller.close();
+      rethrow;
+    }
+
     _sessions[sessionId] = entry;
+    unawaited(
+      _PosSessionRunner(
+        sessionId: sessionId,
+        entry: entry,
+        logger: _logger,
+        finishSession: _finishSession,
+      ).run(),
+    );
 
-    scheduleMicrotask(() {
-      if (controller.isClosed) return;
-      for (final status in pendingStatuses) {
-        controller.add(status);
-      }
-      pendingStatuses.clear();
-    });
-
-    unawaited(_runSession(sessionId));
-
-    return PosPaymentSession(sessionId: sessionId, initialStatus: initialStatus);
+    return PosPaymentSession(
+      sessionId: sessionId,
+      initialStatus: initialStatus,
+    );
   }
 
   @override
@@ -101,9 +75,12 @@ class PosPaymentServiceImpl implements PosPaymentService {
         const PosPaymentStatus(
           type: PosPaymentStatusType.failure,
           messageKey: PaymentMessageKeys.sessionMissing,
+          errorType: PaymentErrorType.unknown,
+          retryable: true,
         ),
       );
     }
+    entry.attachWatcher();
     return entry.controller.stream;
   }
 
@@ -117,18 +94,6 @@ class PosPaymentServiceImpl implements PosPaymentService {
       return;
     }
 
-    void emit(PosPaymentStatus status) {
-      if (entry.isCompleted) return;
-      if (!entry.controller.isClosed) {
-        entry.controller.add(status);
-      }
-    }
-
-    emit(const PosPaymentStatus(
-      type: PosPaymentStatusType.processing,
-      messageKey: PaymentMessageKeys.posCancelProcessing,
-    ));
-
     try {
       if (entry.supportsCard && entry.cardGateway != null) {
         final instruction = await entry.ensureCancelInstruction(_logger);
@@ -139,137 +104,82 @@ class PosPaymentServiceImpl implements PosPaymentService {
 
         await entry.manager.write(PosAction.cancel, payload);
       } else {
-        emit(const PosPaymentStatus(
-          type: PosPaymentStatusType.cancelled,
-          messageKey: PaymentMessageKeys.posOperatorCancelled,
-        ));
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.cancelled,
+            messageKey: PaymentMessageKeys.posOperatorCancelled,
+            errorType: PaymentErrorType.userCancelled,
+            retryable: true,
+            phase: entry.currentPhase,
+          ),
+        );
         await _finishSession(sessionId);
       }
     } catch (e, stack) {
       _logger.severe('POS取消失败', e, stack);
-      emit(PosPaymentStatus(
-        type: PosPaymentStatusType.failure,
-        messageKey: PaymentMessageKeys.posCancelFailed,
-        messageArgs: {'detail': e.toString()},
-      ));
+      final errorType = _errorTypeForException(e);
+      entry.emit(
+        PosPaymentStatus(
+          type: PosPaymentStatusType.failure,
+          messageKey: PaymentMessageKeys.posCancelFailed,
+          messageArgs: {'detail': _errorDetail(e)},
+          errorCode: _errorCodeForException(e),
+          errorType: errorType,
+          retryable: _retryableForErrorType(errorType),
+          phase: entry.currentPhase,
+        ),
+      );
       await _finishSession(sessionId);
       throw StateError('POS_CANCEL_FAILED');
     }
   }
 
-  Future<void> _runSession(String sessionId) async {
-    final entry = _sessions[sessionId];
-    if (entry == null) return;
-    final payload = entry.payload;
-    final controller = entry.controller;
-    try {
-      await entry.manager.payConnectSocket(
-        payload.paymentCode,
-        payload.posIp,
-        payload.posPort,
-        payload.machineCode,
-        payload.requestData,
-        onError: (msg) {
-          if (entry.isCompleted || controller.isClosed) return;
-          controller.add(PosPaymentStatus(type: PosPaymentStatusType.failure, message: msg));
-        },
-        onLoading: (mode) {
-          if (entry.isCompleted || controller.isClosed) return;
-          controller.add(PosPaymentStatus(
-            type: PosPaymentStatusType.processing,
-            messageKey: PaymentMessageKeys.posLoading,
-            messageArgs: {'mode': mode},
-          ));
-        },
-        onLoadingEnd: () {
-          if (entry.isCompleted || controller.isClosed) return;
-          controller.add(const PosPaymentStatus(
-            type: PosPaymentStatusType.processing,
-            messageKey: PaymentMessageKeys.posWaitingUser,
-          ));
-        },
-        onSuccess: (data) {
-          if (entry.isCompleted || controller.isClosed) return;
-          unawaited(_handleSessionSuccess(sessionId, entry, data));
-        },
-        onRequestPayData: () {
-          if (entry.isCompleted || controller.isClosed) return;
-          controller.add(const PosPaymentStatus(
-            type: PosPaymentStatusType.processing,
-            messageKey: PaymentMessageKeys.posRequestPayData,
-          ));
-        },
-        onDone: (action) {
-          if (entry.isCompleted || controller.isClosed) return;
-          controller.add(PosPaymentStatus(
-            type: PosPaymentStatusType.cancelled,
-            messageKey: PaymentMessageKeys.posTerminalDone,
-            messageArgs: {'action': action.name},
-          ));
-          unawaited(_finishSession(sessionId));
-        },
-        onCancel: (code, mpfs) {
-          if (entry.isCompleted || controller.isClosed) return;
-          controller.add(PosPaymentStatus(
-            type: PosPaymentStatusType.cancelled,
-            messageKey: PaymentMessageKeys.posTerminalCancelled,
-            messageArgs: {'code': code, 'mpfs': mpfs},
-            errorCode: code,
-          ));
-          unawaited(_finishSession(sessionId));
-        },
-        onTimeOut: () {
-          if (entry.isCompleted || controller.isClosed) return;
-          controller.add(const PosPaymentStatus(
-            type: PosPaymentStatusType.failure,
-            messageKey: PaymentMessageKeys.posTimeout,
-          ));
-          unawaited(_finishSession(sessionId));
-        },
-      );
-    } catch (e, stack) {
-      _logger.severe('POS payment session failed', e, stack);
-      if (!entry.isCompleted && !controller.isClosed) {
-        controller.add(PosPaymentStatus(type: PosPaymentStatusType.failure, message: e.toString()));
-      }
-      await _finishSession(sessionId);
+  Future<void> _prepareEntry(_PosSessionEntry entry) async {
+    final prefetched = entry.request.customPayload?[prefetchedCardRequestKey];
+    if (prefetched is CardPaymentRequestData) {
+      entry.cardRequest = prefetched;
     }
-  }
 
-  Future<void> _handleSessionSuccess(String sessionId, _PosSessionEntry entry, String data) async {
-    final controller = entry.controller;
+    if (!entry.supportsCard) {
+      return;
+    }
+
+    final gateway = entry.cardGateway;
+    if (gateway == null) {
+      throw StateError('POS_CARD_GATEWAY_REQUIRED');
+    }
+
+    final shouldFetchRequestData = entry.cardRequest == null;
+    if (shouldFetchRequestData) {
+      entry.updatePhase(PaymentPhase.requesting);
+      entry.emit(
+        const PosPaymentStatus(
+          type: PosPaymentStatusType.processing,
+          messageKey: PaymentMessageKeys.posFetchingPayData,
+          phase: PaymentPhase.requesting,
+        ),
+      );
+    }
+
     try {
-      if (entry.supportsCard && entry.cardGateway != null) {
-        final cardRequest = _sessions[sessionId]?.cardRequest ??
-            await entry.ensureCardRequest(_logger);
-        final reportPayload = cardRequest?.data;
-        // final reportPayload = cardData?.reportPayload;
-        if (cardRequest == null && reportPayload != null) {
-          controller.add(const PosPaymentStatus(
-            type: PosPaymentStatusType.processing,
-            messageKey: PaymentMessageKeys.posReportResult,
-          ));
-          await entry.cardGateway!.reportPayment(reportPayload: reportPayload, paymentInfo: data);
-        }
+      entry.cardRequest ??= await gateway.createPaymentRequest(entry.request);
+      final cardRequest = entry.cardRequest;
+      if (cardRequest == null) {
+        throw StateError('POS_REQUEST_DATA_MISSING');
       }
-      if (!entry.isCompleted && !controller.isClosed) {
-        _logger.fine('POS payment success data: $data');
-        controller.add(const PosPaymentStatus(
-          type: PosPaymentStatusType.success,
-          messageKey: PaymentMessageKeys.posPaymentSuccess,
-        ));
+      if (cardRequest.hasError) {
+        throw StateError(
+          cardRequest.exceptionMessage ?? 'POS_REQUEST_DATA_MISSING',
+        );
       }
+      final requestInfo = cardRequest.requestInfo;
+      if (requestInfo == null || requestInfo.isEmpty) {
+        throw StateError('POS_REQUEST_DATA_MISSING');
+      }
+      entry.payload = entry.payload.copyWith(requestData: requestInfo);
     } catch (e, stack) {
-      _logger.severe('POS payment success handling failed', e, stack);
-      if (!entry.isCompleted && !controller.isClosed) {
-        controller.add(PosPaymentStatus(
-          type: PosPaymentStatusType.failure,
-          messageKey: PaymentMessageKeys.posResultHandleFailed,
-          messageArgs: {'detail': e.toString()},
-        ));
-      }
-    } finally {
-      await _finishSession(sessionId);
+      _logger.severe('Failed to prepare card payment data', e, stack);
+      rethrow;
     }
   }
 
@@ -279,6 +189,7 @@ class PosPaymentServiceImpl implements PosPaymentService {
     if (entry.isCompleted) return;
     entry.isCompleted = true;
     try {
+      await entry.transportSubscription?.cancel();
       await entry.manager.closePos();
     } catch (e, stack) {
       _logger.warning('Error closing POS session $sessionId', e, stack);
@@ -304,24 +215,65 @@ class _PosSessionEntry {
     required this.manager,
     required this.payload,
     required this.request,
+    required this.initialStatus,
     this.cardGateway,
-    CardPaymentRequestData? initialCardRequest,
-    String? initialCancelData,
-  })  : cardRequest = initialCardRequest,
-        cancelInstruction = (initialCancelData != null && initialCancelData.isNotEmpty)
-            ? CardCancelInstruction(payload: initialCancelData)
-            : null;
+  }) : currentPhase = initialStatus.phase,
+       cancelInstruction =
+           (payload.cancelData != null && payload.cancelData!.isNotEmpty)
+           ? CardCancelInstruction(payload: payload.cancelData!)
+           : null;
 
   final StreamController<PosPaymentStatus> controller;
   final LegacyPosSocketManager manager;
-  final LegacyPosPaymentPayload payload;
+  LegacyPosPaymentPayload payload;
   final PosPaymentRequest request;
+  final PosPaymentStatus initialStatus;
   final PosCardPaymentGateway? cardGateway;
   CardPaymentRequestData? cardRequest;
   CardCancelInstruction? cancelInstruction;
+  PaymentPhase? currentPhase;
+  StreamSubscription<LegacyPosTransportEvent>? transportSubscription;
+  final List<PosPaymentStatus> _pendingStatuses = <PosPaymentStatus>[];
+  bool _watchAttached = false;
   bool isCompleted = false;
 
   bool get supportsCard => cardGateway != null;
+
+  void updatePhase(PaymentPhase phase) {
+    currentPhase = phase;
+  }
+
+  void emit(PosPaymentStatus status) {
+    if (isCompleted || controller.isClosed) {
+      return;
+    }
+    currentPhase = status.phase ?? currentPhase;
+    if (!_watchAttached) {
+      _pendingStatuses.add(status);
+      return;
+    }
+    controller.add(status);
+  }
+
+  void attachWatcher() {
+    if (_watchAttached) {
+      return;
+    }
+    _watchAttached = true;
+    if (_pendingStatuses.isEmpty || controller.isClosed) {
+      return;
+    }
+    final buffered = List<PosPaymentStatus>.from(_pendingStatuses);
+    _pendingStatuses.clear();
+    scheduleMicrotask(() {
+      if (isCompleted || controller.isClosed) {
+        return;
+      }
+      for (final status in buffered) {
+        controller.add(status);
+      }
+    });
+  }
 
   Future<CardPaymentRequestData?> ensureCardRequest(Logger logger) async {
     if (!supportsCard) return cardRequest;
@@ -362,6 +314,370 @@ class _PosSessionEntry {
   }
 }
 
+class _PosSessionRunner {
+  _PosSessionRunner({
+    required this.sessionId,
+    required this.entry,
+    required this.logger,
+    required this.finishSession,
+  });
+
+  final String sessionId;
+  final _PosSessionEntry entry;
+  final Logger logger;
+  final Future<void> Function(String sessionId) finishSession;
+
+  Future<void> run() async {
+    try {
+      final run = entry.manager.startTransportSession(
+        payment: entry.payload.paymentCode,
+        posIp: entry.payload.posIp,
+        posPort: entry.payload.posPort,
+        machineCode: entry.payload.machineCode,
+        requestData: entry.payload.requestData,
+      );
+      entry.transportSubscription = run.events.listen(_handleTransportEvent);
+    } catch (e, stack) {
+      logger.severe('POS payment session failed', e, stack);
+      final errorType = _errorTypeForException(e);
+      entry.emit(
+        PosPaymentStatus(
+          type: PosPaymentStatusType.failure,
+          message: e.toString(),
+          messageKey: PaymentMessageKeys.errorUnknown,
+          messageArgs: {'detail': _errorDetail(e)},
+          errorCode: _errorCodeForException(e),
+          errorType: errorType,
+          retryable: _retryableForErrorType(errorType),
+          phase: entry.currentPhase,
+        ),
+      );
+      await finishSession(sessionId);
+    }
+  }
+
+  void _handleTransportEvent(LegacyPosTransportEvent event) {
+    entry.updatePhase(event.phase);
+    switch (event.type) {
+      case LegacyPosTransportEventType.connecting:
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.pending,
+            messageKey: PaymentMessageKeys.posWaitingResponse,
+            phase: event.phase,
+          ),
+        );
+        return;
+      case LegacyPosTransportEventType.connected:
+      case LegacyPosTransportEventType.writeCompleted:
+        return;
+      case LegacyPosTransportEventType.writeStarted:
+        entry.emit(
+          PosPaymentStatus(
+            type: event.action == PosAction.cancel
+                ? PosPaymentStatusType.processing
+                : PosPaymentStatusType.pending,
+            messageKey: event.action == PosAction.cancel
+                ? PaymentMessageKeys.posCancelProcessing
+                : PaymentMessageKeys.posWaitingResponse,
+            phase: event.phase,
+          ),
+        );
+        return;
+      case LegacyPosTransportEventType.requestPayData:
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.processing,
+            messageKey: PaymentMessageKeys.posRequestPayData,
+            phase: event.phase,
+          ),
+        );
+        return;
+      case LegacyPosTransportEventType.cancelAcknowledged:
+        entry.emit(
+          const PosPaymentStatus(
+            type: PosPaymentStatusType.processing,
+            messageKey: PaymentMessageKeys.posFinalizing,
+            phase: PaymentPhase.sending,
+          ),
+        );
+        return;
+      case LegacyPosTransportEventType.cancelWaitResult:
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.processing,
+            messageKey: PaymentMessageKeys.posCancelWaitResult,
+            messageArgs: {
+              if (event.resultCode != null) 'code': event.resultCode,
+              if (event.mpfsCode != null) 'mpfs': event.mpfsCode,
+            },
+            details: {
+              if (event.resultCode != null) 'code': event.resultCode,
+              if (event.mpfsCode != null) 'mpfs': event.mpfsCode,
+            },
+            errorCode: event.resultCode,
+            phase: event.phase,
+          ),
+        );
+        return;
+      case LegacyPosTransportEventType.waitingForTerminal:
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.processing,
+            messageKey: PaymentMessageKeys.posWaitingUser,
+            phase: event.phase,
+          ),
+        );
+        return;
+      case LegacyPosTransportEventType.loading:
+        String messageKey;
+        switch (event.loadingState) {
+          case LegacyPosLoadingState.terminalProcessing:
+            messageKey = PaymentMessageKeys.posTerminalProcessing;
+            break;
+          case LegacyPosLoadingState.finalizing:
+          case null:
+            messageKey = PaymentMessageKeys.posFinalizing;
+            break;
+        }
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.processing,
+            messageKey: messageKey,
+            phase: event.phase,
+          ),
+        );
+        return;
+      case LegacyPosTransportEventType.success:
+        final payload = event.payload;
+        if (payload == null) {
+          entry.emit(
+            PosPaymentStatus(
+              type: PosPaymentStatusType.failure,
+              messageKey: PaymentMessageKeys.errorUnknown,
+              errorType: PaymentErrorType.device,
+              retryable: true,
+              phase: event.phase,
+            ),
+          );
+          unawaited(finishSession(sessionId));
+          return;
+        }
+        unawaited(_handleSuccess(payload));
+        return;
+      case LegacyPosTransportEventType.cancelled:
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.cancelled,
+            messageKey: PaymentMessageKeys.posTerminalCancelled,
+            messageArgs: {
+              if (event.resultCode != null) 'code': event.resultCode,
+              if (event.mpfsCode != null) 'mpfs': event.mpfsCode,
+            },
+            details: {
+              if (event.resultCode != null) 'code': event.resultCode,
+              if (event.mpfsCode != null) 'mpfs': event.mpfsCode,
+            },
+            errorCode: event.resultCode,
+            errorType: event.errorType ?? PaymentErrorType.userCancelled,
+            retryable: event.retryable ?? true,
+            phase: event.phase,
+          ),
+        );
+        unawaited(finishSession(sessionId));
+        return;
+      case LegacyPosTransportEventType.timeout:
+        final errorType =
+            event.errorType ?? _timeoutErrorTypeForPhase(event.phase);
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.failure,
+            messageKey: PaymentMessageKeys.posTimeout,
+            messageArgs: event.message == null
+                ? null
+                : {'detail': event.message},
+            errorCode: event.resultCode,
+            errorType: errorType,
+            retryable: event.retryable ?? _retryableForErrorType(errorType),
+            phase: event.phase,
+          ),
+        );
+        unawaited(finishSession(sessionId));
+        return;
+      case LegacyPosTransportEventType.error:
+        final errorType =
+            event.errorType ??
+            _errorTypeForTransportMessage(
+              event.message ?? event.resultCode ?? '',
+              event.phase,
+            );
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.failure,
+            message: event.message,
+            messageArgs: event.message == null
+                ? null
+                : {'detail': event.message},
+            errorCode:
+                event.resultCode ??
+                ((event.message != null && _looksLikeErrorCode(event.message!))
+                    ? event.message
+                    : null),
+            errorType: errorType,
+            retryable: event.retryable ?? _retryableForErrorType(errorType),
+            phase: event.phase,
+          ),
+        );
+        unawaited(finishSession(sessionId));
+        return;
+      case LegacyPosTransportEventType.done:
+        entry.emit(
+          PosPaymentStatus(
+            type: PosPaymentStatusType.cancelled,
+            messageKey: PaymentMessageKeys.posTerminalDone,
+            messageArgs: {'action': (event.action ?? PosAction.none).name},
+            details: {'action': (event.action ?? PosAction.none).name},
+            errorType: PaymentErrorType.userCancelled,
+            retryable: true,
+            phase: event.phase,
+          ),
+        );
+        unawaited(finishSession(sessionId));
+        return;
+    }
+  }
+
+  Future<void> _handleSuccess(String data) async {
+    try {
+      if (entry.supportsCard && entry.cardGateway != null) {
+        final cardRequest =
+            entry.cardRequest ?? await entry.ensureCardRequest(logger);
+        final reportPayload = cardRequest?.data;
+        if (reportPayload != null) {
+          entry.updatePhase(PaymentPhase.confirming);
+          entry.emit(
+            const PosPaymentStatus(
+              type: PosPaymentStatusType.processing,
+              messageKey: PaymentMessageKeys.posReportResult,
+              phase: PaymentPhase.confirming,
+            ),
+          );
+          await entry.cardGateway!.reportPayment(
+            reportPayload: reportPayload,
+            paymentInfo: data,
+          );
+        }
+      }
+      logger.fine('POS payment success data: $data');
+      entry.emit(
+        const PosPaymentStatus(
+          type: PosPaymentStatusType.success,
+          messageKey: PaymentMessageKeys.posPaymentSuccess,
+        ),
+      );
+    } catch (e, stack) {
+      logger.severe('POS payment success handling failed', e, stack);
+      final errorType = _errorTypeForException(e);
+      entry.emit(
+        PosPaymentStatus(
+          type: PosPaymentStatusType.failure,
+          messageKey: PaymentMessageKeys.posResultHandleFailed,
+          messageArgs: {'detail': _errorDetail(e)},
+          errorCode: _errorCodeForException(e),
+          errorType: errorType,
+          retryable: _retryableForErrorType(errorType),
+          phase: entry.currentPhase,
+        ),
+      );
+    } finally {
+      await finishSession(sessionId);
+    }
+  }
+}
+
+PaymentErrorType _errorTypeForTransportMessage(
+  String message,
+  PaymentPhase? phase,
+) {
+  final normalized = message.toLowerCase();
+  if (normalized.contains('timeout') || normalized.contains('disconnected')) {
+    return _timeoutErrorTypeForPhase(phase);
+  }
+  if (_looksLikeErrorCode(message)) {
+    return PaymentErrorType.device;
+  }
+  return PaymentErrorType.device;
+}
+
+PaymentErrorType _timeoutErrorTypeForPhase(PaymentPhase? phase) {
+  if (phase == null) {
+    return PaymentErrorType.device;
+  }
+  switch (phase) {
+    case PaymentPhase.connecting:
+    case PaymentPhase.requesting:
+    case PaymentPhase.sending:
+      return PaymentErrorType.network;
+    case PaymentPhase.waitingUser:
+    case PaymentPhase.waitingTerminalResult:
+    case PaymentPhase.confirming:
+    case PaymentPhase.initializing:
+      return PaymentErrorType.device;
+  }
+}
+
+PaymentErrorType _errorTypeForException(Object error) {
+  final code = _errorCodeForException(error);
+  switch (code) {
+    case 'POS_IP_MISSING':
+    case 'POS_PORT_INVALID':
+    case 'POS_CONFIG_MISSING':
+    case 'POS_CARD_GATEWAY_REQUIRED':
+    case 'POS_CANCEL_NOT_SUPPORTED':
+      return PaymentErrorType.config;
+    case 'POS_REQUEST_DATA_MISSING':
+    case 'POS_CANCEL_INSTRUCTION_EMPTY':
+      return PaymentErrorType.backend;
+    case 'QR_SCAN_CANCELLED':
+      return PaymentErrorType.userCancelled;
+    default:
+      return PaymentErrorType.device;
+  }
+}
+
+bool _retryableForErrorType(PaymentErrorType errorType) {
+  switch (errorType) {
+    case PaymentErrorType.config:
+      return false;
+    case PaymentErrorType.userCancelled:
+    case PaymentErrorType.device:
+    case PaymentErrorType.network:
+    case PaymentErrorType.backend:
+    case PaymentErrorType.unknown:
+      return true;
+  }
+}
+
+String _errorDetail(Object error) {
+  if (error is StateError) {
+    return error.message.toString();
+  }
+  if (error is ArgumentError) {
+    return error.message?.toString() ?? error.toString();
+  }
+  return error.toString();
+}
+
+String? _errorCodeForException(Object error) {
+  final detail = _errorDetail(error);
+  return _looksLikeErrorCode(detail) ? detail : null;
+}
+
+bool _looksLikeErrorCode(String value) {
+  final code = value.trim();
+  return RegExp(r'^[A-Z0-9_]{3,}$').hasMatch(code);
+}
+
 class LegacyPosPaymentPayload {
   LegacyPosPaymentPayload({
     required this.paymentCode,
@@ -396,7 +712,7 @@ class LegacyPosPaymentPayload {
       throw ArgumentError('POS_CONFIG_MISSING');
     }
 
-    String? _readString(String key) {
+    String? readString(String key) {
       final value = map[key];
       if (value == null) return null;
       if (value is String) return value;
@@ -404,11 +720,12 @@ class LegacyPosPaymentPayload {
       return null;
     }
 
-    final payment = _readString('paymentCode') ?? _readString('payment');
-    final ip = _readString('posIp') ?? _readString('ip');
-    final machineCode = _readString('machineCode') ?? request.order.orderId;
-    final requestData = _readString('requestData') ?? _readString('payload') ?? '';
-    final cancelData = _readString('cancelData');
+    final payment = readString('paymentCode') ?? readString('payment');
+    final ip = readString('posIp') ?? readString('ip');
+    final machineCode = readString('machineCode') ?? request.order.orderId;
+    final requestData =
+        readString('requestData') ?? readString('payload') ?? '';
+    final cancelData = readString('cancelData');
 
     final portRaw = map['posPort'] ?? map['port'];
     int? port;

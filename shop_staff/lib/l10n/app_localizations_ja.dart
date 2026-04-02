@@ -1178,6 +1178,12 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get paymentPosTerminalProcessing => '端末処理中です。しばらくお待ちください。';
+
+  @override
+  String get paymentPosFinalizing => '取引を確定しています。しばらくお待ちください。';
+
+  @override
   String paymentPosTerminalDone(Object action) {
     return '端末操作完了：$action';
   }
@@ -1203,6 +1209,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get paymentPosCancelProcessing => 'POS取引をキャンセル中…';
+
+  @override
+  String get paymentPosCancelWaitResult => '取引処理中のため、現在は取消できません。端末の結果をお待ちください。';
 
   @override
   String paymentPosCancelFailed(Object detail) {

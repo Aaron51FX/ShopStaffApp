@@ -496,6 +496,8 @@
       "mode": {}
     }
   },
+  "paymentPosTerminalProcessing": "Terminal is processing. Please wait.",
+  "paymentPosFinalizing": "Finalizing the transaction. Please wait.",
   "paymentPosTerminalDone": "Terminal completed action: {action}",
   "@paymentPosTerminalDone": {
     "placeholders": {
@@ -519,6 +521,7 @@
     }
   },
   "paymentPosCancelProcessing": "Cancelling POS transaction…",
+  "paymentPosCancelWaitResult": "The transaction is still processing. Cancellation is not available now. Please wait for the terminal result.",
   "paymentPosCancelFailed": "Failed to cancel POS transaction: {detail}",
   "@paymentPosCancelFailed": {
     "placeholders": {

@@ -18,9 +18,9 @@ Confirmed codes:
 | Code | Source field | Current handling | Confidence | Notes |
 | --- | --- | --- | --- | --- |
 | `000` | `resultString` and often `resultMPFSString` | success | high | Current success condition is usually `resultString == "000"` and `resultMPFSString == "000"`. |
-| `L06` | `resultString` | treated as cancel/interruption | high | In the old inline comment: password required, user returns without entering password. Seen in `transactionType == "900"` branch. |
-| `L11` | `resultString` | treated as hard error | high | Routed to `onError(resultString)` after delay in non-`900/600/601` branch. |
-| `T10` | `resultString` | treated as hard error | high | Old inline comment says transit-card timeout after ~30-40s. Routed to `onError(resultString)`. |
+| `L06` | `resultString` | cancel request rejected; keep waiting for final result | high | In current legacy flow, this is not a terminal cancel. It means the terminal/payment system is still processing, so cancellation is not available yet and the app should continue waiting for the final transaction result. |
+| `L11` | `resultString` | context-dependent | high | During a normal payment flow, legacy code routed it to `onError(resultString)` after delay. During a cancel follow-up flow, current handling treats it as a normal cancel completion signal and should not surface an error dialog. |
+| `T10` | `resultString` | context-dependent | high | Old inline comment says transit-card timeout after ~30-40s. In regular payment flow it was treated as an error; in cancel follow-up flow it should be treated like a normal cancel completion signal and not shown as an error. |
 | any other non-empty code | `resultString` | treated as cancel/interactive stop | medium | For most unmatched non-empty codes, current code calls `onCancel(resultString, resultMPFSString)`. |
 
 ## 2. Transaction types seen in parser
