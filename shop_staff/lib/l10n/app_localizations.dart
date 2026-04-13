@@ -430,6 +430,114 @@ abstract class AppLocalizations {
   /// **'No printers configured yet. Add one in the back office.'**
   String get settingsPrinterEmpty;
 
+  /// No description provided for @settingsPrinterKitchenEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No Wi-Fi kitchen printers configured.'**
+  String get settingsPrinterKitchenEmpty;
+
+  /// No description provided for @settingsLocalPrinterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Local receipt printer'**
+  String get settingsLocalPrinterTitle;
+
+  /// No description provided for @settingsLocalPrinterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a Star printer over Bluetooth, BLE, or USB.'**
+  String get settingsLocalPrinterSubtitle;
+
+  /// No description provided for @settingsLocalPrinterAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add printer'**
+  String get settingsLocalPrinterAddAction;
+
+  /// No description provided for @settingsLocalPrinterReplaceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change printer'**
+  String get settingsLocalPrinterReplaceAction;
+
+  /// No description provided for @settingsLocalPrinterBrandDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select printer brand'**
+  String get settingsLocalPrinterBrandDialogTitle;
+
+  /// No description provided for @settingsLocalPrinterBrandStar.
+  ///
+  /// In en, this message translates to:
+  /// **'Star'**
+  String get settingsLocalPrinterBrandStar;
+
+  /// No description provided for @settingsLocalPrinterBrandDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settingsLocalPrinterBrandDefault;
+
+  /// No description provided for @settingsLocalPrinterBrandDefaultHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows system printers. Coming soon.'**
+  String get settingsLocalPrinterBrandDefaultHint;
+
+  /// No description provided for @settingsLocalPrinterUnsupportedPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Star discovery is only available on iOS and Android.'**
+  String get settingsLocalPrinterUnsupportedPlatform;
+
+  /// No description provided for @settingsLocalPrinterPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Nearby devices permissions, then try again.'**
+  String get settingsLocalPrinterPermissionDenied;
+
+  /// No description provided for @settingsLocalPrinterSearchProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for Star printers…'**
+  String get settingsLocalPrinterSearchProgress;
+
+  /// No description provided for @settingsLocalPrinterSearchEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No Star printers were found.'**
+  String get settingsLocalPrinterSearchEmpty;
+
+  /// No description provided for @settingsLocalPrinterResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a printer'**
+  String get settingsLocalPrinterResultsTitle;
+
+  /// No description provided for @settingsLocalPrinterBrandLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get settingsLocalPrinterBrandLabel;
+
+  /// No description provided for @settingsLocalPrinterModelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get settingsLocalPrinterModelLabel;
+
+  /// No description provided for @settingsLocalPrinterTransportLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get settingsLocalPrinterTransportLabel;
+
+  /// No description provided for @settingsLocalPrinterIdentifierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Identifier'**
+  String get settingsLocalPrinterIdentifierLabel;
+
   /// No description provided for @settingsMachineInfoTitle.
   ///
   /// In en, this message translates to:
@@ -687,6 +795,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default'**
   String get settingsPrinterDefaultTag;
+
+  /// No description provided for @settingsPrinterTypeLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Local printing'**
+  String get settingsPrinterTypeLocal;
 
   /// No description provided for @settingsPrinterTypeKitchen.
   ///

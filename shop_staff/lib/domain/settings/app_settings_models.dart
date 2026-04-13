@@ -167,6 +167,11 @@ class PosTerminalSettings {
 
 @immutable
 class PrinterSettings {
+  static const int localType = 0;
+  static const int kitchenType = 10;
+  static const int centerType = 11;
+  static const int counterType = 12;
+
   const PrinterSettings({
     required this.name,
     required this.type,
@@ -297,11 +302,47 @@ class PrinterSettings {
     );
   }
 
+  static List<PrinterSettings> mergeWithDefaults(
+    List<PrinterSettings> printers,
+  ) {
+    if (printers.isEmpty) {
+      return defaultProfiles();
+    }
+
+    final merged = <PrinterSettings>[];
+    final byKey = <String, PrinterSettings>{
+      for (final printer in printers)
+        _profileKey(printer.type, printer.receipt): printer,
+    };
+
+    for (final profile in defaultProfiles()) {
+      merged.add(
+        byKey.remove(_profileKey(profile.type, profile.receipt)) ?? profile,
+      );
+    }
+
+    merged.addAll(byKey.values);
+    return merged;
+  }
+
   static List<PrinterSettings> defaultProfiles() {
     return const [
       PrinterSettings(
+        name: '',
+        type: localType,
+        backend: PrinterBackend.starXpandNative,
+        connectionType: PrinterConnectionType.unknown,
+        receipt: true,
+        labelSize: '',
+        continuous: false,
+        isOn: false,
+        isDefault: true,
+        option: false,
+        direction: true,
+      ),
+      PrinterSettings(
         name: 'キッチン',
-        type: 10,
+        type: kitchenType,
         backend: PrinterBackend.widgetRaster,
         connectionType: PrinterConnectionType.network,
         receipt: true,
@@ -316,7 +357,7 @@ class PrinterSettings {
       ),
       PrinterSettings(
         name: 'キッチン (ラベル)',
-        type: 10,
+        type: kitchenType,
         backend: PrinterBackend.widgetRaster,
         connectionType: PrinterConnectionType.network,
         receipt: false,
@@ -331,7 +372,7 @@ class PrinterSettings {
       ),
       PrinterSettings(
         name: 'センター',
-        type: 11,
+        type: centerType,
         backend: PrinterBackend.widgetRaster,
         connectionType: PrinterConnectionType.network,
         receipt: true,
@@ -346,7 +387,7 @@ class PrinterSettings {
       ),
       PrinterSettings(
         name: 'カウンター',
-        type: 12,
+        type: counterType,
         backend: PrinterBackend.widgetRaster,
         connectionType: PrinterConnectionType.network,
         receipt: true,
@@ -361,6 +402,8 @@ class PrinterSettings {
       ),
     ];
   }
+
+  static String _profileKey(int type, bool receipt) => '$type|$receipt';
 }
 
 @immutable

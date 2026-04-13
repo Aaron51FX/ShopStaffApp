@@ -201,6 +201,66 @@ class AppLocalizationsEn extends AppLocalizations {
       'No printers configured yet. Add one in the back office.';
 
   @override
+  String get settingsPrinterKitchenEmpty =>
+      'No Wi-Fi kitchen printers configured.';
+
+  @override
+  String get settingsLocalPrinterTitle => 'Local receipt printer';
+
+  @override
+  String get settingsLocalPrinterSubtitle =>
+      'Add a Star printer over Bluetooth, BLE, or USB.';
+
+  @override
+  String get settingsLocalPrinterAddAction => 'Add printer';
+
+  @override
+  String get settingsLocalPrinterReplaceAction => 'Change printer';
+
+  @override
+  String get settingsLocalPrinterBrandDialogTitle => 'Select printer brand';
+
+  @override
+  String get settingsLocalPrinterBrandStar => 'Star';
+
+  @override
+  String get settingsLocalPrinterBrandDefault => 'Default';
+
+  @override
+  String get settingsLocalPrinterBrandDefaultHint =>
+      'Windows system printers. Coming soon.';
+
+  @override
+  String get settingsLocalPrinterUnsupportedPlatform =>
+      'Star discovery is only available on iOS and Android.';
+
+  @override
+  String get settingsLocalPrinterPermissionDenied =>
+      'Allow Nearby devices permissions, then try again.';
+
+  @override
+  String get settingsLocalPrinterSearchProgress =>
+      'Searching for Star printers…';
+
+  @override
+  String get settingsLocalPrinterSearchEmpty => 'No Star printers were found.';
+
+  @override
+  String get settingsLocalPrinterResultsTitle => 'Select a printer';
+
+  @override
+  String get settingsLocalPrinterBrandLabel => 'Brand';
+
+  @override
+  String get settingsLocalPrinterModelLabel => 'Model';
+
+  @override
+  String get settingsLocalPrinterTransportLabel => 'Connection';
+
+  @override
+  String get settingsLocalPrinterIdentifierLabel => 'Identifier';
+
+  @override
   String get settingsMachineInfoTitle => 'Device identifiers';
 
   @override
@@ -335,6 +395,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPrinterDefaultTag => 'Default';
+
+  @override
+  String get settingsPrinterTypeLocal => 'Local printing';
 
   @override
   String get settingsPrinterTypeKitchen => 'Kitchen printing';

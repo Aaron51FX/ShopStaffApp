@@ -188,6 +188,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsPrinterEmpty => '暂无打印机配置，可在后台新增';
 
   @override
+  String get settingsPrinterKitchenEmpty => '暂未配置 Wi‑Fi 厨房打印机。';
+
+  @override
+  String get settingsLocalPrinterTitle => '本机打印';
+
+  @override
+  String get settingsLocalPrinterSubtitle => '通过蓝牙、BLE 或 USB 添加 Star 收据打印机。';
+
+  @override
+  String get settingsLocalPrinterAddAction => '添加打印机';
+
+  @override
+  String get settingsLocalPrinterReplaceAction => '更换打印机';
+
+  @override
+  String get settingsLocalPrinterBrandDialogTitle => '选择打印机品牌';
+
+  @override
+  String get settingsLocalPrinterBrandStar => 'Star';
+
+  @override
+  String get settingsLocalPrinterBrandDefault => 'Default';
+
+  @override
+  String get settingsLocalPrinterBrandDefaultHint => 'Windows 系统打印机，暂未开放。';
+
+  @override
+  String get settingsLocalPrinterUnsupportedPlatform =>
+      'Star 搜索仅支持 iOS 和 Android。';
+
+  @override
+  String get settingsLocalPrinterPermissionDenied => '请先允许“附近设备”权限后再重试。';
+
+  @override
+  String get settingsLocalPrinterSearchProgress => '正在搜索 Star 打印机…';
+
+  @override
+  String get settingsLocalPrinterSearchEmpty => '未搜索到 Star 打印机。';
+
+  @override
+  String get settingsLocalPrinterResultsTitle => '选择打印机';
+
+  @override
+  String get settingsLocalPrinterBrandLabel => '品牌';
+
+  @override
+  String get settingsLocalPrinterModelLabel => '型号';
+
+  @override
+  String get settingsLocalPrinterTransportLabel => '连接方式';
+
+  @override
+  String get settingsLocalPrinterIdentifierLabel => '设备标识';
+
+  @override
   String get settingsMachineInfoTitle => '设备标识';
 
   @override
@@ -315,6 +370,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsPrinterDefaultTag => '默认';
+
+  @override
+  String get settingsPrinterTypeLocal => '本机打印';
 
   @override
   String get settingsPrinterTypeKitchen => '厨房打印';

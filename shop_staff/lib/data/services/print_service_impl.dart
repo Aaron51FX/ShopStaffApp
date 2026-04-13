@@ -30,14 +30,9 @@ class PrintServiceImpl implements PrintService {
 
     final isTakeOut = info.orderType != 'Shop_In';
 
-    final loaclPrinter = printers.firstWhere(
-      (p) =>
-          p.type == 10 && p.receipt != false && _isReceiptPrinterAvailable(p),
-      orElse: () => const PrinterSettings(name: '', type: -1),
-    );
-
-    if (loaclPrinter.type == 10) {
-      final result = await _printReceipt(document, loaclPrinter);
+    final receiptPrinter = _pickReceiptPrinter(printers);
+    if (receiptPrinter != null) {
+      final result = await _printReceipt(document, receiptPrinter);
       if (result != null) {
         results.add(result);
       }
@@ -132,9 +127,12 @@ class PrintServiceImpl implements PrintService {
         .toList(growable: false);
     if (receiptCapable.isEmpty) return null;
 
-    // Prefer the legacy receipt printer type when available.
     for (final p in receiptCapable) {
-      if (p.type == 10) return p;
+      if (p.type == PrinterSettings.localType) return p;
+    }
+
+    for (final p in receiptCapable) {
+      if (p.type == PrinterSettings.kitchenType) return p;
     }
     return receiptCapable.first;
   }

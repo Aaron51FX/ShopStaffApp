@@ -28,6 +28,7 @@ import 'services/pos_card_payment_gateway.dart';
 import 'services/pos_payment_orchestrator.dart';
 import 'services/pos_payment_service_impl.dart';
 import 'services/print_service_impl.dart';
+import 'services/starxpand_printer_discovery_service.dart';
 import 'services/starxpand_native_receipt_printer.dart';
 import 'package:shop_staff/presentations/printing/printing_providers.dart';
 
@@ -112,6 +113,11 @@ final printServiceProvider = Provider<PrintService>((ref) {
 final nativeReceiptPrinterProvider = Provider<NativeReceiptPrinter>(
   (_) => StarXpandNativeReceiptPrinter(),
 );
+
+final starXpandPrinterDiscoveryProvider =
+    Provider<StarXpandPrinterDiscoveryService>(
+      (_) => StarXpandPrinterDiscoveryService(),
+    );
 
 final dialogDrivenQrScannerProvider =
     ChangeNotifierProvider<DialogDrivenQrScannerService>((ref) {

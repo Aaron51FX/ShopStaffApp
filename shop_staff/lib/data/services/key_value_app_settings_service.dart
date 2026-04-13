@@ -8,7 +8,7 @@ import '../../domain/settings/app_settings_models.dart';
 
 class KeyValueAppSettingsService implements AppSettingsService {
   KeyValueAppSettingsService(this._store, {Logger? logger})
-      : _logger = logger ?? Logger('KeyValueAppSettingsService');
+    : _logger = logger ?? Logger('KeyValueAppSettingsService');
 
   final KeyValueStore _store;
   final Logger _logger;
@@ -25,7 +25,11 @@ class KeyValueAppSettingsService implements AppSettingsService {
     final basic = await loadBasicSettings();
     final pos = await loadPosTerminalSettings();
     final printers = await loadPrinterSettings();
-    return AppSettingsSnapshot(basic: basic, posTerminal: pos, printers: printers);
+    return AppSettingsSnapshot(
+      basic: basic,
+      posTerminal: pos,
+      printers: printers,
+    );
   }
 
   @override
@@ -56,10 +60,12 @@ class KeyValueAppSettingsService implements AppSettingsService {
             .whereType<Map<String, dynamic>>()
             .map(PrinterSettings.fromJson)
             .toList();
-        return printers.isEmpty ? PrinterSettings.defaultProfiles() : printers;
+        return PrinterSettings.mergeWithDefaults(printers);
       }
       if (decoded is Map<String, dynamic>) {
-        return [PrinterSettings.fromJson(decoded)];
+        return PrinterSettings.mergeWithDefaults([
+          PrinterSettings.fromJson(decoded),
+        ]);
       }
     } catch (e, stack) {
       _logger.warning('Failed to parse printer settings', e, stack);

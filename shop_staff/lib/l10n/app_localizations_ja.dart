@@ -189,6 +189,64 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsPrinterEmpty => 'プリンターが未設定です。管理画面で追加してください。';
 
   @override
+  String get settingsPrinterKitchenEmpty => 'Wi‑Fi 厨房プリンターは未設定です。';
+
+  @override
+  String get settingsLocalPrinterTitle => 'ローカル印刷';
+
+  @override
+  String get settingsLocalPrinterSubtitle =>
+      'Bluetooth、BLE、USB で Star レシートプリンターを追加します。';
+
+  @override
+  String get settingsLocalPrinterAddAction => 'プリンターを追加';
+
+  @override
+  String get settingsLocalPrinterReplaceAction => 'プリンターを変更';
+
+  @override
+  String get settingsLocalPrinterBrandDialogTitle => 'プリンターブランドを選択';
+
+  @override
+  String get settingsLocalPrinterBrandStar => 'Star';
+
+  @override
+  String get settingsLocalPrinterBrandDefault => 'Default';
+
+  @override
+  String get settingsLocalPrinterBrandDefaultHint =>
+      'Windows システムプリンター。近日対応予定です。';
+
+  @override
+  String get settingsLocalPrinterUnsupportedPlatform =>
+      'Star 検索は iOS と Android のみ対応しています。';
+
+  @override
+  String get settingsLocalPrinterPermissionDenied =>
+      '「付近のデバイス」権限を許可してから再試行してください。';
+
+  @override
+  String get settingsLocalPrinterSearchProgress => 'Star プリンターを検索中…';
+
+  @override
+  String get settingsLocalPrinterSearchEmpty => 'Star プリンターが見つかりませんでした。';
+
+  @override
+  String get settingsLocalPrinterResultsTitle => 'プリンターを選択';
+
+  @override
+  String get settingsLocalPrinterBrandLabel => 'ブランド';
+
+  @override
+  String get settingsLocalPrinterModelLabel => 'モデル';
+
+  @override
+  String get settingsLocalPrinterTransportLabel => '接続方式';
+
+  @override
+  String get settingsLocalPrinterIdentifierLabel => '識別子';
+
+  @override
   String get settingsMachineInfoTitle => '端末識別情報';
 
   @override
@@ -316,6 +374,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsPrinterDefaultTag => 'デフォルト';
+
+  @override
+  String get settingsPrinterTypeLocal => 'ローカル印刷';
 
   @override
   String get settingsPrinterTypeKitchen => '厨房印刷';

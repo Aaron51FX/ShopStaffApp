@@ -82,6 +82,22 @@ internal data class StarxpandPrinterTarget(
     }
 
     companion object {
+        fun discoveryTransports(json: Map<*, *>): List<Transport> {
+            val rawValues = json["transports"] as? List<*> ?: emptyList<Any?>()
+            if (rawValues.isEmpty()) {
+                return listOf(
+                    Transport.Network,
+                    Transport.BluetoothClassic,
+                    Transport.BluetoothLe,
+                    Transport.Usb,
+                )
+            }
+
+            return rawValues.mapNotNull { raw ->
+                Transport.fromWireValue(raw as? String)
+            }
+        }
+
         fun fromJson(json: Map<*, *>): StarxpandPrinterTarget {
             val transport = Transport.fromWireValue(json["transport"] as? String)
                 ?: throw StarxpandPluginException(
@@ -97,6 +113,26 @@ internal data class StarxpandPrinterTarget(
                 modelName = (json["modelName"] as? String)?.nilIfBlank(),
                 autoSwitchInterface = boolValue(json["autoSwitchInterface"]) ?: false,
             )
+        }
+    }
+}
+
+internal data class StarxpandDiscoveredPrinter(
+    val transport: StarxpandPrinterTarget.Transport,
+    val identifier: String,
+    val host: String?,
+    val modelName: String?,
+    val displayName: String?,
+    val connectionInfo: String?,
+) {
+    fun toMap(): Map<String, Any> {
+        return buildMap {
+            put("transport", transport.wireValue)
+            put("identifier", identifier)
+            host?.takeIf { it.isNotBlank() }?.let { put("host", it) }
+            modelName?.takeIf { it.isNotBlank() }?.let { put("modelName", it) }
+            displayName?.takeIf { it.isNotBlank() }?.let { put("displayName", it) }
+            connectionInfo?.takeIf { it.isNotBlank() }?.let { put("connectionInfo", it) }
         }
     }
 }

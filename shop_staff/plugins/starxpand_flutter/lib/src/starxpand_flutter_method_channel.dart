@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 
+import 'models/starxpand_discovered_printer.dart';
 import 'models/starxpand_printer_target.dart';
 
 class StarXpandFlutterMethodChannel {
@@ -19,5 +20,28 @@ class StarXpandFlutterMethodChannel {
       'receiptDocument': receiptDocument,
       'printPlan': printPlan,
     });
+  }
+
+  Future<List<StarXpandDiscoveredPrinter>> discoverPrinters({
+    required List<StarXpandTransport> transports,
+    required int timeoutMs,
+  }) async {
+    final response = await _methodChannel
+        .invokeMethod<List<dynamic>>('discoverPrinters', <String, dynamic>{
+          'transports': transports
+              .map((transport) => transport.wireValue)
+              .toList(),
+          'timeoutMs': timeoutMs,
+        });
+
+    final entries = response ?? const <dynamic>[];
+    return entries
+        .whereType<Map<dynamic, dynamic>>()
+        .map(
+          (entry) => StarXpandDiscoveredPrinter.fromJson(
+            Map<String, dynamic>.from(entry),
+          ),
+        )
+        .toList(growable: false);
   }
 }

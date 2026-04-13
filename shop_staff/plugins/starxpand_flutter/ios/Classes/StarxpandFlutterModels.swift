@@ -7,6 +7,7 @@ enum StarxpandPluginError: LocalizedError {
   case invalidPlan(String)
   case missingAsset(String)
   case unsupportedTransport(String)
+  case missingPermission(String)
   case printerError(String)
 
   var errorDescription: String? {
@@ -16,6 +17,7 @@ enum StarxpandPluginError: LocalizedError {
         .invalidPlan(let message),
         .missingAsset(let message),
         .unsupportedTransport(let message),
+        .missingPermission(let message),
         .printerError(let message):
       return message
     }
@@ -33,6 +35,8 @@ enum StarxpandPluginError: LocalizedError {
       return "missing_asset"
     case .unsupportedTransport:
       return "unsupported_transport"
+    case .missingPermission:
+      return "missing_permission"
     case .printerError:
       return "printer_error"
     }
@@ -47,6 +51,20 @@ struct StarxpandPrinterTarget {
     case usb = "usb"
     case usbC = "usb_c"
     case lightningUsb = "lightning_usb"
+  }
+
+  static func discoveryTransports(json: [String: Any]) -> [Transport] {
+    let rawValues = json["transports"] as? [String] ?? []
+    if rawValues.isEmpty {
+      return [
+        .network,
+        .bluetoothClassic,
+        .bluetoothLe,
+        .lightningUsb
+      ]
+    }
+
+    return rawValues.compactMap(Transport.init(rawValue:))
   }
 
   let transport: Transport
@@ -112,6 +130,35 @@ struct StarxpandPrinterTarget {
       identifier: resolved,
       autoSwitchInterface: autoSwitchInterface
     )
+  }
+}
+
+struct StarxpandDiscoveredPrinter {
+  let transport: StarxpandPrinterTarget.Transport
+  let identifier: String
+  let host: String?
+  let modelName: String?
+  let displayName: String?
+  let connectionInfo: String?
+
+  var dictionary: [String: Any] {
+    var payload: [String: Any] = [
+      "transport": transport.rawValue,
+      "identifier": identifier
+    ]
+    if let host, !host.isEmpty {
+      payload["host"] = host
+    }
+    if let modelName, !modelName.isEmpty {
+      payload["modelName"] = modelName
+    }
+    if let displayName, !displayName.isEmpty {
+      payload["displayName"] = displayName
+    }
+    if let connectionInfo, !connectionInfo.isEmpty {
+      payload["connectionInfo"] = connectionInfo
+    }
+    return payload
   }
 }
 

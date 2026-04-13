@@ -37,5 +37,43 @@ void main() {
       expect(decoded.usesWidgetRaster, isTrue);
       expect(decoded.requiresNetworkEndpoint, isTrue);
     });
+
+    test('default profiles include the local printer slot', () {
+      final profiles = PrinterSettings.defaultProfiles();
+      final localPrinter = profiles.firstWhere(
+        (printer) => printer.type == PrinterSettings.localType,
+      );
+
+      expect(localPrinter.backend, PrinterBackend.starXpandNative);
+      expect(localPrinter.connectionType, PrinterConnectionType.unknown);
+      expect(localPrinter.isOn, isFalse);
+    });
+
+    test(
+      'mergeWithDefaults injects the local printer into legacy settings',
+      () {
+        final merged =
+            PrinterSettings.mergeWithDefaults(const <PrinterSettings>[
+              PrinterSettings(
+                name: 'Kitchen',
+                type: PrinterSettings.kitchenType,
+                backend: PrinterBackend.widgetRaster,
+                connectionType: PrinterConnectionType.network,
+                printIp: '192.168.1.20',
+              ),
+            ]);
+
+        expect(
+          merged.any((printer) => printer.type == PrinterSettings.localType),
+          isTrue,
+        );
+        expect(
+          merged.where(
+            (printer) => printer.type == PrinterSettings.kitchenType,
+          ),
+          hasLength(2),
+        );
+      },
+    );
   });
 }

@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
+import 'package:starxpand_flutter/starxpand_flutter.dart';
 import '../../../core/app_role.dart';
 import '../../../data/providers.dart';
 
@@ -51,53 +54,54 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         body: SafeArea(
           top: false,
           child: Row(
-          children: [
-            _SettingsSidebar(
-              selected: state.selected,
-              onSelect: vm.select,
-              t: t,
-            ),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(color: theme.colorScheme.surface),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _SettingsHeader(
-                      section: state.selected,
-                      loading: state.loading,
-                      onRefresh: vm.refreshSettings,
-                      t: t,
-                    ),
-                    if (state.error != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: _ErrorBanner(
-                          message: _localizeSettingsError(t, state),
-                          onDismissed: vm.clearError,
+            children: [
+              _SettingsSidebar(
+                selected: state.selected,
+                onSelect: vm.select,
+                t: t,
+              ),
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(color: theme.colorScheme.surface),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _SettingsHeader(
+                        section: state.selected,
+                        loading: state.loading,
+                        onRefresh: vm.refreshSettings,
+                        t: t,
+                      ),
+                      if (state.error != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: _ErrorBanner(
+                            message: _localizeSettingsError(t, state),
+                            onDismissed: vm.clearError,
+                          ),
+                        ),
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 280),
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          child: _SettingsContent(
+                            key: ValueKey(state.selected),
+                            state: state,
+                            onRefresh: vm.refreshSettings,
+                            t: t,
+                          ),
                         ),
                       ),
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 280),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        child: _SettingsContent(
-                          key: ValueKey(state.selected),
-                          state: state,
-                          onRefresh: vm.refreshSettings,
-                          t: t,
-                        ),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 
   String _localizeSettingsError(AppLocalizations t, SettingsState state) {
@@ -429,12 +433,18 @@ class _SystemSettingsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final pos = state.snapshot.posTerminal;
     final printers = state.snapshot.printers;
+    final localPrinter = _resolveLocalPrinter(printers);
+    final kitchenPrinters = printers
+        .where((printer) => printer.type != PrinterSettings.localType)
+        .toList(growable: false);
     final basic = state.snapshot.basic;
     final selectedLocale = ref.watch(localeControllerProvider);
     final controller = ref.read(localeControllerProvider.notifier);
     final vm = ref.read(settingsViewModelProvider.notifier);
     final cashCheckState = ref.watch(cashMachineCheckControllerProvider);
-    final cashCheckController = ref.read(cashMachineCheckControllerProvider.notifier);
+    final cashCheckController = ref.read(
+      cashMachineCheckControllerProvider.notifier,
+    );
     final currentRole = ref.watch(appRoleProvider);
 
     Future<void> onRoleSelected(AppRole target) async {
@@ -484,25 +494,19 @@ class _SystemSettingsView extends ConsumerWidget {
           subtitle: t.settingsRoleSelectionSubtitle,
           trailing: Switch.adaptive(
             value: basic.peerLinkEnabled,
-            onChanged: (enabled) => vm.saveBasicSettings(
-              basic.copyWith(peerLinkEnabled: enabled),
-            ),
+            onChanged: (enabled) =>
+                vm.saveBasicSettings(basic.copyWith(peerLinkEnabled: enabled)),
           ),
           children: [
-            _RoleSelector(
-              current: currentRole,
-              onSelect: onRoleSelected,
-              t: t,
-            ),
+            _RoleSelector(current: currentRole, onSelect: onRoleSelected, t: t),
             const SizedBox(height: 10),
             Text(
               t.settingsRoleSelectionDescription,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.68),
-                  ),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.68),
+              ),
             ),
           ],
         ),
@@ -521,25 +525,25 @@ class _SystemSettingsView extends ConsumerWidget {
               label: t.settingsCashStatusLabel,
               value: cashCheckState.isSupported
                   ? (cashCheckState.isEnabled
-                      ? t.settingsCashEnabled
-                      : t.settingsCashDisabled)
+                        ? t.settingsCashEnabled
+                        : t.settingsCashDisabled)
                   : t.settingsCashNotSupported,
             ),
             if (cashCheckState.lastError != null) ...[
               const SizedBox(height: 8),
               Text(
                 t.settingsCashLastCheckFailed(cashCheckState.lastError!),
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.redAccent),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.redAccent),
               ),
             ],
             const SizedBox(height: 12),
             Row(
               children: [
                 FilledButton.icon(
-                  onPressed: (!cashCheckState.isSupported || cashCheckState.isChecking)
+                  onPressed:
+                      (!cashCheckState.isSupported || cashCheckState.isChecking)
                       ? null
                       : () => cashCheckController.start(auto: false),
                   icon: cashCheckState.isChecking
@@ -567,13 +571,13 @@ class _SystemSettingsView extends ConsumerWidget {
           ],
         ),
 
-                _SectionCard(
-                  title: t.settingsPosNetworkTitle,
-                  subtitle: t.settingsPosNetworkSubtitle,
+        _SectionCard(
+          title: t.settingsPosNetworkTitle,
+          subtitle: t.settingsPosNetworkSubtitle,
           children: [
             _InfoRow(
               icon: Icons.language_rounded,
-                      label: t.settingsPosIpLabel,
+              label: t.settingsPosIpLabel,
               value: _displayValue(t, pos.posIp),
               editLabel: t.settingsEditAction,
               onEdit: () async {
@@ -633,12 +637,17 @@ class _SystemSettingsView extends ConsumerWidget {
         _SectionCard(
           title: t.settingsPrinterConfigTitle,
           subtitle: t.settingsPrinterConfigSubtitle,
-          children: printers.isEmpty
-              ? [_EmptyPlaceholder(message: t.settingsPrinterEmpty)]
-              : [_PrinterGrid(printers: printers)],
+          children: [
+            _LocalPrinterTile(printer: localPrinter),
+            const SizedBox(height: 16),
+            if (kitchenPrinters.isEmpty)
+              _EmptyPlaceholder(message: t.settingsPrinterKitchenEmpty)
+            else
+              _PrinterGrid(printers: kitchenPrinters),
+          ],
         ),
 
-                _SectionCard(
+        _SectionCard(
           title: t.settingsLanguageSectionTitle,
           subtitle: t.settingsLanguageSectionSubtitle,
           children: [
@@ -677,7 +686,11 @@ class _SystemSettingsView extends ConsumerWidget {
 }
 
 class _RoleSelector extends StatelessWidget {
-  const _RoleSelector({required this.current, required this.onSelect, required this.t});
+  const _RoleSelector({
+    required this.current,
+    required this.onSelect,
+    required this.t,
+  });
 
   final AppRole current;
   final Future<void> Function(AppRole role) onSelect;
@@ -691,8 +704,12 @@ class _RoleSelector extends StatelessWidget {
       runSpacing: 10,
       children: AppRole.values.map((role) {
         final active = role == current;
-        final label = role == AppRole.staff ? t.peerLabelStaff : t.peerLabelCustomer;
-        final icon = role == AppRole.staff ? Icons.badge_rounded : Icons.tv_rounded;
+        final label = role == AppRole.staff
+            ? t.peerLabelStaff
+            : t.peerLabelCustomer;
+        final icon = role == AppRole.staff
+            ? Icons.badge_rounded
+            : Icons.tv_rounded;
         final color = active
             ? theme.colorScheme.primary
             : theme.colorScheme.onSurface.withValues(alpha: 0.64);
@@ -714,9 +731,12 @@ class _RoleSelector extends StatelessWidget {
               ),
             ],
           ),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          backgroundColor:
-              theme.colorScheme.surfaceVariant.withValues(alpha: 0.32),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          backgroundColor: theme.colorScheme.surfaceVariant.withValues(
+            alpha: 0.32,
+          ),
           selectedColor: theme.colorScheme.primary.withValues(alpha: 0.16),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         );
@@ -877,8 +897,14 @@ class _MachineInfoView extends StatelessWidget {
     final features = <_FeatureChipData>[
       _FeatureChipData(t.settingsFeatureOnlineCall, shop?.onlineCall ?? false),
       _FeatureChipData(t.settingsFeatureTaxSystem, shop?.taxSystem ?? false),
-      _FeatureChipData(t.settingsFeatureDynamicCode, shop?.dynamicCode ?? false),
-      _FeatureChipData(t.settingsFeatureMultiplayer, shop?.multiplayer ?? false),
+      _FeatureChipData(
+        t.settingsFeatureDynamicCode,
+        shop?.dynamicCode ?? false,
+      ),
+      _FeatureChipData(
+        t.settingsFeatureMultiplayer,
+        shop?.multiplayer ?? false,
+      ),
     ];
 
     return _RefreshableScroll(
@@ -1097,6 +1123,462 @@ const Map<String, String> _labelPrintSize = {
   '50x50': '375x375',
   '40x50': '300x375',
 };
+
+enum _LocalPrinterBrand { star }
+
+class _LocalPrinterTile extends ConsumerStatefulWidget {
+  const _LocalPrinterTile({required this.printer});
+
+  final PrinterSettings printer;
+
+  @override
+  ConsumerState<_LocalPrinterTile> createState() => _LocalPrinterTileState();
+}
+
+class _LocalPrinterTileState extends ConsumerState<_LocalPrinterTile> {
+  bool _busy = false;
+
+  bool get _isConfigured {
+    final printer = widget.printer;
+    return printer.usesNativeSdk &&
+        ((printer.deviceIdentifier?.trim().isNotEmpty ?? false) ||
+            (printer.printIp?.trim().isNotEmpty ?? false));
+  }
+
+  Future<void> _setPrinterEnabled(bool value) async {
+    if (!_isConfigured) {
+      return;
+    }
+    await ref
+        .read(settingsViewModelProvider.notifier)
+        .savePrinter(widget.printer.copyWith(isOn: value));
+  }
+
+  Future<void> _startAddFlow() async {
+    if (_busy) {
+      return;
+    }
+
+    final t = AppLocalizations.of(context);
+    final brand = await _pickBrand();
+    if (!mounted || brand != _LocalPrinterBrand.star) {
+      return;
+    }
+
+    final discovery = ref.read(starXpandPrinterDiscoveryProvider);
+    if (!discovery.isSupportedPlatform) {
+      await _showMessageDialog(
+        title: t.settingsLocalPrinterBrandDialogTitle,
+        message: t.settingsLocalPrinterUnsupportedPlatform,
+      );
+      return;
+    }
+
+    final permissionMessage = await _ensureDiscoveryPermissions(t);
+    if (!mounted) {
+      return;
+    }
+    if (permissionMessage != null) {
+      await _showMessageDialog(
+        title: t.settingsLocalPrinterBrandDialogTitle,
+        message: permissionMessage,
+      );
+      return;
+    }
+
+    setState(() {
+      _busy = true;
+    });
+
+    _showProgressDialog();
+
+    try {
+      final printers = await discovery.discoverLocalPrinters();
+      if (!mounted) {
+        return;
+      }
+
+      Navigator.of(context, rootNavigator: true).pop();
+
+      if (printers.isEmpty) {
+        await _showMessageDialog(
+          title: AppLocalizations.of(context).settingsLocalPrinterResultsTitle,
+          message: AppLocalizations.of(context).settingsLocalPrinterSearchEmpty,
+        );
+        return;
+      }
+
+      final selected = await _pickDiscoveredPrinter(printers);
+      if (selected == null || !mounted) {
+        return;
+      }
+
+      await ref
+          .read(settingsViewModelProvider.notifier)
+          .savePrinter(_mapToLocalPrinter(widget.printer, selected));
+    } catch (error) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        await _showMessageDialog(
+          title: AppLocalizations.of(context).settingsLocalPrinterResultsTitle,
+          message: error.toString(),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+        });
+      }
+    }
+  }
+
+  Future<_LocalPrinterBrand?> _pickBrand() {
+    final t = AppLocalizations.of(context);
+    final supportsStar = ref
+        .read(starXpandPrinterDiscoveryProvider)
+        .isSupportedPlatform;
+
+    return showDialog<_LocalPrinterBrand>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(t.settingsLocalPrinterBrandDialogTitle),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.print_rounded),
+                title: Text(t.settingsLocalPrinterBrandStar),
+                subtitle: Text(
+                  supportsStar
+                      ? t.settingsLocalPrinterSubtitle
+                      : t.settingsLocalPrinterUnsupportedPlatform,
+                ),
+                enabled: supportsStar,
+                onTap: supportsStar
+                    ? () => Navigator.of(
+                        dialogContext,
+                      ).pop(_LocalPrinterBrand.star)
+                    : null,
+              ),
+              const SizedBox(height: 8),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.desktop_windows_outlined),
+                title: Text(t.settingsLocalPrinterBrandDefault),
+                subtitle: Text(t.settingsLocalPrinterBrandDefaultHint),
+                enabled: false,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(t.dialogCancel),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<StarXpandDiscoveredPrinter?> _pickDiscoveredPrinter(
+    List<StarXpandDiscoveredPrinter> printers,
+  ) {
+    final t = AppLocalizations.of(context);
+    StarXpandDiscoveredPrinter? selected = printers.first;
+
+    return showDialog<StarXpandDiscoveredPrinter>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(t.settingsLocalPrinterResultsTitle),
+              content: SizedBox(
+                width: 520,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      for (final printer in printers)
+                        ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: Icon(
+                            selected == printer
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                          ),
+                          onTap: () {
+                            setState(() {
+                              selected = printer;
+                            });
+                          },
+                          title: Text(
+                            printer.displayName ??
+                                printer.modelName ??
+                                printer.identifier,
+                          ),
+                          subtitle: Text(
+                            [
+                              _connectionTypeLabel(
+                                t,
+                                _connectionTypeFromTransport(printer.transport),
+                              ),
+                              if ((printer.connectionInfo ?? '')
+                                  .trim()
+                                  .isNotEmpty)
+                                printer.connectionInfo!.trim(),
+                              printer.identifier,
+                            ].join(' · '),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(t.dialogCancel),
+                ),
+                FilledButton(
+                  onPressed: selected == null
+                      ? null
+                      : () => Navigator.of(dialogContext).pop(selected),
+                  child: Text(t.dialogConfirm),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showProgressDialog() {
+    final t = AppLocalizations.of(context);
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 16),
+              Expanded(child: Text(t.settingsLocalPrinterSearchProgress)),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showMessageDialog({
+    required String title,
+    required String message,
+  }) {
+    final t = AppLocalizations.of(context);
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(t.dialogConfirm),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<String?> _ensureDiscoveryPermissions(AppLocalizations t) async {
+    if (defaultTargetPlatform != TargetPlatform.android) {
+      return null;
+    }
+
+    final statuses = await <Permission>[
+      Permission.bluetoothConnect,
+      Permission.bluetoothScan,
+    ].request();
+    final denied = statuses.values
+        .where((status) => !status.isGranted)
+        .toList();
+
+    if (denied.isEmpty) {
+      return null;
+    }
+
+    return t.settingsLocalPrinterPermissionDenied;
+  }
+
+  PrinterSettings _mapToLocalPrinter(
+    PrinterSettings current,
+    StarXpandDiscoveredPrinter printer,
+  ) {
+    final connectionType = _connectionTypeFromTransport(printer.transport);
+    return PrinterSettings(
+      name: 'Star',
+      type: PrinterSettings.localType,
+      backend: PrinterBackend.starXpandNative,
+      connectionType: connectionType,
+      receipt: current.receipt,
+      labelSize: current.labelSize,
+      continuous: current.continuous,
+      isOn: true,
+      isDefault: true,
+      printIp: printer.host,
+      printPort: connectionType == PrinterConnectionType.network
+          ? '9100'
+          : null,
+      deviceIdentifier: printer.identifier,
+      modelName: printer.modelName ?? printer.displayName,
+      option: current.option,
+      direction: current.direction,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final printer = widget.printer;
+    final theme = Theme.of(context);
+    final t = AppLocalizations.of(context);
+    final brandLabel = printer.name.trim().isEmpty
+        ? t.settingsValueNotSet
+        : printer.name.trim();
+    final modelLabel = _displayValue(t, printer.modelName);
+    final identifierValue = _displayValue(
+      t,
+      (printer.deviceIdentifier?.trim().isNotEmpty ?? false)
+          ? printer.deviceIdentifier
+          : printer.printIp,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      t.settingsLocalPrinterTitle,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      t.settingsLocalPrinterSubtitle,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.7,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      children: [
+                        _Tag(
+                          icon: Icons.smartphone_rounded,
+                          label: t.settingsPrinterTypeLocal,
+                        ),
+                        if (_isConfigured)
+                          _Tag(icon: Icons.sell_outlined, label: brandLabel),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: _isConfigured && printer.isOn,
+                onChanged: (!_isConfigured || _busy)
+                    ? null
+                    : (value) => _setPrinterEnabled(value),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Divider(color: theme.dividerColor.withValues(alpha: 0.1)),
+          if (_isConfigured) ...[
+            _InfoRow(
+              icon: Icons.sell_outlined,
+              label: t.settingsLocalPrinterBrandLabel,
+              value: brandLabel,
+            ),
+            _InfoRow(
+              icon: Icons.print_rounded,
+              label: t.settingsLocalPrinterModelLabel,
+              value: modelLabel,
+            ),
+            _InfoRow(
+              icon: Icons.usb_rounded,
+              label: t.settingsLocalPrinterTransportLabel,
+              value: _connectionTypeLabel(t, printer.connectionType),
+            ),
+            _InfoRow(
+              icon: Icons.pin_outlined,
+              label: t.settingsLocalPrinterIdentifierLabel,
+              value: identifierValue,
+            ),
+          ] else
+            _EmptyPlaceholder(message: t.settingsValueNotSet),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: FilledButton.icon(
+              onPressed: _busy ? null : () => _startAddFlow(),
+              icon: _busy
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      _isConfigured ? Icons.sync_rounded : Icons.add_rounded,
+                    ),
+              label: Text(
+                _isConfigured
+                    ? t.settingsLocalPrinterReplaceAction
+                    : t.settingsLocalPrinterAddAction,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _PrinterGrid extends StatelessWidget {
   const _PrinterGrid({required this.printers});
@@ -1568,13 +2050,68 @@ String _displayValue(AppLocalizations t, String? value) {
 
 String _printerType(AppLocalizations t, int type) {
   switch (type) {
-    case 10:
+    case PrinterSettings.localType:
+      return t.settingsPrinterTypeLocal;
+    case PrinterSettings.kitchenType:
       return t.settingsPrinterTypeKitchen;
-    case 11:
+    case PrinterSettings.centerType:
       return t.settingsPrinterTypeCenter;
-    case 12:
+    case PrinterSettings.counterType:
       return t.settingsPrinterTypeFront;
     default:
       return t.settingsPrinterTypeUnknown(type.toString());
   }
+}
+
+String _connectionTypeLabel(
+  AppLocalizations t,
+  PrinterConnectionType connectionType,
+) {
+  switch (connectionType) {
+    case PrinterConnectionType.network:
+      return 'Wi-Fi';
+    case PrinterConnectionType.bluetoothClassic:
+      return 'Bluetooth';
+    case PrinterConnectionType.bluetoothLe:
+      return 'Bluetooth LE';
+    case PrinterConnectionType.usb:
+      return 'USB';
+    case PrinterConnectionType.usbC:
+      return 'USB-C';
+    case PrinterConnectionType.lightningUsb:
+      return 'Lightning USB';
+    case PrinterConnectionType.unknown:
+      return t.settingsValueNotSet;
+  }
+}
+
+PrinterConnectionType _connectionTypeFromTransport(
+  StarXpandTransport transport,
+) {
+  switch (transport) {
+    case StarXpandTransport.network:
+      return PrinterConnectionType.network;
+    case StarXpandTransport.bluetoothClassic:
+      return PrinterConnectionType.bluetoothClassic;
+    case StarXpandTransport.bluetoothLe:
+      return PrinterConnectionType.bluetoothLe;
+    case StarXpandTransport.usb:
+      return PrinterConnectionType.usb;
+    case StarXpandTransport.usbC:
+      return PrinterConnectionType.usbC;
+    case StarXpandTransport.lightningUsb:
+      return PrinterConnectionType.lightningUsb;
+  }
+}
+
+PrinterSettings _resolveLocalPrinter(List<PrinterSettings> printers) {
+  for (final printer in printers) {
+    if (printer.type == PrinterSettings.localType && printer.receipt) {
+      return printer;
+    }
+  }
+
+  return PrinterSettings.defaultProfiles().firstWhere(
+    (printer) => printer.type == PrinterSettings.localType && printer.receipt,
+  );
 }

@@ -21,7 +21,7 @@ void main() {
         final printers = <PrinterSettings>[
           const PrinterSettings(
             name: 'Star BLE',
-            type: 10,
+            type: 0,
             backend: PrinterBackend.starXpandNative,
             connectionType: PrinterConnectionType.bluetoothLe,
             isOn: true,
@@ -63,7 +63,7 @@ void main() {
           printers: const <PrinterSettings>[
             PrinterSettings(
               name: 'Broken Star BLE',
-              type: 10,
+              type: 0,
               backend: PrinterBackend.starXpandNative,
               connectionType: PrinterConnectionType.bluetoothLe,
               isOn: true,
@@ -75,6 +75,43 @@ void main() {
         expect(nativePrinter.calls, isEmpty);
       },
     );
+
+    test('prefers the local printer over legacy receipt printers', () async {
+      final nativePrinter = _FakeNativeReceiptPrinter();
+      final service = PrintServiceImpl(
+        renderer: _ThrowingReceiptRenderer(),
+        nativeReceiptPrinter: nativePrinter,
+      );
+
+      final printers = <PrinterSettings>[
+        const PrinterSettings(
+          name: 'Legacy Receipt',
+          type: 10,
+          backend: PrinterBackend.widgetRaster,
+          connectionType: PrinterConnectionType.network,
+          isOn: true,
+          printIp: '192.168.1.20',
+          printPort: '9100',
+        ),
+        const PrinterSettings(
+          name: 'Star BLE',
+          type: 0,
+          backend: PrinterBackend.starXpandNative,
+          connectionType: PrinterConnectionType.bluetoothLe,
+          isOn: true,
+          deviceIdentifier: 'BLE:STAR:002',
+        ),
+      ];
+
+      final results = await service.enqueueReceiptJobs(
+        document: _sampleDocument(),
+        printers: printers,
+      );
+
+      expect(results, hasLength(1));
+      expect(nativePrinter.calls, hasLength(1));
+      expect(nativePrinter.calls.single.printer.type, 0);
+    });
   });
 }
 
