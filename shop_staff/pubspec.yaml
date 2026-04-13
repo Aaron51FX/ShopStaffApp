@@ -62,6 +62,8 @@ dependencies:
   flutter_screenutil: ^5.9.3
   multipeer_session:
     path: plugins/multipeer_session
+  starxpand_flutter:
+    path: plugins/starxpand_flutter
   cash_changer: 
     path: plugins/cash_changer
   auto_size_text: ^3.0.0

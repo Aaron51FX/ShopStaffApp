@@ -1,5 +1,78 @@
 import 'package:flutter/foundation.dart';
 
+enum PrinterBackend { widgetRaster, starXpandNative }
+
+enum PrinterConnectionType {
+  network,
+  bluetoothClassic,
+  bluetoothLe,
+  usb,
+  usbC,
+  lightningUsb,
+  unknown,
+}
+
+extension PrinterBackendX on PrinterBackend {
+  String get wireValue {
+    switch (this) {
+      case PrinterBackend.widgetRaster:
+        return 'widget_raster';
+      case PrinterBackend.starXpandNative:
+        return 'starxpand_native';
+    }
+  }
+
+  static PrinterBackend fromWireValue(String? raw) {
+    switch (raw) {
+      case 'starxpand_native':
+        return PrinterBackend.starXpandNative;
+      case 'widget_raster':
+      default:
+        return PrinterBackend.widgetRaster;
+    }
+  }
+}
+
+extension PrinterConnectionTypeX on PrinterConnectionType {
+  String get wireValue {
+    switch (this) {
+      case PrinterConnectionType.network:
+        return 'network';
+      case PrinterConnectionType.bluetoothClassic:
+        return 'bluetooth_classic';
+      case PrinterConnectionType.bluetoothLe:
+        return 'bluetooth_le';
+      case PrinterConnectionType.usb:
+        return 'usb';
+      case PrinterConnectionType.usbC:
+        return 'usb_c';
+      case PrinterConnectionType.lightningUsb:
+        return 'lightning_usb';
+      case PrinterConnectionType.unknown:
+        return 'unknown';
+    }
+  }
+
+  static PrinterConnectionType fromWireValue(String? raw) {
+    switch (raw) {
+      case 'bluetooth_classic':
+        return PrinterConnectionType.bluetoothClassic;
+      case 'bluetooth_le':
+        return PrinterConnectionType.bluetoothLe;
+      case 'usb':
+        return PrinterConnectionType.usb;
+      case 'usb_c':
+        return PrinterConnectionType.usbC;
+      case 'lightning_usb':
+        return PrinterConnectionType.lightningUsb;
+      case 'network':
+        return PrinterConnectionType.network;
+      default:
+        return PrinterConnectionType.unknown;
+    }
+  }
+}
+
 @immutable
 class BasicSettings {
   const BasicSettings({
@@ -67,18 +140,12 @@ class BasicSettings {
 
 @immutable
 class PosTerminalSettings {
-  const PosTerminalSettings({
-    this.posIp,
-    this.posPort,
-  });
+  const PosTerminalSettings({this.posIp, this.posPort});
 
   final String? posIp;
   final int? posPort;
 
-  PosTerminalSettings copyWith({
-    String? posIp,
-    int? posPort,
-  }) {
+  PosTerminalSettings copyWith({String? posIp, int? posPort}) {
     return PosTerminalSettings(
       posIp: posIp ?? this.posIp,
       posPort: posPort ?? this.posPort,
@@ -86,10 +153,8 @@ class PosTerminalSettings {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'posIp': posIp,
-      'posPort': posPort,
-    }..removeWhere((key, value) => value == null);
+    return {'posIp': posIp, 'posPort': posPort}
+      ..removeWhere((key, value) => value == null);
   }
 
   factory PosTerminalSettings.fromJson(Map<String, dynamic> json) {
@@ -105,6 +170,8 @@ class PrinterSettings {
   const PrinterSettings({
     required this.name,
     required this.type,
+    this.backend = PrinterBackend.widgetRaster,
+    this.connectionType = PrinterConnectionType.network,
     this.receipt = true,
     this.labelSize = '',
     this.continuous = false,
@@ -112,12 +179,16 @@ class PrinterSettings {
     this.isDefault = true,
     this.printIp,
     this.printPort,
+    this.deviceIdentifier,
+    this.modelName,
     this.option = false,
     this.direction = true,
   });
 
   final String name;
   final int type;
+  final PrinterBackend backend;
+  final PrinterConnectionType connectionType;
   final bool receipt;
   final String labelSize;
   final bool continuous;
@@ -125,12 +196,26 @@ class PrinterSettings {
   final bool isDefault;
   final String? printIp;
   final String? printPort;
+  final String? deviceIdentifier;
+  final String? modelName;
   final bool option;
   final bool direction;
+
+  bool get usesWidgetRaster => backend == PrinterBackend.widgetRaster;
+
+  bool get usesNativeSdk => backend == PrinterBackend.starXpandNative;
+
+  bool get requiresNetworkEndpoint =>
+      usesWidgetRaster || connectionType == PrinterConnectionType.network;
+
+  bool get requiresDeviceIdentifier =>
+      usesNativeSdk && connectionType != PrinterConnectionType.network;
 
   PrinterSettings copyWith({
     String? name,
     int? type,
+    PrinterBackend? backend,
+    PrinterConnectionType? connectionType,
     bool? receipt,
     String? labelSize,
     bool? continuous,
@@ -138,12 +223,16 @@ class PrinterSettings {
     bool? isDefault,
     String? printIp,
     String? printPort,
+    String? deviceIdentifier,
+    String? modelName,
     bool? option,
     bool? direction,
   }) {
     return PrinterSettings(
       name: name ?? this.name,
       type: type ?? this.type,
+      backend: backend ?? this.backend,
+      connectionType: connectionType ?? this.connectionType,
       receipt: receipt ?? this.receipt,
       labelSize: labelSize ?? this.labelSize,
       continuous: continuous ?? this.continuous,
@@ -151,6 +240,8 @@ class PrinterSettings {
       isDefault: isDefault ?? this.isDefault,
       printIp: printIp ?? this.printIp,
       printPort: printPort ?? this.printPort,
+      deviceIdentifier: deviceIdentifier ?? this.deviceIdentifier,
+      modelName: modelName ?? this.modelName,
       option: option ?? this.option,
       direction: direction ?? this.direction,
     );
@@ -160,6 +251,8 @@ class PrinterSettings {
     return {
       'name': name,
       'type': type,
+      'backend': backend.wireValue,
+      'connectionType': connectionType.wireValue,
       'receipt': receipt,
       'labelSize': labelSize,
       'continuous': continuous,
@@ -167,15 +260,29 @@ class PrinterSettings {
       'isDefault': isDefault,
       'printIp': printIp,
       'printPort': printPort,
+      'deviceIdentifier': deviceIdentifier,
+      'modelName': modelName,
       'option': option,
       'direction': direction,
     }..removeWhere((key, value) => value == null);
   }
 
   factory PrinterSettings.fromJson(Map<String, dynamic> json) {
+    final backend = PrinterBackendX.fromWireValue(json['backend'] as String?);
+    final rawConnectionType = PrinterConnectionTypeX.fromWireValue(
+      json['connectionType'] as String?,
+    );
+    final resolvedConnectionType =
+        rawConnectionType == PrinterConnectionType.unknown &&
+            backend == PrinterBackend.widgetRaster
+        ? PrinterConnectionType.network
+        : rawConnectionType;
+
     return PrinterSettings(
       name: json['name'] as String? ?? '',
       type: _readInt(json['type']) ?? 0,
+      backend: backend,
+      connectionType: resolvedConnectionType,
       receipt: _readBool(json['receipt']) ?? true,
       labelSize: json['labelSize'] as String? ?? '',
       continuous: _readBool(json['continuous']) ?? false,
@@ -183,6 +290,8 @@ class PrinterSettings {
       isDefault: _readBool(json['isDefault']) ?? false,
       printIp: json['printIp'] as String?,
       printPort: json['printPort']?.toString(),
+      deviceIdentifier: json['deviceIdentifier'] as String?,
+      modelName: json['modelName'] as String?,
       option: _readBool(json['option']) ?? false,
       direction: _readBool(json['direction']) ?? true,
     );
@@ -193,6 +302,8 @@ class PrinterSettings {
       PrinterSettings(
         name: 'キッチン',
         type: 10,
+        backend: PrinterBackend.widgetRaster,
+        connectionType: PrinterConnectionType.network,
         receipt: true,
         labelSize: '',
         continuous: false,
@@ -206,6 +317,8 @@ class PrinterSettings {
       PrinterSettings(
         name: 'キッチン (ラベル)',
         type: 10,
+        backend: PrinterBackend.widgetRaster,
+        connectionType: PrinterConnectionType.network,
         receipt: false,
         labelSize: '',
         continuous: false,
@@ -219,6 +332,8 @@ class PrinterSettings {
       PrinterSettings(
         name: 'センター',
         type: 11,
+        backend: PrinterBackend.widgetRaster,
+        connectionType: PrinterConnectionType.network,
         receipt: true,
         labelSize: '',
         continuous: false,
@@ -232,6 +347,8 @@ class PrinterSettings {
       PrinterSettings(
         name: 'カウンター',
         type: 12,
+        backend: PrinterBackend.widgetRaster,
+        connectionType: PrinterConnectionType.network,
         receipt: true,
         labelSize: '',
         continuous: false,

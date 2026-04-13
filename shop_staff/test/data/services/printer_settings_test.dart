@@ -1,0 +1,41 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shop_staff/domain/settings/app_settings_models.dart';
+
+void main() {
+  group('PrinterSettings', () {
+    test('preserves backend and connection type across json', () {
+      const settings = PrinterSettings(
+        name: 'Star Front',
+        type: 12,
+        backend: PrinterBackend.starXpandNative,
+        connectionType: PrinterConnectionType.bluetoothLe,
+        isOn: true,
+        deviceIdentifier: 'STAR-123',
+        modelName: 'mC-Print3',
+      );
+
+      final decoded = PrinterSettings.fromJson(settings.toJson());
+
+      expect(decoded.backend, PrinterBackend.starXpandNative);
+      expect(decoded.connectionType, PrinterConnectionType.bluetoothLe);
+      expect(decoded.deviceIdentifier, 'STAR-123');
+      expect(decoded.modelName, 'mC-Print3');
+      expect(decoded.usesNativeSdk, isTrue);
+      expect(decoded.requiresDeviceIdentifier, isTrue);
+    });
+
+    test('defaults legacy printers to widget raster network mode', () {
+      final decoded = PrinterSettings.fromJson(<String, dynamic>{
+        'name': 'Legacy Receipt',
+        'type': 10,
+        'printIp': '192.168.0.99',
+        'printPort': '9100',
+      });
+
+      expect(decoded.backend, PrinterBackend.widgetRaster);
+      expect(decoded.connectionType, PrinterConnectionType.network);
+      expect(decoded.usesWidgetRaster, isTrue);
+      expect(decoded.requiresNetworkEndpoint, isTrue);
+    });
+  });
+}
