@@ -28,6 +28,7 @@ import 'services/pos_card_payment_gateway.dart';
 import 'services/pos_payment_orchestrator.dart';
 import 'services/pos_payment_service_impl.dart';
 import 'services/print_service_impl.dart';
+import 'services/starxpand_native_receipt_printer.dart';
 import 'package:shop_staff/presentations/printing/printing_providers.dart';
 
 // Public repository interfaces
@@ -37,6 +38,7 @@ import '../domain/payments/payment_models.dart';
 import '../domain/services/pos_payment_service.dart';
 import '../domain/services/payment_orchestrator.dart';
 import '../domain/services/print_service.dart';
+import '../domain/services/native_receipt_printer.dart';
 import '../domain/services/app_settings_service.dart';
 import '../domain/services/app_role_service.dart';
 import '../domain/services/startup_service.dart';
@@ -47,9 +49,13 @@ import 'repositories_impl/print_repository_impl.dart';
 import '../domain/repositories/print_repository.dart';
 
 // Environment / Config provider (can later be overridden in tests)
-final appEnvironmentProvider = Provider<AppEnvironment>((_) => AppEnvironment.production);
+final appEnvironmentProvider = Provider<AppEnvironment>(
+  (_) => AppEnvironment.production,
+);
 
-final appConfigProvider = Provider<AppConfig>((ref) => AppConfig.forEnv(ref.watch(appEnvironmentProvider)));
+final appConfigProvider = Provider<AppConfig>(
+  (ref) => AppConfig.forEnv(ref.watch(appEnvironmentProvider)),
+);
 
 // Core shared HTTP client
 final dioClientProvider = Provider<DioClient>((ref) {
@@ -97,14 +103,24 @@ final printRepositoryProvider = Provider<PrintRepository>((ref) {
 
 final printServiceProvider = Provider<PrintService>((ref) {
   final renderer = ref.watch(receiptRendererProvider);
-  return PrintServiceImpl(renderer: renderer);
+  return PrintServiceImpl(
+    renderer: renderer,
+    nativeReceiptPrinter: ref.watch(nativeReceiptPrinterProvider),
+  );
 });
 
-final dialogDrivenQrScannerProvider = ChangeNotifierProvider<DialogDrivenQrScannerService>((ref) {
-  final service = DialogDrivenQrScannerService(logger: Logger('QrScannerService'));
-  ref.onDispose(service.dispose);
-  return service;
-});
+final nativeReceiptPrinterProvider = Provider<NativeReceiptPrinter>(
+  (_) => StarXpandNativeReceiptPrinter(),
+);
+
+final dialogDrivenQrScannerProvider =
+    ChangeNotifierProvider<DialogDrivenQrScannerService>((ref) {
+      final service = DialogDrivenQrScannerService(
+        logger: Logger('QrScannerService'),
+      );
+      ref.onDispose(service.dispose);
+      return service;
+    });
 
 final qrScannerServiceProvider = Provider<QrScannerService>((ref) {
   return ref.watch(dialogDrivenQrScannerProvider);
@@ -116,7 +132,10 @@ final qrScanUiStateProvider = Provider<QrScanUiState>((ref) {
 
 final appSettingsServiceProvider = Provider<AppSettingsService>((ref) {
   final store = ref.watch(keyValueStoreProvider);
-  return KeyValueAppSettingsService(store, logger: Logger('AppSettingsService'));
+  return KeyValueAppSettingsService(
+    store,
+    logger: Logger('AppSettingsService'),
+  );
 });
 
 final appRoleServiceProvider = Provider<AppRoleService>((ref) {
@@ -177,7 +196,10 @@ final paymentFlowsProvider = Provider<Map<String, PaymentFlow>>((ref) {
 
 final paymentOrchestratorProvider = Provider<PaymentOrchestrator>((ref) {
   final flows = ref.watch(paymentFlowsProvider);
-  return PosPaymentOrchestrator(flows: flows, logger: Logger('PosPaymentOrchestrator'));
+  return PosPaymentOrchestrator(
+    flows: flows,
+    logger: Logger('PosPaymentOrchestrator'),
+  );
 });
 
 final activationRepositoryProvider = Provider<ActivationRepository>((ref) {
@@ -186,19 +208,24 @@ final activationRepositoryProvider = Provider<ActivationRepository>((ref) {
 });
 
 // Local data source for suspended orders (Hive)
-final suspendedOrderLocalDataSourceProvider = Provider<SuspendedOrderLocalDataSource>((ref) {
-  return SuspendedOrderLocalDataSource();
-});
+final suspendedOrderLocalDataSourceProvider =
+    Provider<SuspendedOrderLocalDataSource>((ref) {
+      return SuspendedOrderLocalDataSource();
+    });
 
 // Local data source for submitted orders (Hive)
-final localOrderLocalDataSourceProvider = Provider<LocalOrderLocalDataSource>((ref) {
+final localOrderLocalDataSourceProvider = Provider<LocalOrderLocalDataSource>((
+  ref,
+) {
   return LocalOrderLocalDataSource();
 });
 
 // Global in-memory ShopInfo (single source of truth after activation)
 final shopInfoProvider = StateProvider<ShopInfoModel?>((_) => null);
 
-final appSettingsSnapshotProvider = StateProvider<AppSettingsSnapshot?>((_) => null);
+final appSettingsSnapshotProvider = StateProvider<AppSettingsSnapshot?>(
+  (_) => null,
+);
 
 // Current app role (staff/customer). Default to staff until loaded from storage.
 final appRoleProvider = StateProvider<AppRole>((_) => AppRole.staff);
@@ -225,5 +252,7 @@ void updateShopInfoMachineCode(Ref ref, String machineCode) {
   final current = ref.read(shopInfoProvider);
   if (current == null) return;
   if (current.machineCode == machineCode) return; // already correct
-  ref.read(shopInfoProvider.notifier).state = current.copyWith(machineCode: machineCode);
+  ref.read(shopInfoProvider.notifier).state = current.copyWith(
+    machineCode: machineCode,
+  );
 }
