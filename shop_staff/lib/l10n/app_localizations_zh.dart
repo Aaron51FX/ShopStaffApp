@@ -1225,6 +1225,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentActionConfirming => '正在确认…';
 
   @override
+  String get paymentCashDrawerCloseReminderTitle => '请关闭钱箱';
+
+  @override
+  String get paymentCashDrawerCloseReminderMessage =>
+      '现金支付确认后，需将钱箱关闭，交易才会自动完成。';
+
+  @override
   String get paymentActionCancel => '取消支付';
 
   @override

@@ -1288,6 +1288,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentActionConfirming => 'Confirming…';
 
   @override
+  String get paymentCashDrawerCloseReminderTitle => 'Close the cash drawer';
+
+  @override
+  String get paymentCashDrawerCloseReminderMessage =>
+      'After confirming a cash payment, the transaction will finish automatically once the drawer is closed.';
+
+  @override
   String get paymentActionCancel => 'Cancel payment';
 
   @override

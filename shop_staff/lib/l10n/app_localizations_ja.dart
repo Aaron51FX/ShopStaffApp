@@ -1237,6 +1237,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentActionConfirming => '確認中…';
 
   @override
+  String get paymentCashDrawerCloseReminderTitle => 'ドロアを閉じてください';
+
+  @override
+  String get paymentCashDrawerCloseReminderMessage =>
+      '現金会計の確認後は、ドロアを閉じると取引が自動で完了します。';
+
+  @override
   String get paymentActionCancel => '支払い取消';
 
   @override

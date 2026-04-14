@@ -49,10 +49,9 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   @override
   void initState() {
     super.initState();
-    _effectSubscription = ref
-        .read(provider.notifier)
-        .effects
-        .listen((effect) async {
+    _effectSubscription = ref.read(provider.notifier).effects.listen((
+      effect,
+    ) async {
       if (!mounted) return;
       if (effect is PaymentFlowToastEffect) {
         final t = AppLocalizations.of(context);
@@ -71,7 +70,9 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
       }
       if (effect is PaymentFlowRequestCancelConfirmEffect) {
         final t = AppLocalizations.of(context);
-        final ok = await ref.read(dialogControllerProvider.notifier).confirm(
+        final ok = await ref
+            .read(dialogControllerProvider.notifier)
+            .confirm(
               title: effect.title ?? t.paymentActionCancel,
               message: effect.message ?? t.paymentCancelConfirmMessage,
               destructive: effect.destructive,
@@ -86,13 +87,35 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         await _startPrintFlow();
         return;
       }
+      if (effect is PaymentFlowDrawerCloseReminderEffect) {
+        final t = AppLocalizations.of(context);
+        await ref
+            .read(dialogControllerProvider.notifier)
+            .show<void>(
+              DialogRequest<void>(
+                title: t.paymentCashDrawerCloseReminderTitle,
+                message: t.paymentCashDrawerCloseReminderMessage,
+                actions: [
+                  DialogAction(
+                    label: t.dialogConfirm,
+                    value: null,
+                    isPrimary: true,
+                  ),
+                ],
+              ),
+            );
+        return;
+      }
     });
 
     _cancelSubscription = ref.listenManual<CancelDialogState>(
       provider.select((state) => state.cancelDialog),
       (previous, next) {
         if (!mounted) return;
-        if (previous?.status == next.status && previous?.message == next.message) return;
+        if (previous?.status == next.status &&
+            previous?.message == next.message) {
+          return;
+        }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           _handleCancelDialogChange(next);
@@ -175,8 +198,10 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
                   this.context.go('/entry');
                 });
               },
-              onRetryCancel: () => ref.read(provider.notifier).retryCancelAfterFailure(),
-              onForceExit: () => ref.read(provider.notifier).forceExitAfterCancelFailure(),
+              onRetryCancel: () =>
+                  ref.read(provider.notifier).retryCancelAfterFailure(),
+              onForceExit: () =>
+                  ref.read(provider.notifier).forceExitAfterCancelFailure(),
             );
           },
         );
@@ -224,8 +249,10 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
           builder: (context, state, _) {
             return QrScanDialog(
               state: state,
-              onSubmitted: (value) => ref.read(dialogDrivenQrScannerProvider).submitCode(value),
-              onCancel: () => ref.read(dialogDrivenQrScannerProvider).cancelScan(),
+              onSubmitted: (value) =>
+                  ref.read(dialogDrivenQrScannerProvider).submitCode(value),
+              onCancel: () =>
+                  ref.read(dialogDrivenQrScannerProvider).cancelScan(),
             );
           },
         );
@@ -242,8 +269,8 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
     final state = ref.watch(provider);
     final args = widget.args;
     final amountInfo = args.channelGroup == PaymentChannels.cash
-      ? _extractCashAmount(state)
-      : null;
+        ? _extractCashAmount(state)
+        : null;
 
     return PopScope(
       canPop: state.canExit,
@@ -280,12 +307,18 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
                 onOpenSettings: () => context.go('/settings'),
                 onNetworkHelp: () {
                   final t = AppLocalizations.of(context);
-                  ref.read(dialogControllerProvider.notifier).show<void>(
+                  ref
+                      .read(dialogControllerProvider.notifier)
+                      .show<void>(
                         DialogRequest<void>(
                           title: t.commonNetworkLabel,
                           message: t.paymentNetworkHelpMessage,
                           actions: [
-                            DialogAction(label: t.posOptionMaxReachedOk, value: null, isPrimary: true),
+                            DialogAction(
+                              label: t.posOptionMaxReachedOk,
+                              value: null,
+                              isPrimary: true,
+                            ),
                           ],
                         ),
                       );
@@ -324,20 +357,31 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   Future<void> _startPrintFlow() async {
     if (_printing) return;
     _printing = true;
-    final machineCode = widget.args.metadata?['machineCode'] as String? ??
-        ref.read(machineCodeProvider) ?? '';
-    final printers = ref.read(appSettingsSnapshotProvider)?.printers ?? const <PrinterSettings>[];
+    final machineCode =
+        widget.args.metadata?['machineCode'] as String? ??
+        ref.read(machineCodeProvider) ??
+        '';
+    final printers =
+        ref.read(appSettingsSnapshotProvider)?.printers ??
+        const <PrinterSettings>[];
 
     String printType = '';
     final labelPrinter = printers.firstWhere(
       (printer) => printer.type == 10 && !printer.receipt,
-      orElse: () => PrinterSettings(name: '', printIp: '', receipt: false, labelSize: '', type: 0, isOn: false),
+      orElse: () => PrinterSettings(
+        name: '',
+        printIp: '',
+        receipt: false,
+        labelSize: '',
+        type: 0,
+        isOn: false,
+      ),
     );
 
     if (labelPrinter.isOn) {
       printType = 'Label';
     }
-    
+
     final request = PrintJobRequest(
       machineCode: machineCode,
       printers: printers,
@@ -364,15 +408,15 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
       return CashAmountSnapshot(amount: receiptAmount, isFinal: false);
     }
     //for (final status in state.timeline.reversed) {
-      final details = state.currentStatus?.details ?? {};
-      //if (details == null) continue;
-      if (details['stage'] == 'amount') {
-        final amount = details['amount'];
-        if (amount is num) {
-          final isFinal = details['isFinal'] == true;
-          return CashAmountSnapshot(amount: amount, isFinal: isFinal);
-        }
+    final details = state.currentStatus?.details ?? {};
+    //if (details == null) continue;
+    if (details['stage'] == 'amount') {
+      final amount = details['amount'];
+      if (amount is num) {
+        final isFinal = details['isFinal'] == true;
+        return CashAmountSnapshot(amount: amount, isFinal: isFinal);
       }
+    }
     //}
     return null;
   }

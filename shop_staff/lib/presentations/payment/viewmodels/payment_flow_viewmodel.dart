@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/domain/services/cash_machine_service.dart';
 import 'package:shop_staff/application/payments/payment_flow_usecase.dart';
 import 'package:shop_staff/application/payments/usecases/start_payment_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
@@ -47,6 +48,10 @@ class PaymentFlowStartPrintEffect extends PaymentFlowEffect {
   const PaymentFlowStartPrintEffect();
 }
 
+class PaymentFlowDrawerCloseReminderEffect extends PaymentFlowEffect {
+  const PaymentFlowDrawerCloseReminderEffect();
+}
+
 final paymentFlowViewModelProvider = StateNotifierProvider.autoDispose
     .family<PaymentFlowViewModel, PaymentFlowState, PaymentFlowPageArgs>(
       (ref, args) => PaymentFlowViewModel(ref, args),
@@ -80,7 +85,8 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   }
 
   PaymentFlowUseCase get _useCase => _ref.read(paymentFlowUseCaseProvider);
-  LocalOrdersUseCases get _localOrdersUseCases => _ref.read(localOrdersUseCasesProvider);
+  LocalOrdersUseCases get _localOrdersUseCases =>
+      _ref.read(localOrdersUseCasesProvider);
 
   Future<void> _start() async {
     try {
@@ -109,7 +115,11 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       debugPrint('Payment status update: ${status.type} - ${status.message}');
       final timeline = List<PaymentStatus>.from(previous.timeline)
         ..add(_snapshotStatus(status));
-      final dialogUpdate = _cancelDialogStateForStatus(status, previous.cancelDialog);
+      final dialogUpdate = _cancelDialogStateForStatus(
+        status,
+        previous.cancelDialog,
+      );
+      final previousStage = previous.currentStatus?.details?['stage'];
       var confirmationReady = previous.confirmationReady;
       var pendingReceipt = previous.pendingReceipt;
       final stage = status.details?['stage'];
@@ -136,6 +146,10 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
         confirmationReady = false;
         pendingReceipt = null;
       }
+      if (stage == CashMachineStage.waitingDrawerClose.name &&
+          previousStage != CashMachineStage.waitingDrawerClose.name) {
+        _emit(const PaymentFlowDrawerCloseReminderEffect());
+      }
       state = previous.copyWith(
         currentStatus: status,
         timeline: timeline,
@@ -151,20 +165,26 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
           state = state.copyWith(result: result);
           switch (result.status) {
             case PaymentStatusType.success:
-              _emit(PaymentFlowToastEffect(
-                message: result.message,
-                messageKey: result.messageKey ?? PaymentMessageKeys.statusSuccess,
-                messageArgs: result.messageArgs,
-              ));
+              _emit(
+                PaymentFlowToastEffect(
+                  message: result.message,
+                  messageKey:
+                      result.messageKey ?? PaymentMessageKeys.statusSuccess,
+                  messageArgs: result.messageArgs,
+                ),
+              );
               _emit(const PaymentFlowStartPrintEffect());
               break;
             case PaymentStatusType.failure:
-              _emit(PaymentFlowToastEffect(
-                message: result.message,
-                messageKey: result.messageKey ?? PaymentMessageKeys.statusFailure,
-                messageArgs: result.messageArgs,
-                isError: true,
-              ));
+              _emit(
+                PaymentFlowToastEffect(
+                  message: result.message,
+                  messageKey:
+                      result.messageKey ?? PaymentMessageKeys.statusFailure,
+                  messageArgs: result.messageArgs,
+                  isError: true,
+                ),
+              );
               break;
             case PaymentStatusType.cancelled:
             default:
@@ -172,10 +192,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
           }
         })
         .catchError((error, stack) {
-          _handleError(
-            error,
-            stack is StackTrace ? stack : StackTrace.current,
-          );
+          _handleError(error, stack is StackTrace ? stack : StackTrace.current);
         });
   }
 
@@ -184,9 +201,15 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     _isRestarting = true;
     final previousSessionId = state.sessionId;
     try {
-      await _teardownActiveSession(releaseQrScanner: true, cancelSession: false);
+      await _teardownActiveSession(
+        releaseQrScanner: true,
+        cancelSession: false,
+      );
       state = const PaymentFlowState();
-      final run = await _useCase.retry(args: _args, previousSessionId: previousSessionId);
+      final run = await _useCase.retry(
+        args: _args,
+        previousSessionId: previousSessionId,
+      );
       _bindRun(run);
     } finally {
       _isRestarting = false;
@@ -194,11 +217,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   }
 
   void cancelPayment() {
-    _emit(
-      const PaymentFlowRequestCancelConfirmEffect(
-        destructive: true,
-      ),
-    );
+    _emit(const PaymentFlowRequestCancelConfirmEffect(destructive: true));
   }
 
   Future<void> confirmCancelPayment() async {
@@ -249,20 +268,24 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
         isCancelling: false,
         cancelDialog: CancelDialogState.success(null),
       );
-      _emit(const PaymentFlowToastEffect(
-        messageKey: PaymentMessageKeys.paymentForceExitRecorded,
-        isError: true,
-      ));
+      _emit(
+        const PaymentFlowToastEffect(
+          messageKey: PaymentMessageKeys.paymentForceExitRecorded,
+          isError: true,
+        ),
+      );
     } catch (e, stack) {
       _logger.warning('Force exit after cancel failure failed', e, stack);
       state = state.copyWith(
         cancelDialog: CancelDialogState.failure(null, requiresRecovery: true),
       );
-      _emit(PaymentFlowToastEffect(
-        messageKey: PaymentMessageKeys.posCancelFailed,
-        messageArgs: {'detail': e.toString()},
-        isError: true,
-      ));
+      _emit(
+        PaymentFlowToastEffect(
+          messageKey: PaymentMessageKeys.posCancelFailed,
+          messageArgs: {'detail': e.toString()},
+          isError: true,
+        ),
+      );
     } finally {
       _isForceExiting = false;
     }
@@ -284,17 +307,18 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     } catch (e, stack) {
       _logger.warning('Confirm payment failed', e, stack);
       final detail = e.toString();
-      _emit(PaymentFlowToastEffect(
-        message: detail,
-        messageKey: PaymentMessageKeys.cashConfirmFailed,
-        messageArgs: {'detail': detail},
-        isError: true,
-      ));
+      _emit(
+        PaymentFlowToastEffect(
+          message: detail,
+          messageKey: PaymentMessageKeys.cashConfirmFailed,
+          messageArgs: {'detail': detail},
+          isError: true,
+        ),
+      );
     } finally {
       state = state.copyWith(isConfirming: false);
     }
   }
-
 
   Future<void> _cancelPayment() async {
     final id = state.sessionId;
@@ -310,11 +334,13 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       state = state.copyWith(
         cancelDialog: CancelDialogState.failure(null, requiresRecovery: true),
       );
-      _emit(PaymentFlowToastEffect(
-        messageKey: PaymentMessageKeys.posCancelFailed,
-        messageArgs: {'detail': e.toString()},
-        isError: true,
-      ));
+      _emit(
+        PaymentFlowToastEffect(
+          messageKey: PaymentMessageKeys.posCancelFailed,
+          messageArgs: {'detail': e.toString()},
+          isError: true,
+        ),
+      );
     } finally {
       state = state.copyWith(isCancelling: false);
     }
@@ -375,15 +401,20 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     _logger.severe('Payment flow error', error, stack);
     final message = error.toString();
     if (state.error != message) {
-      final dialogNeedsUpdate = state.cancelDialog.status == CancelDialogStatus.loading;
-      final nextDialog = dialogNeedsUpdate ? CancelDialogState.failure(message) : state.cancelDialog;
+      final dialogNeedsUpdate =
+          state.cancelDialog.status == CancelDialogStatus.loading;
+      final nextDialog = dialogNeedsUpdate
+          ? CancelDialogState.failure(message)
+          : state.cancelDialog;
       state = state.copyWith(error: message, cancelDialog: nextDialog);
-      _emit(PaymentFlowToastEffect(
-        message: message,
-        messageKey: PaymentMessageKeys.errorUnknown,
-        messageArgs: {'detail': message},
-        isError: true,
-      ));
+      _emit(
+        PaymentFlowToastEffect(
+          message: message,
+          messageKey: PaymentMessageKeys.errorUnknown,
+          messageArgs: {'detail': message},
+          isError: true,
+        ),
+      );
     }
   }
 
@@ -393,9 +424,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     Map<String, dynamic>? current,
     num amount,
   ) {
-    final receipt = <String, dynamic>{
-      'expectedAmount': _expectedAmount,
-    };
+    final receipt = <String, dynamic>{'expectedAmount': _expectedAmount};
     if (current != null) {
       receipt.addAll(current);
     }
@@ -430,7 +459,8 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
     _statusSubscription = null;
     final current = snapshot ?? state;
     final sessionId = current.sessionId;
-    final shouldReleaseScanner = releaseQrScanner && _args.channelGroup == PaymentChannels.qr;
+    final shouldReleaseScanner =
+        releaseQrScanner && _args.channelGroup == PaymentChannels.qr;
 
     if (cancelSession && sessionId != null && !current.isFinished) {
       try {
@@ -454,7 +484,9 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   @override
   void dispose() {
     final snapshot = state;
-    unawaited(_teardownActiveSession(releaseQrScanner: true, snapshot: snapshot));
+    unawaited(
+      _teardownActiveSession(releaseQrScanner: true, snapshot: snapshot),
+    );
     unawaited(_effects.close());
     super.dispose();
   }

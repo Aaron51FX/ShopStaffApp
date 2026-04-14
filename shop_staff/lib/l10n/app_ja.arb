@@ -510,6 +510,8 @@
     }
   },
   "paymentActionConfirming": "確認中…",
+  "paymentCashDrawerCloseReminderTitle": "ドロアを閉じてください",
+  "paymentCashDrawerCloseReminderMessage": "現金会計の確認後は、ドロアを閉じると取引が自動で完了します。",
   "paymentActionCancel": "支払い取消",
   "paymentCancelConfirmMessage": "この支払いをキャンセルしてもよろしいですか？",
   "paymentCancelRetryAction": "キャンセル再試行",

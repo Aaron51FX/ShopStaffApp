@@ -2434,6 +2434,18 @@ abstract class AppLocalizations {
   /// **'Confirming…'**
   String get paymentActionConfirming;
 
+  /// No description provided for @paymentCashDrawerCloseReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Close the cash drawer'**
+  String get paymentCashDrawerCloseReminderTitle;
+
+  /// No description provided for @paymentCashDrawerCloseReminderMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'After confirming a cash payment, the transaction will finish automatically once the drawer is closed.'**
+  String get paymentCashDrawerCloseReminderMessage;
+
   /// No description provided for @paymentActionCancel.
   ///
   /// In en, this message translates to:

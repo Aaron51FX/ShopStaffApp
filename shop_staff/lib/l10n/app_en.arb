@@ -510,6 +510,8 @@
     }
   },
   "paymentActionConfirming": "Confirming…",
+  "paymentCashDrawerCloseReminderTitle": "Close the cash drawer",
+  "paymentCashDrawerCloseReminderMessage": "After confirming a cash payment, the transaction will finish automatically once the drawer is closed.",
   "paymentActionCancel": "Cancel payment",
   "paymentCancelConfirmMessage": "Are you sure you want to cancel this payment?",
   "paymentCancelRetryAction": "Retry cancel",

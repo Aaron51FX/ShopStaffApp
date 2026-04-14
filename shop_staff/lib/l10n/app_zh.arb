@@ -510,6 +510,8 @@
     }
   },
   "paymentActionConfirming": "正在确认…",
+  "paymentCashDrawerCloseReminderTitle": "请关闭钱箱",
+  "paymentCashDrawerCloseReminderMessage": "现金支付确认后，需将钱箱关闭，交易才会自动完成。",
   "paymentActionCancel": "取消支付",
   "paymentCancelConfirmMessage": "确认要取消支付吗？",
   "paymentCancelRetryAction": "重试取消",
