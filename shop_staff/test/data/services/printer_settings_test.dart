@@ -111,5 +111,13 @@ void main() {
       expect(decoded.cashMachine.enabled, isTrue);
       expect(decoded.cashMachine.brand, isNull);
     });
+
+    test('preserves display locale selection in basic settings json', () {
+      const basic = BasicSettings(displayLocaleCode: 'ja');
+
+      final decoded = BasicSettings.fromJson(basic.toJson());
+
+      expect(decoded.displayLocaleCode, 'ja');
+    });
   });
 }

@@ -440,6 +440,7 @@ class _SystemSettingsView extends ConsumerWidget {
     final basic = state.snapshot.basic;
     final selectedLocale = ref.watch(localeControllerProvider);
     final controller = ref.read(localeControllerProvider.notifier);
+    final languageOverride = ref.read(languageOverrideProvider.notifier);
     final vm = ref.read(settingsViewModelProvider.notifier);
     final cashCheckState = ref.watch(cashMachineCheckControllerProvider);
     final currentRole = ref.watch(appRoleProvider);
@@ -483,6 +484,19 @@ class _SystemSettingsView extends ConsumerWidget {
       router.go(targetPath);
     }
 
+    Future<void> onLocaleSelected(Locale? locale) async {
+      final settingsCode = localeToSettingsCode(locale);
+      if (locale == null) {
+        controller.useSystemLocale();
+      } else {
+        controller.update(locale);
+      }
+      languageOverride.state = localeToShopLanguageOverride(locale);
+      await vm.saveBasicSettings(
+        basic.copyWith(displayLocaleCode: settingsCode),
+      );
+    }
+
     return _RefreshableScroll(
       onRefresh: onRefresh,
       children: [
@@ -511,10 +525,7 @@ class _SystemSettingsView extends ConsumerWidget {
           title: t.settingsCashPaymentTitle,
           subtitle: t.settingsCashPaymentSubtitle,
           children: [
-            _CashMachineTile(
-              basic: basic,
-              checkState: cashCheckState,
-            ),
+            _CashMachineTile(basic: basic, checkState: cashCheckState),
           ],
         ),
 
@@ -602,28 +613,28 @@ class _SystemSettingsView extends ConsumerWidget {
               label: t.settingsLanguageSystem,
               value: null,
               groupValue: selectedLocale,
-              onSelect: (_) => controller.useSystemLocale(),
+              onSelect: (_) => onLocaleSelected(null),
             ),
             const SizedBox(height: 8),
             _LanguageOptionTile(
               label: t.settingsLanguageChinese,
               value: const Locale('zh'),
               groupValue: selectedLocale,
-              onSelect: (_) => controller.update(const Locale('zh')),
+              onSelect: (_) => onLocaleSelected(const Locale('zh')),
             ),
             const SizedBox(height: 8),
             _LanguageOptionTile(
               label: t.settingsLanguageJapanese,
               value: const Locale('ja'),
               groupValue: selectedLocale,
-              onSelect: (_) => controller.update(const Locale('ja')),
+              onSelect: (_) => onLocaleSelected(const Locale('ja')),
             ),
             const SizedBox(height: 8),
             _LanguageOptionTile(
               label: t.settingsLanguageEnglish,
               value: const Locale('en'),
               groupValue: selectedLocale,
-              onSelect: (_) => controller.update(const Locale('en')),
+              onSelect: (_) => onLocaleSelected(const Locale('en')),
             ),
           ],
         ),
@@ -1091,7 +1102,8 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
 
   CashMachineSettings get _cashMachine => widget.basic.cashMachine;
 
-  bool get _isConfigured => _cashMachine.brand != null && _cashMachine.isConfigured;
+  bool get _isConfigured =>
+      _cashMachine.brand != null && _cashMachine.isConfigured;
 
   Future<void> _setEnabled(bool value) async {
     if (!_isConfigured) {
@@ -1102,12 +1114,14 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
   }
 
   Future<void> _saveCashMachine(CashMachineSettings settings) async {
-    await ref.read(settingsViewModelProvider.notifier).saveBasicSettings(
-      widget.basic.copyWith(
-        cashMachineEnabled: settings.enabled,
-        cashMachine: settings,
-      ),
-    );
+    await ref
+        .read(settingsViewModelProvider.notifier)
+        .saveBasicSettings(
+          widget.basic.copyWith(
+            cashMachineEnabled: settings.enabled,
+            cashMachine: settings,
+          ),
+        );
   }
 
   Future<void> _startAddFlow() async {
@@ -1246,7 +1260,8 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
 
   Future<_CashMachineBrandOption?> _pickBrand() {
     final t = AppLocalizations.of(context);
-    final isWindows = !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
+    final isWindows =
+        !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
     final supportsStar = ref
         .read(starXpandPrinterDiscoveryProvider)
         .isSupportedPlatform;
@@ -1457,7 +1472,9 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
     return t.settingsLocalPrinterPermissionDenied;
   }
 
-  CashMachineSettings _mapToStarCashMachine(StarXpandDiscoveredPrinter printer) {
+  CashMachineSettings _mapToStarCashMachine(
+    StarXpandDiscoveredPrinter printer,
+  ) {
     return CashMachineSettings(
       enabled: true,
       brand: CashMachineBrand.star,
@@ -1473,7 +1490,10 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
     final cashMachine = _cashMachine;
     final theme = Theme.of(context);
     final t = AppLocalizations.of(context);
-    final brandLabel = _displayValue(t, _cashMachineBrandLabel(cashMachine.brand));
+    final brandLabel = _displayValue(
+      t,
+      _cashMachineBrandLabel(cashMachine.brand),
+    );
     final modelLabel = _displayValue(t, cashMachine.modelName);
     final identifierValue = _displayValue(
       t,
@@ -1485,8 +1505,10 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
     final statusLabel = !widget.checkState.isSupported
         ? t.settingsCashNotSupported
         : !_isConfigured
-            ? t.settingsValueNotSet
-            : (cashMachine.enabled ? t.settingsCashEnabled : t.settingsCashDisabled);
+        ? t.settingsValueNotSet
+        : (cashMachine.enabled
+              ? t.settingsCashEnabled
+              : t.settingsCashDisabled);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -1590,13 +1612,14 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
                 ),
               ),
               OutlinedButton.icon(
-                onPressed: (!_isConfigured ||
+                onPressed:
+                    (!_isConfigured ||
                         !_cashMachine.enabled ||
                         widget.checkState.isChecking)
                     ? null
                     : () => ref
-                        .read(cashMachineCheckControllerProvider.notifier)
-                        .start(auto: false),
+                          .read(cashMachineCheckControllerProvider.notifier)
+                          .start(auto: false),
                 icon: widget.checkState.isChecking
                     ? const SizedBox(
                         width: 16,

@@ -1,16 +1,16 @@
-import 'dart:ui';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shop_staff/data/providers.dart';
 import 'core/router/app_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'core/theme/app_theme.dart';
 import 'core/dialog/dialog_service.dart';
 import 'core/localization/locale_providers.dart';
+import 'domain/settings/app_settings_models.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
 Future<void> main() async {
@@ -71,11 +71,57 @@ class _RestartableAppState extends State<RestartableApp> {
   }
 }
 
-class ShopStaffApp extends ConsumerWidget {
+class ShopStaffApp extends ConsumerStatefulWidget {
   const ShopStaffApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ShopStaffApp> createState() => _ShopStaffAppState();
+}
+
+class _ShopStaffAppState extends ConsumerState<ShopStaffApp> {
+  ProviderSubscription<AppSettingsSnapshot?>? _settingsSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _settingsSubscription = ref.listenManual<AppSettingsSnapshot?>(
+      appSettingsSnapshotProvider,
+      (_, next) => _syncLocaleFromSettings(next),
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _syncLocaleFromSettings(ref.read(appSettingsSnapshotProvider));
+    });
+  }
+
+  @override
+  void dispose() {
+    _settingsSubscription?.close();
+    super.dispose();
+  }
+
+  void _syncLocaleFromSettings(AppSettingsSnapshot? snapshot) {
+    final locale = localeFromSettingsCode(snapshot?.basic.displayLocaleCode);
+    final localeController = ref.read(localeControllerProvider.notifier);
+    final currentLocale = ref.read(localeControllerProvider);
+    if (locale == null) {
+      if (currentLocale != null) {
+        localeController.useSystemLocale();
+      }
+    } else if (currentLocale?.languageCode != locale.languageCode) {
+      localeController.update(locale);
+    }
+
+    final nextOverride = localeToShopLanguageOverride(locale);
+    final overrideNotifier = ref.read(languageOverrideProvider.notifier);
+    final currentOverride = ref.read(languageOverrideProvider);
+    if (currentOverride != nextOverride) {
+      overrideNotifier.state = nextOverride;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     final locale = ref.watch(localeControllerProvider);
     return ScreenUtilInit(
@@ -98,9 +144,7 @@ class ShopStaffApp extends ConsumerWidget {
           routerConfig: router,
           debugShowCheckedModeBanner: false,
           builder: (context, child) {
-            return GlobalDialogHost(
-              child: child ?? const SizedBox.shrink(),
-            );
+            return GlobalDialogHost(child: child ?? const SizedBox.shrink());
           },
         );
       },

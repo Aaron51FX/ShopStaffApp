@@ -125,7 +125,8 @@ class CashMachineSettings {
     switch (brand) {
       case CashMachineBrand.star:
         return connectionType != PrinterConnectionType.unknown &&
-            (_trimOrNull(deviceIdentifier) != null || _trimOrNull(host) != null);
+            (_trimOrNull(deviceIdentifier) != null ||
+                _trimOrNull(host) != null);
       case CashMachineBrand.glory:
       case CashMachineBrand.conlux:
         return true;
@@ -195,6 +196,7 @@ class BasicSettings {
     this.machineCode,
     this.contactNumber,
     this.address,
+    this.displayLocaleCode,
     this.cashMachineEnabled,
     this.cashMachine = const CashMachineSettings(),
     this.peerLinkEnabled = true,
@@ -205,6 +207,7 @@ class BasicSettings {
   final String? machineCode;
   final String? contactNumber;
   final String? address;
+  final String? displayLocaleCode;
   final bool? cashMachineEnabled;
   final CashMachineSettings cashMachine;
   final bool peerLinkEnabled;
@@ -215,6 +218,7 @@ class BasicSettings {
     String? machineCode,
     String? contactNumber,
     String? address,
+    Object? displayLocaleCode = _copyWithUnset,
     bool? cashMachineEnabled,
     CashMachineSettings? cashMachine,
     bool? peerLinkEnabled,
@@ -232,6 +236,9 @@ class BasicSettings {
       machineCode: machineCode ?? this.machineCode,
       contactNumber: contactNumber ?? this.contactNumber,
       address: address ?? this.address,
+      displayLocaleCode: identical(displayLocaleCode, _copyWithUnset)
+          ? this.displayLocaleCode
+          : displayLocaleCode as String?,
       cashMachineEnabled: resolvedCashMachineEnabled,
       cashMachine: resolvedCashMachine,
       peerLinkEnabled: peerLinkEnabled ?? this.peerLinkEnabled,
@@ -245,6 +252,7 @@ class BasicSettings {
       'machineCode': machineCode,
       'contactNumber': contactNumber,
       'address': address,
+      'displayLocaleCode': displayLocaleCode,
       'cashMachineEnabled': cashMachineEnabled,
       'cashMachine': cashMachine.toJson(),
       'peerLinkEnabled': peerLinkEnabled,
@@ -255,7 +263,9 @@ class BasicSettings {
     final legacyEnabled = _readBool(json['cashMachineEnabled']) ?? false;
     final rawCashMachine = json['cashMachine'];
     var cashMachine = rawCashMachine is Map
-        ? CashMachineSettings.fromJson(Map<String, dynamic>.from(rawCashMachine))
+        ? CashMachineSettings.fromJson(
+            Map<String, dynamic>.from(rawCashMachine),
+          )
         : CashMachineSettings.fromLegacy(enabled: legacyEnabled);
 
     if (_readBool(json['cashMachineEnabled']) != null) {
@@ -268,6 +278,7 @@ class BasicSettings {
       machineCode: json['machineCode'] as String?,
       contactNumber: json['contactNumber'] as String?,
       address: json['address'] as String?,
+      displayLocaleCode: _trimOrNull(json['displayLocaleCode'] as String?),
       cashMachineEnabled: cashMachine.enabled,
       cashMachine: cashMachine,
       peerLinkEnabled: _readBool(json['peerLinkEnabled']) ?? true,

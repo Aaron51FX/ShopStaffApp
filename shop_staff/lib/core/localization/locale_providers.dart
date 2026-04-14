@@ -21,3 +21,37 @@ bool isSupportedLocale(Locale locale) {
     (supported) => supported.languageCode == locale.languageCode,
   );
 }
+
+Locale? localeFromSettingsCode(String? code) {
+  switch (code?.trim().toLowerCase()) {
+    case 'zh':
+      return const Locale('zh');
+    case 'ja':
+      return const Locale('ja');
+    case 'en':
+      return const Locale('en');
+    default:
+      return null;
+  }
+}
+
+String? localeToSettingsCode(Locale? locale) {
+  if (locale == null) {
+    return null;
+  }
+  final code = locale.languageCode.trim().toLowerCase();
+  return isSupportedLocale(Locale(code)) ? code : null;
+}
+
+String? localeToShopLanguageOverride(Locale? locale) {
+  switch (locale?.languageCode.toLowerCase()) {
+    case 'zh':
+      return 'CN';
+    case 'ja':
+      return 'JP';
+    case 'en':
+      return 'EN';
+    default:
+      return null;
+  }
+}
