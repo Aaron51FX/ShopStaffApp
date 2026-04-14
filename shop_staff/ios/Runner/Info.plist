@@ -28,6 +28,8 @@
 	<true/>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>Use Bluetooth for communication with the printer.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Use Bluetooth for communication with the printer.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_shop-staff._tcp</string>

@@ -136,6 +136,50 @@ internal data class StarxpandDiscoveredPrinter(
     }
 }
 
+internal data class StarxpandDrawerStatus(
+    val hasError: Boolean,
+    val coverOpen: Boolean,
+    val drawerOpenCloseSignal: Boolean,
+    val paperEmpty: Boolean,
+    val paperNearEmpty: Boolean,
+) {
+    fun toMap(): Map<String, Any> {
+        return mapOf(
+            "hasError" to hasError,
+            "coverOpen" to coverOpen,
+            "drawerOpenCloseSignal" to drawerOpenCloseSignal,
+            "paperEmpty" to paperEmpty,
+            "paperNearEmpty" to paperNearEmpty,
+        )
+    }
+}
+
+internal data class StarxpandDrawerOpenRequest(
+    val channel: Channel,
+    val onTimeMs: Int,
+) {
+    enum class Channel(val wireValue: String) {
+        No1("no1"),
+        No2("no2"),
+        ;
+
+        companion object {
+            fun fromWireValue(raw: String?): Channel {
+                return entries.firstOrNull { it.wireValue == raw } ?: No1
+            }
+        }
+    }
+
+    companion object {
+        fun fromJson(json: Map<*, *>): StarxpandDrawerOpenRequest {
+            return StarxpandDrawerOpenRequest(
+                channel = Channel.fromWireValue(json["channel"] as? String),
+                onTimeMs = (intValue(json["onTimeMs"]) ?: 200).coerceAtLeast(50),
+            )
+        }
+    }
+}
+
 internal data class ReceiptPrintPlanDocument(
     val paperWidthMm: Int,
     val nodes: List<ReceiptPrintPlanNode>,

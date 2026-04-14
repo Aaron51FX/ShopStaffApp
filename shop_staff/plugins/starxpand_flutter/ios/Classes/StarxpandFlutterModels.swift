@@ -162,6 +162,56 @@ struct StarxpandDiscoveredPrinter {
   }
 }
 
+struct StarxpandDrawerStatusPayload {
+  let hasError: Bool
+  let coverOpen: Bool
+  let drawerOpenCloseSignal: Bool
+  let paperEmpty: Bool
+  let paperNearEmpty: Bool
+
+  init(status: StarPrinterStatus) {
+    self.hasError = status.hasError
+    self.coverOpen = status.coverOpen
+    self.drawerOpenCloseSignal = status.drawerOpenCloseSignal
+    self.paperEmpty = status.paperEmpty
+    self.paperNearEmpty = status.paperNearEmpty
+  }
+
+  var dictionary: [String: Any] {
+    [
+      "hasError": hasError,
+      "coverOpen": coverOpen,
+      "drawerOpenCloseSignal": drawerOpenCloseSignal,
+      "paperEmpty": paperEmpty,
+      "paperNearEmpty": paperNearEmpty
+    ]
+  }
+}
+
+struct StarxpandDrawerOpenRequest {
+  enum Channel: String {
+    case no1
+    case no2
+
+    var starChannel: StarXpandCommand.Drawer.Channel {
+      switch self {
+      case .no1:
+        return .no1
+      case .no2:
+        return .no2
+      }
+    }
+  }
+
+  let channel: Channel
+  let onTimeMs: Int
+
+  init(json: [String: Any]) {
+    self.channel = Channel(rawValue: (json["channel"] as? String) ?? "no1") ?? .no1
+    self.onTimeMs = max(50, json["onTimeMs"] as? Int ?? 200)
+  }
+}
+
 struct ReceiptPrintPlanDocument {
   let paperWidthMm: Int
   let nodes: [ReceiptPrintPlanNode]

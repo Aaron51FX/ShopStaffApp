@@ -177,6 +177,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsCashSkipOnce => 'Skip for now';
 
   @override
+  String get settingsCashMachineAddAction => 'Add cash machine';
+
+  @override
+  String get settingsCashMachineReplaceAction => 'Change cash machine';
+
+  @override
+  String get settingsCashMachineBrandDialogTitle => 'Select cash machine brand';
+
+  @override
+  String get settingsCashMachineBrandGloryHint => 'Windows only for now.';
+
+  @override
+  String get settingsCashMachineBrandStarHint =>
+      'Search and validate a Star cash drawer.';
+
+  @override
+  String get settingsCashMachineBrandConluxHint =>
+      'Android/iOS, integration coming soon.';
+
+  @override
+  String get settingsCashMachineSearchProgress =>
+      'Searching for Star drawer devices…';
+
+  @override
+  String get settingsCashMachineValidatingProgress => 'Checking drawer status…';
+
+  @override
+  String get settingsCashMachineDrawerOpenError =>
+      'The drawer is currently open. Close it and try again.';
+
+  @override
+  String get settingsCashMachineStatusError =>
+      'The drawer reported an error. Check the connection and try again.';
+
+  @override
   String get settingsPosNetworkTitle => 'POS terminal network';
 
   @override
@@ -559,11 +594,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cashMachineStepsChecking =>
-      'Steps: Check status → Open → Start receive → Read amount → End';
+      'Steps: Check connection → Read status';
 
   @override
   String get cashMachineStepsFailure =>
-      'Flow: Check status → Open cash machine → Start Deposit → Deposit Amount → End Deposit';
+      'Make sure the cash machine is connected and currently closed or idle.';
 
   @override
   String get cashMachineSkip => 'Skip';

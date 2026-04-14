@@ -89,7 +89,10 @@ class CashMachineCheckController extends StateNotifier<CashMachineCheckState> {
 	bool _dialogSuppressed = false;
 
 	void onSettingsChanged(AppSettingsSnapshot? snapshot) {
-		final enabled = snapshot?.basic.cashMachineEnabled ?? false;
+		final enabled =
+				snapshot?.basic.cashMachine.enabled ??
+				snapshot?.basic.cashMachineEnabled ??
+				false;
 		if (state.isEnabled != enabled) {
 			state = state.copyWith(isEnabled: enabled);
 		}
@@ -178,10 +181,16 @@ class CashMachineCheckController extends StateNotifier<CashMachineCheckState> {
 	Future<void> _persistEnabled(bool enabled) async {
 		final snapshot = _ref.read(appSettingsSnapshotProvider);
 		final currentBasic = snapshot?.basic ?? const BasicSettings();
-		if (currentBasic.cashMachineEnabled == enabled && snapshot != null) {
+		final currentCashMachine = currentBasic.cashMachine;
+		if (currentBasic.cashMachineEnabled == enabled &&
+				currentCashMachine.enabled == enabled &&
+				snapshot != null) {
 			return;
 		}
-		final updatedBasic = currentBasic.copyWith(cashMachineEnabled: enabled);
+		final updatedBasic = currentBasic.copyWith(
+			cashMachineEnabled: enabled,
+			cashMachine: currentCashMachine.copyWith(enabled: enabled),
+		);
 		final newSnapshot = AppSettingsSnapshot(
 			basic: updatedBasic,
 			posTerminal: snapshot?.posTerminal ?? const PosTerminalSettings(),

@@ -104,6 +104,88 @@ public class StarxpandFlutterPlugin: NSObject, FlutterPlugin {
         }
       }
 
+    case "getDrawerStatus":
+      guard let arguments = call.arguments as? [String: Any] else {
+        result(
+          FlutterError(
+            code: "invalid_arguments",
+            message: "getDrawerStatus expects a map argument.",
+            details: nil
+          )
+        )
+        return
+      }
+
+      Task {
+        do {
+          let status = try await getDrawerStatus(arguments: arguments)
+          DispatchQueue.main.async {
+            result(status)
+          }
+        } catch let error as StarxpandPluginError {
+          DispatchQueue.main.async {
+            result(
+              FlutterError(
+                code: error.code,
+                message: error.localizedDescription,
+                details: nil
+              )
+            )
+          }
+        } catch {
+          DispatchQueue.main.async {
+            result(
+              FlutterError(
+                code: "printer_error",
+                message: error.localizedDescription,
+                details: nil
+              )
+            )
+          }
+        }
+      }
+
+    case "openDrawer":
+      guard let arguments = call.arguments as? [String: Any] else {
+        result(
+          FlutterError(
+            code: "invalid_arguments",
+            message: "openDrawer expects a map argument.",
+            details: nil
+          )
+        )
+        return
+      }
+
+      Task {
+        do {
+          try await openDrawer(arguments: arguments)
+          DispatchQueue.main.async {
+            result(nil)
+          }
+        } catch let error as StarxpandPluginError {
+          DispatchQueue.main.async {
+            result(
+              FlutterError(
+                code: error.code,
+                message: error.localizedDescription,
+                details: nil
+              )
+            )
+          }
+        } catch {
+          DispatchQueue.main.async {
+            result(
+              FlutterError(
+                code: "printer_error",
+                message: error.localizedDescription,
+                details: nil
+              )
+            )
+          }
+        }
+      }
+
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -125,11 +207,21 @@ public class StarxpandFlutterPlugin: NSObject, FlutterPlugin {
       )
     }
 
-    let manager = try StarDeviceDiscoveryManagerFactory.create(interfaceTypes: interfaceTypes)
-    let usbTransport = transports.contains(.lightningUsb) ? StarxpandPrinterTarget.Transport.lightningUsb :
-      (transports.contains(.usbC) ? StarxpandPrinterTarget.Transport.usbC : .usb)
-    let session = StarxpandDiscoverySession(manager: manager, usbTransport: usbTransport)
-    return try await session.start(timeoutMs: arguments["timeoutMs"] as? Int ?? 10_000)
+    let timeoutMs = arguments["timeoutMs"] as? Int ?? 10_000
+
+    do {
+      return try await runDiscovery(
+        interfaceTypes: interfaceTypes,
+        transports: transports,
+        timeoutMs: timeoutMs
+      )
+    } catch {
+      return try await runDiscoveryFallback(
+        transports: transports,
+        timeoutMs: timeoutMs,
+        initialError: error
+      )
+    }
   }
 
   private func printReceipt(arguments: [String: Any]) async throws {
@@ -162,6 +254,54 @@ public class StarxpandFlutterPlugin: NSObject, FlutterPlugin {
     try await printer.print(command: command)
   }
 
+  private func getDrawerStatus(arguments: [String: Any]) async throws -> [String: Any] {
+    guard let printerJSON = arguments["printer"] as? [String: Any] else {
+      throw StarxpandPluginError.invalidArguments("Missing printer payload.")
+    }
+
+    let target = try StarxpandPrinterTarget(json: printerJSON)
+    let printer = StarPrinter(try target.makeConnectionSettings())
+
+    try await printer.open()
+    defer {
+      Task {
+        await printer.close()
+      }
+    }
+
+    let status = try await printer.getStatus()
+    return StarxpandDrawerStatusPayload(status: status).dictionary
+  }
+
+  private func openDrawer(arguments: [String: Any]) async throws {
+    guard let printerJSON = arguments["printer"] as? [String: Any] else {
+      throw StarxpandPluginError.invalidArguments("Missing printer payload.")
+    }
+
+    let target = try StarxpandPrinterTarget(json: printerJSON)
+    let request = StarxpandDrawerOpenRequest(json: arguments)
+    let printer = StarPrinter(try target.makeConnectionSettings())
+
+    let parameter = StarXpandCommand.Drawer.OpenParameter()
+      .setChannel(request.channel.starChannel)
+      .setOnTime(request.onTimeMs)
+
+    let builder = StarXpandCommand.StarXpandCommandBuilder()
+    let documentBuilder = StarXpandCommand.DocumentBuilder()
+    let drawerBuilder = StarXpandCommand.DrawerBuilder().actionOpen(parameter)
+    _ = documentBuilder.addDrawer(drawerBuilder)
+    _ = builder.addDocument(documentBuilder)
+
+    try await printer.open()
+    defer {
+      Task {
+        await printer.close()
+      }
+    }
+
+    try await printer.print(command: builder.getCommands())
+  }
+
   private func orderedDiscoveryInterfaceTypes(
     for transports: [StarxpandPrinterTarget.Transport]
   ) -> [InterfaceType] {
@@ -185,5 +325,84 @@ public class StarxpandFlutterPlugin: NSObject, FlutterPlugin {
     }
 
     return interfaceTypes
+  }
+
+  @MainActor
+  private func runDiscovery(
+    interfaceTypes: [InterfaceType],
+    transports: [StarxpandPrinterTarget.Transport],
+    timeoutMs: Int
+  ) async throws -> [[String: Any]] {
+    let manager = try StarDeviceDiscoveryManagerFactory.create(interfaceTypes: interfaceTypes)
+    let usbTransport = resolvedUSBTransport(for: transports)
+    let session = StarxpandDiscoverySession(manager: manager, usbTransport: usbTransport)
+    return try await session.start(timeoutMs: timeoutMs)
+  }
+
+  @MainActor
+  private func runDiscoveryFallback(
+    transports: [StarxpandPrinterTarget.Transport],
+    timeoutMs: Int,
+    initialError: Error
+  ) async throws -> [[String: Any]] {
+    var merged: [String: [String: Any]] = [:]
+    var lastError: Error = initialError
+    var hasSuccessfulTransport = false
+
+    for transport in transports {
+      let interfaceTypes = orderedDiscoveryInterfaceTypes(for: [transport])
+      guard !interfaceTypes.isEmpty else {
+        continue
+      }
+
+      do {
+        let partial = try await runDiscovery(
+          interfaceTypes: interfaceTypes,
+          transports: [transport],
+          timeoutMs: timeoutMs
+        )
+        hasSuccessfulTransport = true
+
+        for payload in partial {
+          guard let transport = payload["transport"] as? String,
+                let identifier = payload["identifier"] as? String
+          else {
+            continue
+          }
+          merged["\(transport)|\(identifier)"] = payload
+        }
+      } catch {
+        lastError = error
+        NSLog(
+          "starxpand_flutter: discovery skipped unavailable transport \(transport.rawValue): \(error.localizedDescription)"
+        )
+      }
+    }
+
+    if hasSuccessfulTransport {
+      return merged.values.sorted { lhs, rhs in
+        let left = (lhs["displayName"] as? String) ??
+          (lhs["modelName"] as? String) ??
+          (lhs["identifier"] as? String) ?? ""
+        let right = (rhs["displayName"] as? String) ??
+          (rhs["modelName"] as? String) ??
+          (rhs["identifier"] as? String) ?? ""
+        return left.localizedCaseInsensitiveCompare(right) == .orderedAscending
+      }
+    }
+
+    throw lastError
+  }
+
+  private func resolvedUSBTransport(
+    for transports: [StarxpandPrinterTarget.Transport]
+  ) -> StarxpandPrinterTarget.Transport {
+    if transports.contains(.lightningUsb) {
+      return .lightningUsb
+    }
+    if transports.contains(.usbC) {
+      return .usbC
+    }
+    return .usb
   }
 }

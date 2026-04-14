@@ -3,12 +3,14 @@ import 'package:flutter/services.dart';
 
 import 'src/models/starxpand_printer_target.dart';
 import 'src/models/starxpand_discovered_printer.dart';
+import 'src/models/starxpand_drawer.dart';
 import 'src/models/receipt_document_payload.dart';
 import 'src/plan/receipt_print_plan_builder.dart';
 import 'src/starxpand_flutter_method_channel.dart';
 
 export 'src/models/starxpand_printer_target.dart';
 export 'src/models/starxpand_discovered_printer.dart';
+export 'src/models/starxpand_drawer.dart';
 
 class StarXpandFlutter {
   StarXpandFlutter({StarXpandFlutterMethodChannel? channel})
@@ -78,6 +80,36 @@ class StarXpandFlutter {
         printer: printer,
         receiptDocument: receiptDocument,
         printPlan: plan.toJson(),
+      );
+    } on MissingPluginException {
+      rethrow;
+    } on PlatformException {
+      rethrow;
+    }
+  }
+
+  Future<StarXpandDrawerStatus> getDrawerStatus({
+    required StarXpandPrinterTarget printer,
+  }) async {
+    try {
+      return await _channel.getDrawerStatus(printer: printer);
+    } on MissingPluginException {
+      rethrow;
+    } on PlatformException {
+      rethrow;
+    }
+  }
+
+  Future<void> openDrawer({
+    required StarXpandPrinterTarget printer,
+    StarXpandDrawerChannel channel = StarXpandDrawerChannel.no1,
+    int onTimeMs = 200,
+  }) async {
+    try {
+      await _channel.openDrawer(
+        printer: printer,
+        channel: channel,
+        onTimeMs: onTimeMs,
       );
     } on MissingPluginException {
       rethrow;

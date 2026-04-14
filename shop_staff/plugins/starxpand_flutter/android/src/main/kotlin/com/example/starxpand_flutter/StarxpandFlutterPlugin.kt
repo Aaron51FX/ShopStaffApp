@@ -9,6 +9,10 @@ import com.starmicronics.stario10.InterfaceType
 import com.starmicronics.stario10.StarPrinter
 import com.starmicronics.stario10.StarDeviceDiscoveryManager
 import com.starmicronics.stario10.StarDeviceDiscoveryManagerFactory
+import com.starmicronics.stario10.starxpandcommand.DocumentBuilder
+import com.starmicronics.stario10.starxpandcommand.DrawerBuilder
+import com.starmicronics.stario10.starxpandcommand.StarXpandCommandBuilder
+import com.starmicronics.stario10.starxpandcommand.drawer.OpenParameter
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -84,6 +88,72 @@ class StarxpandFlutterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 scope.launch {
                     try {
                         printReceipt(arguments)
+                        withContext(Dispatchers.Main) {
+                            result.success(null)
+                        }
+                    } catch (error: StarxpandPluginException) {
+                        withContext(Dispatchers.Main) {
+                            result.error(error.errorCode, error.message, null)
+                        }
+                    } catch (error: Exception) {
+                        withContext(Dispatchers.Main) {
+                            result.error(
+                                "printer_error",
+                                error.message ?: error.toString(),
+                                null,
+                            )
+                        }
+                    }
+                }
+            }
+
+            "getDrawerStatus" -> {
+                val arguments = call.arguments as? Map<*, *>
+                if (arguments == null) {
+                    result.error(
+                        "invalid_arguments",
+                        "getDrawerStatus expects a map argument.",
+                        null,
+                    )
+                    return
+                }
+
+                scope.launch {
+                    try {
+                        val status = getDrawerStatus(arguments)
+                        withContext(Dispatchers.Main) {
+                            result.success(status)
+                        }
+                    } catch (error: StarxpandPluginException) {
+                        withContext(Dispatchers.Main) {
+                            result.error(error.errorCode, error.message, null)
+                        }
+                    } catch (error: Exception) {
+                        withContext(Dispatchers.Main) {
+                            result.error(
+                                "printer_error",
+                                error.message ?: error.toString(),
+                                null,
+                            )
+                        }
+                    }
+                }
+            }
+
+            "openDrawer" -> {
+                val arguments = call.arguments as? Map<*, *>
+                if (arguments == null) {
+                    result.error(
+                        "invalid_arguments",
+                        "openDrawer expects a map argument.",
+                        null,
+                    )
+                    return
+                }
+
+                scope.launch {
+                    try {
+                        openDrawer(arguments)
                         withContext(Dispatchers.Main) {
                             result.success(null)
                         }
@@ -180,6 +250,78 @@ class StarxpandFlutterPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 printer.closeAsync().await()
             } catch (_: Exception) {
                 // Keep the original printing failure if close also fails.
+            }
+        }
+    }
+
+    private suspend fun getDrawerStatus(arguments: Map<*, *>): Map<String, Any> {
+        val printerJson = arguments["printer"] as? Map<*, *>
+            ?: throw StarxpandPluginException(
+                errorCode = "invalid_arguments",
+                message = "Missing printer payload.",
+            )
+
+        val target = StarxpandPrinterTarget.fromJson(printerJson)
+        ensurePermissions(target)
+
+        val printer = StarPrinter(target.makeConnectionSettings(), applicationContext)
+
+        try {
+            printer.openAsync().await()
+            val status = printer.getStatusAsync().await()
+            return StarxpandDrawerStatus(
+                hasError = status.hasError,
+                coverOpen = status.coverOpen,
+                drawerOpenCloseSignal = status.drawerOpenCloseSignal,
+                paperEmpty = status.paperEmpty,
+                paperNearEmpty = status.paperNearEmpty,
+            ).toMap()
+        } finally {
+            try {
+                printer.closeAsync().await()
+            } catch (_: Exception) {
+                // Keep the original status failure if close also fails.
+            }
+        }
+    }
+
+    private suspend fun openDrawer(arguments: Map<*, *>) {
+        val printerJson = arguments["printer"] as? Map<*, *>
+            ?: throw StarxpandPluginException(
+                errorCode = "invalid_arguments",
+                message = "Missing printer payload.",
+            )
+
+        val target = StarxpandPrinterTarget.fromJson(printerJson)
+        ensurePermissions(target)
+
+        val request = StarxpandDrawerOpenRequest.fromJson(arguments)
+        val rootBuilder = StarXpandCommandBuilder()
+        val documentBuilder = DocumentBuilder()
+        val parameter = OpenParameter()
+            .setChannel(
+                when (request.channel) {
+                    StarxpandDrawerOpenRequest.Channel.No1 ->
+                        com.starmicronics.stario10.starxpandcommand.drawer.Channel.No1
+                    StarxpandDrawerOpenRequest.Channel.No2 ->
+                        com.starmicronics.stario10.starxpandcommand.drawer.Channel.No2
+                },
+            )
+            .setOnTime(request.onTimeMs)
+        documentBuilder.addDrawer(DrawerBuilder().actionOpen(parameter))
+        rootBuilder.addDocument(documentBuilder)
+        val commands = rootBuilder.getCommands()
+
+        val printer = StarPrinter(target.makeConnectionSettings(), applicationContext)
+
+        try {
+            printer.openAsync().await()
+            printer.printAsync(commands).await()
+        } finally {
+            try {
+                printer.closeAsync().await()
+            } catch (_: Exception) {
+                // Keep the original drawer failure if close also fails.
             }
         }
     }

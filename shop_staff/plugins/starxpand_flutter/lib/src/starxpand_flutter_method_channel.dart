@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 
 import 'models/starxpand_discovered_printer.dart';
+import 'models/starxpand_drawer.dart';
 import 'models/starxpand_printer_target.dart';
 
 class StarXpandFlutterMethodChannel {
@@ -43,5 +44,28 @@ class StarXpandFlutterMethodChannel {
           ),
         )
         .toList(growable: false);
+  }
+
+  Future<StarXpandDrawerStatus> getDrawerStatus({
+    required StarXpandPrinterTarget printer,
+  }) async {
+    final response = await _methodChannel.invokeMapMethod<String, dynamic>(
+      'getDrawerStatus',
+      <String, dynamic>{'printer': printer.toJson()},
+    );
+
+    return StarXpandDrawerStatus.fromJson(response ?? const <String, dynamic>{});
+  }
+
+  Future<void> openDrawer({
+    required StarXpandPrinterTarget printer,
+    required StarXpandDrawerChannel channel,
+    required int onTimeMs,
+  }) {
+    return _methodChannel.invokeMethod<void>('openDrawer', <String, dynamic>{
+      'printer': printer.toJson(),
+      'channel': channel.wireValue,
+      'onTimeMs': onTimeMs,
+    });
   }
 }

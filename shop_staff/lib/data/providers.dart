@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/data/repositories_impl/activation_repository_impl.dart';
 import 'package:logging/logging.dart';
@@ -28,8 +29,11 @@ import 'services/pos_card_payment_gateway.dart';
 import 'services/pos_payment_orchestrator.dart';
 import 'services/pos_payment_service_impl.dart';
 import 'services/print_service_impl.dart';
+import 'services/star_cash_machine_service.dart';
+import 'services/starxpand_cash_drawer_service.dart';
 import 'services/starxpand_printer_discovery_service.dart';
 import 'services/starxpand_native_receipt_printer.dart';
+import 'services/unavailable_cash_machine_service.dart';
 import 'package:shop_staff/presentations/printing/printing_providers.dart';
 
 // Public repository interfaces
@@ -119,6 +123,11 @@ final starXpandPrinterDiscoveryProvider =
       (_) => StarXpandPrinterDiscoveryService(),
     );
 
+final starXpandCashDrawerServiceProvider =
+    Provider<StarXpandCashDrawerService>(
+      (_) => StarXpandCashDrawerService(),
+    );
+
 final dialogDrivenQrScannerProvider =
     ChangeNotifierProvider<DialogDrivenQrScannerService>((ref) {
       final service = DialogDrivenQrScannerService(
@@ -150,10 +159,59 @@ final appRoleServiceProvider = Provider<AppRoleService>((ref) {
 });
 
 final cashMachineServiceProvider = Provider<CashMachineService>((ref) {
-  final service = CashMachineServiceImpl(Logger('CashMachine'));
+  final snapshot = ref.watch(appSettingsSnapshotProvider);
+  final basic = snapshot?.basic ?? const BasicSettings();
+  final service = _buildCashMachineService(
+    ref,
+    cashMachine: basic.cashMachine,
+    legacyEnabled: basic.cashMachineEnabled ?? basic.cashMachine.enabled,
+  );
   ref.onDispose(service.dispose);
   return service;
 });
+
+CashMachineService _buildCashMachineService(
+  Ref ref, {
+  required CashMachineSettings cashMachine,
+  required bool legacyEnabled,
+}) {
+  final enabled = cashMachine.enabled || legacyEnabled;
+
+  if (cashMachine.brand == CashMachineBrand.star) {
+    if (!enabled) {
+      return const UnavailableCashMachineService('Star 钱箱未启用。');
+    }
+    if (!cashMachine.isConfigured) {
+      return const UnavailableCashMachineService('Star 钱箱未完成配置。');
+    }
+    return StarCashMachineService(
+      settings: cashMachine.copyWith(enabled: true),
+      drawerService: ref.watch(starXpandCashDrawerServiceProvider),
+      logger: Logger('StarCashMachine'),
+    );
+  }
+
+  if (cashMachine.brand == CashMachineBrand.glory ||
+      (cashMachine.brand == null &&
+          enabled &&
+          !kIsWeb &&
+          defaultTargetPlatform == TargetPlatform.windows)) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.windows) {
+      return CashMachineServiceImpl(Logger('CashMachine'));
+    }
+    return const UnavailableCashMachineService('Glory 现金机目前仅支持 Windows。');
+  }
+
+  if (cashMachine.brand == CashMachineBrand.conlux) {
+    return const UnavailableCashMachineService('Conlux 现金机移动端接入待实现。');
+  }
+
+  if (!enabled) {
+    return const UnavailableCashMachineService('现金机未启用。');
+  }
+
+  return const UnavailableCashMachineService('现金机尚未完成配置。');
+}
 
 const _appVersion = '1.0.0';
 

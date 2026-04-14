@@ -73,6 +73,120 @@ extension PrinterConnectionTypeX on PrinterConnectionType {
   }
 }
 
+enum CashMachineBrand { glory, star, conlux }
+
+extension CashMachineBrandX on CashMachineBrand {
+  String get wireValue {
+    switch (this) {
+      case CashMachineBrand.glory:
+        return 'glory';
+      case CashMachineBrand.star:
+        return 'star';
+      case CashMachineBrand.conlux:
+        return 'conlux';
+    }
+  }
+
+  static CashMachineBrand? fromWireValue(String? raw) {
+    switch (raw) {
+      case 'glory':
+        return CashMachineBrand.glory;
+      case 'star':
+        return CashMachineBrand.star;
+      case 'conlux':
+        return CashMachineBrand.conlux;
+      default:
+        return null;
+    }
+  }
+}
+
+const Object _copyWithUnset = Object();
+
+@immutable
+class CashMachineSettings {
+  const CashMachineSettings({
+    this.enabled = false,
+    this.brand,
+    this.connectionType = PrinterConnectionType.unknown,
+    this.deviceIdentifier,
+    this.host,
+    this.modelName,
+  });
+
+  final bool enabled;
+  final CashMachineBrand? brand;
+  final PrinterConnectionType connectionType;
+  final String? deviceIdentifier;
+  final String? host;
+  final String? modelName;
+
+  bool get isConfigured {
+    switch (brand) {
+      case CashMachineBrand.star:
+        return connectionType != PrinterConnectionType.unknown &&
+            (_trimOrNull(deviceIdentifier) != null || _trimOrNull(host) != null);
+      case CashMachineBrand.glory:
+      case CashMachineBrand.conlux:
+        return true;
+      case null:
+        return false;
+    }
+  }
+
+  CashMachineSettings copyWith({
+    bool? enabled,
+    Object? brand = _copyWithUnset,
+    PrinterConnectionType? connectionType,
+    Object? deviceIdentifier = _copyWithUnset,
+    Object? host = _copyWithUnset,
+    Object? modelName = _copyWithUnset,
+  }) {
+    return CashMachineSettings(
+      enabled: enabled ?? this.enabled,
+      brand: identical(brand, _copyWithUnset)
+          ? this.brand
+          : brand as CashMachineBrand?,
+      connectionType: connectionType ?? this.connectionType,
+      deviceIdentifier: identical(deviceIdentifier, _copyWithUnset)
+          ? this.deviceIdentifier
+          : deviceIdentifier as String?,
+      host: identical(host, _copyWithUnset) ? this.host : host as String?,
+      modelName: identical(modelName, _copyWithUnset)
+          ? this.modelName
+          : modelName as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'enabled': enabled,
+      'brand': brand?.wireValue,
+      'connectionType': connectionType.wireValue,
+      'deviceIdentifier': deviceIdentifier,
+      'host': host,
+      'modelName': modelName,
+    }..removeWhere((key, value) => value == null);
+  }
+
+  factory CashMachineSettings.fromJson(Map<String, dynamic> json) {
+    return CashMachineSettings(
+      enabled: _readBool(json['enabled']) ?? false,
+      brand: CashMachineBrandX.fromWireValue(json['brand'] as String?),
+      connectionType: PrinterConnectionTypeX.fromWireValue(
+        json['connectionType'] as String?,
+      ),
+      deviceIdentifier: json['deviceIdentifier'] as String?,
+      host: json['host'] as String?,
+      modelName: json['modelName'] as String?,
+    );
+  }
+
+  factory CashMachineSettings.fromLegacy({required bool enabled}) {
+    return CashMachineSettings(enabled: enabled);
+  }
+}
+
 @immutable
 class BasicSettings {
   const BasicSettings({
@@ -82,6 +196,7 @@ class BasicSettings {
     this.contactNumber,
     this.address,
     this.cashMachineEnabled,
+    this.cashMachine = const CashMachineSettings(),
     this.peerLinkEnabled = true,
   });
 
@@ -91,6 +206,7 @@ class BasicSettings {
   final String? contactNumber;
   final String? address;
   final bool? cashMachineEnabled;
+  final CashMachineSettings cashMachine;
   final bool peerLinkEnabled;
 
   BasicSettings copyWith({
@@ -100,15 +216,24 @@ class BasicSettings {
     String? contactNumber,
     String? address,
     bool? cashMachineEnabled,
+    CashMachineSettings? cashMachine,
     bool? peerLinkEnabled,
   }) {
+    final baseCashMachine = cashMachine ?? this.cashMachine;
+    final resolvedCashMachine = cashMachineEnabled == null
+        ? baseCashMachine
+        : baseCashMachine.copyWith(enabled: cashMachineEnabled);
+    final resolvedCashMachineEnabled =
+        cashMachineEnabled ?? resolvedCashMachine.enabled;
+
     return BasicSettings(
       shopName: shopName ?? this.shopName,
       shopCode: shopCode ?? this.shopCode,
       machineCode: machineCode ?? this.machineCode,
       contactNumber: contactNumber ?? this.contactNumber,
       address: address ?? this.address,
-      cashMachineEnabled: cashMachineEnabled ?? this.cashMachineEnabled,
+      cashMachineEnabled: resolvedCashMachineEnabled,
+      cashMachine: resolvedCashMachine,
       peerLinkEnabled: peerLinkEnabled ?? this.peerLinkEnabled,
     );
   }
@@ -121,18 +246,30 @@ class BasicSettings {
       'contactNumber': contactNumber,
       'address': address,
       'cashMachineEnabled': cashMachineEnabled,
+      'cashMachine': cashMachine.toJson(),
       'peerLinkEnabled': peerLinkEnabled,
     }..removeWhere((key, value) => value == null);
   }
 
   factory BasicSettings.fromJson(Map<String, dynamic> json) {
+    final legacyEnabled = _readBool(json['cashMachineEnabled']) ?? false;
+    final rawCashMachine = json['cashMachine'];
+    var cashMachine = rawCashMachine is Map
+        ? CashMachineSettings.fromJson(Map<String, dynamic>.from(rawCashMachine))
+        : CashMachineSettings.fromLegacy(enabled: legacyEnabled);
+
+    if (_readBool(json['cashMachineEnabled']) != null) {
+      cashMachine = cashMachine.copyWith(enabled: legacyEnabled);
+    }
+
     return BasicSettings(
       shopName: json['shopName'] as String?,
       shopCode: json['shopCode'] as String?,
       machineCode: json['machineCode'] as String?,
       contactNumber: json['contactNumber'] as String?,
       address: json['address'] as String?,
-      cashMachineEnabled: _readBool(json['cashMachineEnabled']) ?? false,
+      cashMachineEnabled: cashMachine.enabled,
+      cashMachine: cashMachine,
       peerLinkEnabled: _readBool(json['peerLinkEnabled']) ?? true,
     );
   }
@@ -438,4 +575,10 @@ bool? _readBool(dynamic value) {
     if (lower == 'false' || lower == '0' || lower == 'n') return false;
   }
   return null;
+}
+
+String? _trimOrNull(String? value) {
+  if (value == null) return null;
+  final trimmed = value.trim();
+  return trimmed.isEmpty ? null : trimmed;
 }

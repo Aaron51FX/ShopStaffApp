@@ -76,4 +76,40 @@ void main() {
       },
     );
   });
+
+  group('CashMachineSettings', () {
+    test('preserves nested cash machine config in basic settings json', () {
+      const basic = BasicSettings(
+        cashMachineEnabled: true,
+        cashMachine: CashMachineSettings(
+          enabled: true,
+          brand: CashMachineBrand.star,
+          connectionType: PrinterConnectionType.bluetoothClassic,
+          deviceIdentifier: 'STAR-DRAWER-001',
+          modelName: 'mC-Print3',
+        ),
+      );
+
+      final decoded = BasicSettings.fromJson(basic.toJson());
+
+      expect(decoded.cashMachineEnabled, isTrue);
+      expect(decoded.cashMachine.enabled, isTrue);
+      expect(decoded.cashMachine.brand, CashMachineBrand.star);
+      expect(
+        decoded.cashMachine.connectionType,
+        PrinterConnectionType.bluetoothClassic,
+      );
+      expect(decoded.cashMachine.deviceIdentifier, 'STAR-DRAWER-001');
+    });
+
+    test('migrates legacy cash machine toggle into cash machine settings', () {
+      final decoded = BasicSettings.fromJson(<String, dynamic>{
+        'cashMachineEnabled': true,
+      });
+
+      expect(decoded.cashMachineEnabled, isTrue);
+      expect(decoded.cashMachine.enabled, isTrue);
+      expect(decoded.cashMachine.brand, isNull);
+    });
+  });
 }

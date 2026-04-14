@@ -167,6 +167,36 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCashSkipOnce => '跳过本次';
 
   @override
+  String get settingsCashMachineAddAction => '添加现金机';
+
+  @override
+  String get settingsCashMachineReplaceAction => '更换现金机';
+
+  @override
+  String get settingsCashMachineBrandDialogTitle => '选择现金机品牌';
+
+  @override
+  String get settingsCashMachineBrandGloryHint => '暂限 Windows';
+
+  @override
+  String get settingsCashMachineBrandStarHint => '搜索并校验 Star 钱箱';
+
+  @override
+  String get settingsCashMachineBrandConluxHint => 'Android/iOS，暂未接入';
+
+  @override
+  String get settingsCashMachineSearchProgress => '正在搜索 Star 钱箱…';
+
+  @override
+  String get settingsCashMachineValidatingProgress => '正在检查钱箱状态…';
+
+  @override
+  String get settingsCashMachineDrawerOpenError => '钱箱当前处于打开状态，请关闭后重试。';
+
+  @override
+  String get settingsCashMachineStatusError => '钱箱返回异常状态，请检查连接后重试。';
+
+  @override
   String get settingsPosNetworkTitle => 'POS终端网络';
 
   @override
@@ -527,11 +557,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cashMachineFailureMessage => '检测失败，请检查设备连接。';
 
   @override
-  String get cashMachineStepsChecking => '步骤: 检查状态 → 打开 → 开始接收 → 读取金额 → 结束';
+  String get cashMachineStepsChecking => '步骤: 检查连接 → 读取状态';
 
   @override
-  String get cashMachineStepsFailure =>
-      '流程: 检查状态 → 打开现金机 → Start Deposit → Deposit Amount → End Deposit';
+  String get cashMachineStepsFailure => '请确认现金机设备已连接且当前处于关闭或待命状态。';
 
   @override
   String get cashMachineSkip => '跳过';

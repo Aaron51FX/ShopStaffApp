@@ -168,6 +168,38 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsCashSkipOnce => '今回はスキップ';
 
   @override
+  String get settingsCashMachineAddAction => '現金機を追加';
+
+  @override
+  String get settingsCashMachineReplaceAction => '現金機を変更';
+
+  @override
+  String get settingsCashMachineBrandDialogTitle => '現金機ブランドを選択';
+
+  @override
+  String get settingsCashMachineBrandGloryHint => '現在は Windows のみ対応';
+
+  @override
+  String get settingsCashMachineBrandStarHint => 'Star ドロワーを検索して状態を確認します';
+
+  @override
+  String get settingsCashMachineBrandConluxHint => 'Android/iOS 対応予定、未実装です';
+
+  @override
+  String get settingsCashMachineSearchProgress => 'Star ドロワーを検索中…';
+
+  @override
+  String get settingsCashMachineValidatingProgress => 'ドロワー状態を確認中…';
+
+  @override
+  String get settingsCashMachineDrawerOpenError =>
+      'ドロワーが開いたままです。閉じてから再試行してください。';
+
+  @override
+  String get settingsCashMachineStatusError =>
+      'ドロワーが異常状態を返しました。接続を確認して再試行してください。';
+
+  @override
   String get settingsPosNetworkTitle => 'POS端末ネットワーク';
 
   @override
@@ -531,11 +563,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get cashMachineFailureMessage => 'チェックに失敗しました。機器の接続を確認してください。';
 
   @override
-  String get cashMachineStepsChecking => '手順: 状態確認 → 開く → 受け付け開始 → 金額読み取り → 終了';
+  String get cashMachineStepsChecking => '手順: 接続確認 → 状態取得';
 
   @override
-  String get cashMachineStepsFailure =>
-      'フロー: 状態確認 → 現金機を開く → Start Deposit → Deposit Amount → End Deposit';
+  String get cashMachineStepsFailure => '現金機が接続済みで、閉じた状態または待機状態であることを確認してください。';
 
   @override
   String get cashMachineSkip => 'スキップ';

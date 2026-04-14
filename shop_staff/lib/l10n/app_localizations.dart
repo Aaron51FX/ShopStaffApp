@@ -388,6 +388,66 @@ abstract class AppLocalizations {
   /// **'Skip for now'**
   String get settingsCashSkipOnce;
 
+  /// No description provided for @settingsCashMachineAddAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cash machine'**
+  String get settingsCashMachineAddAction;
+
+  /// No description provided for @settingsCashMachineReplaceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Change cash machine'**
+  String get settingsCashMachineReplaceAction;
+
+  /// No description provided for @settingsCashMachineBrandDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select cash machine brand'**
+  String get settingsCashMachineBrandDialogTitle;
+
+  /// No description provided for @settingsCashMachineBrandGloryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Windows only for now.'**
+  String get settingsCashMachineBrandGloryHint;
+
+  /// No description provided for @settingsCashMachineBrandStarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search and validate a Star cash drawer.'**
+  String get settingsCashMachineBrandStarHint;
+
+  /// No description provided for @settingsCashMachineBrandConluxHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Android/iOS, integration coming soon.'**
+  String get settingsCashMachineBrandConluxHint;
+
+  /// No description provided for @settingsCashMachineSearchProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Searching for Star drawer devices…'**
+  String get settingsCashMachineSearchProgress;
+
+  /// No description provided for @settingsCashMachineValidatingProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking drawer status…'**
+  String get settingsCashMachineValidatingProgress;
+
+  /// No description provided for @settingsCashMachineDrawerOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'The drawer is currently open. Close it and try again.'**
+  String get settingsCashMachineDrawerOpenError;
+
+  /// No description provided for @settingsCashMachineStatusError.
+  ///
+  /// In en, this message translates to:
+  /// **'The drawer reported an error. Check the connection and try again.'**
+  String get settingsCashMachineStatusError;
+
   /// No description provided for @settingsPosNetworkTitle.
   ///
   /// In en, this message translates to:
@@ -1105,13 +1165,13 @@ abstract class AppLocalizations {
   /// No description provided for @cashMachineStepsChecking.
   ///
   /// In en, this message translates to:
-  /// **'Steps: Check status → Open → Start receive → Read amount → End'**
+  /// **'Steps: Check connection → Read status'**
   String get cashMachineStepsChecking;
 
   /// No description provided for @cashMachineStepsFailure.
   ///
   /// In en, this message translates to:
-  /// **'Flow: Check status → Open cash machine → Start Deposit → Deposit Amount → End Deposit'**
+  /// **'Make sure the cash machine is connected and currently closed or idle.'**
   String get cashMachineStepsFailure;
 
   /// No description provided for @cashMachineSkip.
