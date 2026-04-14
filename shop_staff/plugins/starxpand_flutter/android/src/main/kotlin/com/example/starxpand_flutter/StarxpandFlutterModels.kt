@@ -88,7 +88,6 @@ internal data class StarxpandPrinterTarget(
                 return listOf(
                     Transport.Network,
                     Transport.BluetoothClassic,
-                    Transport.BluetoothLe,
                     Transport.Usb,
                 )
             }

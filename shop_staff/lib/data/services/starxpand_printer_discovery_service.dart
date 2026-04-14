@@ -28,7 +28,6 @@ class StarXpandPrinterDiscoveryService {
       case TargetPlatform.android:
         return const <StarXpandTransport>[
           StarXpandTransport.bluetoothClassic,
-          StarXpandTransport.bluetoothLe,
           StarXpandTransport.usbC,
         ];
       default:

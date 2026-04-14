@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'src/models/starxpand_printer_target.dart';
@@ -21,13 +22,37 @@ class StarXpandFlutter {
   }) async {
     try {
       return await _channel.discoverPrinters(
-        transports: transports ?? StarXpandTransport.values,
+        transports: transports ?? _defaultDiscoveryTransports(),
         timeoutMs: timeout.inMilliseconds,
       );
     } on MissingPluginException {
       rethrow;
     } on PlatformException {
       rethrow;
+    }
+  }
+
+  List<StarXpandTransport> _defaultDiscoveryTransports() {
+    if (kIsWeb) {
+      return const <StarXpandTransport>[];
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+        return const <StarXpandTransport>[
+          StarXpandTransport.network,
+          StarXpandTransport.bluetoothClassic,
+          StarXpandTransport.bluetoothLe,
+          StarXpandTransport.lightningUsb,
+        ];
+      case TargetPlatform.android:
+        return const <StarXpandTransport>[
+          StarXpandTransport.network,
+          StarXpandTransport.bluetoothClassic,
+          StarXpandTransport.usbC,
+        ];
+      default:
+        return StarXpandTransport.values;
     }
   }
 
