@@ -1,5 +1,34 @@
-
 enum AppEnvironment { production, staging }
+
+extension AppEnvironmentX on AppEnvironment {
+  String get wireValue {
+    switch (this) {
+      case AppEnvironment.production:
+        return 'production';
+      case AppEnvironment.staging:
+        return 'staging';
+    }
+  }
+
+  static AppEnvironment fromWireValue(String? raw) {
+    switch (raw?.trim().toLowerCase()) {
+      case 'dev':
+      case 'development':
+      case 'staging':
+        return AppEnvironment.staging;
+      case 'prod':
+      case 'production':
+      default:
+        return AppEnvironment.production;
+    }
+  }
+}
+
+AppEnvironment appEnvironmentFromDartDefine([String? raw]) {
+  return AppEnvironmentX.fromWireValue(
+    raw ?? const String.fromEnvironment('APP_ENV', defaultValue: 'production'),
+  );
+}
 
 class AppConfig {
   final AppEnvironment env;

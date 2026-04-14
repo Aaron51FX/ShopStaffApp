@@ -1,0 +1,5 @@
+#!/bin/zsh
+set -euo pipefail
+
+cd "$(dirname "$0")"
+exec fvm flutter run -t lib/main.dart --dart-define=APP_ENV=production "$@"

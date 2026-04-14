@@ -4,7 +4,7 @@ import 'dio_client.dart';
 import 'endpoints.dart';
 
 final environmentProvider = Provider<AppEnvironment>((ref) {
-  return AppEnvironment.production; // 切换为 staging 进行测试
+  return appEnvironmentFromDartDefine();
 });
 
 final appConfigProvider = Provider<AppConfig>((ref) {

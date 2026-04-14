@@ -1,5 +1,16 @@
 # shop_staff
 
+## Run Modes
+
+- `./run_dev`
+  - Runs the app against the staging environment by passing `--dart-define=APP_ENV=staging`.
+- `./run_prod`
+  - Runs the app against the production environment by passing `--dart-define=APP_ENV=production`.
+- Both scripts forward extra Flutter arguments, for example:
+  - `./run_dev -d ios`
+  - `./run_prod -d android`
+- VS Code launch configurations `run_dev` and `run_prod` are also available in [.vscode/launch.json](</Users/aaronhou/ShopStaffApp/shop_staff/.vscode/launch.json>).
+
 点餐系统 - 产品需求设计清单 (PRD Checklist)
 1. 项目概述
 本项目旨在为咖啡店、甜品店等场景设计并开发一款高效、直观的店员端点餐（POS）应用。核心目标是优化点单流程，提升运营效率和顾客满意度。本文档是该产品的核心功能与设计需求清单。
@@ -129,4 +140,3 @@
 [x] 易用性: 界面设计符合直觉，新店员无需长时间培训即可上手。所有可点击区域尺寸需满足触控操作的最小热区要求。
 
 [x] 稳定性: 应用需能长时间稳定运行，不会因频繁操作而崩溃或卡顿。
-

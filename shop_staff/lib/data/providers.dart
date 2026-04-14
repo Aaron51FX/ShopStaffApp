@@ -55,7 +55,7 @@ import '../domain/repositories/print_repository.dart';
 
 // Environment / Config provider (can later be overridden in tests)
 final appEnvironmentProvider = Provider<AppEnvironment>(
-  (_) => AppEnvironment.production,
+  (_) => appEnvironmentFromDartDefine(),
 );
 
 final appConfigProvider = Provider<AppConfig>(
@@ -123,10 +123,9 @@ final starXpandPrinterDiscoveryProvider =
       (_) => StarXpandPrinterDiscoveryService(),
     );
 
-final starXpandCashDrawerServiceProvider =
-    Provider<StarXpandCashDrawerService>(
-      (_) => StarXpandCashDrawerService(),
-    );
+final starXpandCashDrawerServiceProvider = Provider<StarXpandCashDrawerService>(
+  (_) => StarXpandCashDrawerService(),
+);
 
 final dialogDrivenQrScannerProvider =
     ChangeNotifierProvider<DialogDrivenQrScannerService>((ref) {

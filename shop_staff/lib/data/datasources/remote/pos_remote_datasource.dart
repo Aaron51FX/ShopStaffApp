@@ -3,9 +3,8 @@ import 'package:shop_staff/core/network/app_environment.dart';
 import 'package:shop_staff/core/network/dio_client.dart';
 import 'package:shop_staff/core/network/endpoints.dart';
 
-
 final dioClientProvider = Provider<DioClient>((ref) {
-  final config = AppConfig.forEnv(AppEnvironment.production); // TODO: inject env
+  final config = AppConfig.forEnv(appEnvironmentFromDartDefine());
   return DioClient.create(config);
 });
 
@@ -30,7 +29,11 @@ class PosRemoteDataSource {
 
   Endpoints get _e => _client.endpoints;
 
-  Future<dynamic> fetchHomeMenu({required String machineCode, String language = 'JP', bool takeout = false}) async {
+  Future<dynamic> fetchHomeMenu({
+    required String machineCode,
+    String language = 'JP',
+    bool takeout = false,
+  }) async {
     // 与 fetchCategoriesV2 一致: POST 同一分类接口, 便于统一首批数据来源
     final payload = {
       'machineCode': machineCode,
@@ -41,19 +44,30 @@ class PosRemoteDataSource {
     return _dedupe(key, () => _client.postJson(_e.bootIndexV1, body: payload));
   }
 
-  Future<dynamic> fetchCategoriesV2({required String machineCode, String language = 'JP', bool takeout = false}) async {
+  Future<dynamic> fetchCategoriesV2({
+    required String machineCode,
+    String language = 'JP',
+    bool takeout = false,
+  }) async {
     final payload = {
       'machineCode': machineCode,
       'language': language,
       'takeout': takeout ? 0 : 2,
     };
-    final key = 'POST:${_e.bootIndexCategoryV2}:$machineCode:$language:$takeout';
-    return _dedupe(key, () => _client.postJson(_e.bootIndexCategoryV2, body: payload));
+    final key =
+        'POST:${_e.bootIndexCategoryV2}:$machineCode:$language:$takeout';
+    return _dedupe(
+      key,
+      () => _client.postJson(_e.bootIndexCategoryV2, body: payload),
+    );
   }
 
   /// Activate (V3) - backend now expects only machineCode + version.
   /// Returns shop info payload.
-  Future<dynamic> activateBoot({required String machineCode, required String version}) async {
+  Future<dynamic> activateBoot({
+    required String machineCode,
+    required String version,
+  }) async {
     final payload = {'machineCode': machineCode, 'version': version};
     final key = 'POST:${_e.activateV3}:${machineCode}_$version';
     return _dedupe(key, () => _client.postJson(_e.activateV3, body: payload));
@@ -71,8 +85,12 @@ class PosRemoteDataSource {
       'takeout': takeout ? 0 : 2,
       'categoryCode': categoryCode,
     };
-    final key = 'POST:${_e.bootIndexMenuV2}:$machineCode:$language:$takeout:$categoryCode';
-    return _dedupe(key, () => _client.postJson(_e.bootIndexMenuV2, body: payload));
+    final key =
+        'POST:${_e.bootIndexMenuV2}:$machineCode:$language:$takeout:$categoryCode';
+    return _dedupe(
+      key,
+      () => _client.postJson(_e.bootIndexMenuV2, body: payload),
+    );
   }
 
   Future<dynamic> submitOrderV4(Map<String, dynamic> payload) async =>
@@ -82,15 +100,15 @@ class PosRemoteDataSource {
       _client.postJson(_e.calculateOrder, body: payload);
 
   Future<dynamic> requestPosPayment(Map<String, dynamic> payload) async =>
-    _client.postJson(_e.toPayV2, body: payload);
+      _client.postJson(_e.toPayV2, body: payload);
 
   Future<dynamic> reportPosPayment(Map<String, dynamic> payload) async =>
-    _client.postJson(_e.posPayReport, body: payload);
+      _client.postJson(_e.posPayReport, body: payload);
 
   Future<dynamic> cancelCreditCard(Map<String, dynamic> payload) async =>
-    _client.postJson(_e.creditCardCancel, body: payload);
+      _client.postJson(_e.creditCardCancel, body: payload);
 
   //print info
   Future<dynamic> printInfo(Map<String, dynamic> payload) async =>
-    _client.postJson(_e.printV9, body: payload);  
+      _client.postJson(_e.printV9, body: payload);
 }
