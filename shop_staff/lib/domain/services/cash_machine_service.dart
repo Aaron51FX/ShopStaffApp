@@ -7,6 +7,7 @@ enum CashMachineStage {
   change,
   changeFailed,
   closing,
+  waitingDrawerClose,
   completed,
   nearfull,
   full,
@@ -48,8 +49,8 @@ abstract class CashMachineService {
 
   Future<CashMachineInitResult> initialize();
 
-  /// Runs the full cash-acceptance sequence (open -> accept -> close) and
-  /// returns the resulting receipt.
+  /// Starts the cash-payment sequence and returns a pending receipt once the
+  /// operator can proceed with manual completion.
   Future<CashMachineReceipt> runPayment(int amount);
 
   Future<CashMachineReceipt> completePayment();
@@ -67,15 +68,19 @@ class CashMachineInitResult {
 }
 
 class CashMachineReceipt {
-  const CashMachineReceipt({required this.acceptedAmount, required this.expectedAmount, this.raw});
+  const CashMachineReceipt({
+    required this.acceptedAmount,
+    required this.expectedAmount,
+    this.raw,
+  });
 
   final int acceptedAmount;
   final int expectedAmount;
   final Map<String, dynamic>? raw;
 
   Map<String, dynamic> toJson() => {
-        'acceptedAmount': acceptedAmount,
-        'expectedAmount': expectedAmount,
-        if (raw != null) 'raw': raw,
-      };
+    'acceptedAmount': acceptedAmount,
+    'expectedAmount': expectedAmount,
+    if (raw != null) 'raw': raw,
+  };
 }

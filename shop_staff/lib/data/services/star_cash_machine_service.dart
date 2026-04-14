@@ -12,19 +12,23 @@ class StarCashMachineService implements CashMachineService {
     required CashMachineSettings settings,
     required StarXpandCashDrawerService drawerService,
     Logger? logger,
-  })  : _settings = settings,
-        _drawerService = drawerService,
-        _logger = logger ?? Logger('StarCashMachineService'),
-        _eventsController = StreamController<CashMachineEvent>.broadcast();
+    Duration drawerClosePollInterval = const Duration(milliseconds: 500),
+  }) : _settings = settings,
+       _drawerService = drawerService,
+       _logger = logger ?? Logger('StarCashMachineService'),
+       _drawerClosePollInterval = drawerClosePollInterval,
+       _eventsController = StreamController<CashMachineEvent>.broadcast();
 
   final CashMachineSettings _settings;
   final StarXpandCashDrawerService _drawerService;
   final Logger _logger;
+  final Duration _drawerClosePollInterval;
   final StreamController<CashMachineEvent> _eventsController;
 
   bool _isRunning = false;
   bool _awaitingCompletion = false;
   CashMachineReceipt? _pendingReceipt;
+  Completer<void>? _cancelSignal;
 
   @override
   Stream<CashMachineEvent> get events => _eventsController.stream;
@@ -64,6 +68,7 @@ class StarCashMachineService implements CashMachineService {
     }
 
     _isRunning = true;
+    _cancelSignal = Completer<void>();
     _emitStage(CashMachineStage.opening, '正在打开 Star 钱箱…');
 
     try {
@@ -95,6 +100,7 @@ class StarCashMachineService implements CashMachineService {
       _pendingReceipt = null;
       _awaitingCompletion = false;
       _isRunning = false;
+      _cancelSignal = null;
       _emitError('Star 钱箱打开失败: $error');
       rethrow;
     }
@@ -107,11 +113,29 @@ class StarCashMachineService implements CashMachineService {
     }
 
     final receipt = _pendingReceipt!;
-    _pendingReceipt = null;
-    _awaitingCompletion = false;
-    _isRunning = false;
-    _emitStage(CashMachineStage.completed, '现金收款已确认。');
-    return receipt;
+    _emitStage(CashMachineStage.closing, '正在确认 Star 钱箱状态…');
+
+    try {
+      await _waitUntilDrawerClosed();
+      _pendingReceipt = null;
+      _awaitingCompletion = false;
+      _isRunning = false;
+      _cancelSignal = null;
+      _emitStage(CashMachineStage.completed, '钱箱已关闭，现金交易完成。');
+      return receipt;
+    } catch (error, stack) {
+      if (error is StateError && error.message == 'CASH_CANCELLED') {
+        rethrow;
+      }
+
+      _logger.warning(
+        'Failed while waiting for Star drawer to close',
+        error,
+        stack,
+      );
+      _emitError('等待 Star 钱箱关闭失败: $error');
+      rethrow;
+    }
   }
 
   @override
@@ -120,9 +144,14 @@ class StarCashMachineService implements CashMachineService {
       return;
     }
 
+    final cancelSignal = _cancelSignal;
+    if (cancelSignal != null && !cancelSignal.isCompleted) {
+      cancelSignal.complete();
+    }
     _pendingReceipt = null;
     _awaitingCompletion = false;
     _isRunning = false;
+    _cancelSignal = null;
     _emitStage(CashMachineStage.closing, '已取消 Star 钱箱流程。');
     _emitStage(CashMachineStage.idle, 'Star 钱箱已回到待命状态。');
   }
@@ -146,5 +175,55 @@ class StarCashMachineService implements CashMachineService {
   void _emitError(String message) {
     _emit(CashMachineErrorEvent(message));
     _emit(CashMachineStageEvent(CashMachineStage.error, message: message));
+  }
+
+  Future<void> _waitUntilDrawerClosed() async {
+    var waitingPromptEmitted = false;
+
+    while (true) {
+      _throwIfCancelled();
+      final status = await _drawerService.getStatus(settings: _settings);
+      _throwIfCancelled();
+
+      if (status.hasError) {
+        throw StateError('Star 钱箱状态异常，请检查连接后重试。');
+      }
+
+      if (!status.drawerOpenCloseSignal) {
+        return;
+      }
+
+      if (!waitingPromptEmitted) {
+        waitingPromptEmitted = true;
+        _emitStage(CashMachineStage.waitingDrawerClose, '请关闭钱箱，关闭后将自动完成现金交易。');
+      }
+
+      await _delayOrCancel(_drawerClosePollInterval);
+    }
+  }
+
+  Future<void> _delayOrCancel(Duration duration) async {
+    final cancelSignal = _cancelSignal;
+    if (cancelSignal == null) {
+      throw StateError('CASH_CANCELLED');
+    }
+
+    if (duration <= Duration.zero) {
+      _throwIfCancelled();
+      return;
+    }
+
+    await Future.any<void>([
+      Future<void>.delayed(duration),
+      cancelSignal.future,
+    ]);
+    _throwIfCancelled();
+  }
+
+  void _throwIfCancelled() {
+    final cancelSignal = _cancelSignal;
+    if (cancelSignal == null || cancelSignal.isCompleted) {
+      throw StateError('CASH_CANCELLED');
+    }
   }
 }

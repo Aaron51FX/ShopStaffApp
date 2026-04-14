@@ -12,9 +12,9 @@ class CashPaymentFlow implements PaymentFlow {
     required CashMachineService cashMachine,
     required PaymentBackendGateway backendGateway,
     Logger? logger,
-  })  : _cashMachine = cashMachine,
-        _backendGateway = backendGateway,
-        _logger = logger ?? Logger('CashPaymentFlow');
+  }) : _cashMachine = cashMachine,
+       _backendGateway = backendGateway,
+       _logger = logger ?? Logger('CashPaymentFlow');
 
   final CashMachineService _cashMachine;
   final PaymentBackendGateway _backendGateway;
@@ -70,21 +70,25 @@ class CashPaymentFlow implements PaymentFlow {
       final args = {'detail': _stageTimeoutDetail};
       awaitingManualConfirm = false;
       pendingReceipt = null;
-      emitStatus(PaymentStatus(
-        type: PaymentStatusType.failure,
-        messageKey: messageKey,
-        messageArgs: args,
-        details: {'stage': stage},
-        errorType: errorType,
-        retryable: true,
-      ));
-      await finish(PaymentResult.failure(
-        messageKey: messageKey,
-        messageArgs: args,
-        payload: {'stage': stage},
-        errorType: errorType,
-        retryable: true,
-      ));
+      emitStatus(
+        PaymentStatus(
+          type: PaymentStatusType.failure,
+          messageKey: messageKey,
+          messageArgs: args,
+          details: {'stage': stage},
+          errorType: errorType,
+          retryable: true,
+        ),
+      );
+      await finish(
+        PaymentResult.failure(
+          messageKey: messageKey,
+          messageArgs: args,
+          payload: {'stage': stage},
+          errorType: errorType,
+          retryable: true,
+        ),
+      );
     }
 
     void armStageTimeout({
@@ -102,33 +106,47 @@ class CashPaymentFlow implements PaymentFlow {
             try {
               await _cashMachine.cancelPayment();
             } catch (error, stack) {
-              _logger.warning('Cancel cash machine after timeout failed', error, stack);
+              _logger.warning(
+                'Cancel cash machine after timeout failed',
+                error,
+                stack,
+              );
             }
           }
-          await failWithTimeout(stage: stage, messageKey: messageKey, errorType: errorType);
+          await failWithTimeout(
+            stage: stage,
+            messageKey: messageKey,
+            errorType: errorType,
+          );
         }());
       });
     }
 
     void failFromStatus(PaymentStatus status) {
       if (isFinished) return;
-      unawaited(finish(PaymentResult.failure(
-        message: status.message,
-        messageKey: status.messageKey,
-        messageArgs: status.messageArgs,
-        errorType: status.errorType ?? PaymentErrorType.device,
-        retryable: status.retryable ?? true,
-        payload: status.details,
-      )));
+      unawaited(
+        finish(
+          PaymentResult.failure(
+            message: status.message,
+            messageKey: status.messageKey,
+            messageArgs: status.messageArgs,
+            errorType: status.errorType ?? PaymentErrorType.device,
+            retryable: status.retryable ?? true,
+            payload: status.details,
+          ),
+        ),
+      );
     }
 
     Future<void> run() async {
       try {
-        emitStatus(const PaymentStatus(
-          type: PaymentStatusType.pending,
-          messageKey: PaymentMessageKeys.cashPrepare,
-          phase: PaymentPhase.initializing,
-        ));
+        emitStatus(
+          const PaymentStatus(
+            type: PaymentStatusType.pending,
+            messageKey: PaymentMessageKeys.cashPrepare,
+            phase: PaymentPhase.initializing,
+          ),
+        );
         armStageTimeout(
           timeout: _machineInactivityTimeout,
           stage: 'cash_machine_progress',
@@ -136,44 +154,47 @@ class CashPaymentFlow implements PaymentFlow {
           errorType: PaymentErrorType.device,
           cancelMachine: true,
         );
-        eventSubscription = _cashMachine.events.listen((event) {
-          if (isFinished) return;
-          armStageTimeout(
-            timeout: _machineInactivityTimeout,
-            stage: 'cash_machine_progress',
-            messageKey: PaymentMessageKeys.cashFailure,
-            errorType: PaymentErrorType.device,
-            cancelMachine: true,
-          );
-          if (event is CashMachineStageEvent) {
-            if (event.stage == lastStage) return;
-            lastStage = event.stage;
-          }
-          final status = _statusForEvent(event);
-          if (status != null) {
-            emitStatus(status);
-            if (status.type == PaymentStatusType.failure) {
+        eventSubscription = _cashMachine.events.listen(
+          (event) {
+            if (isFinished) return;
+            armStageTimeout(
+              timeout: _machineInactivityTimeout,
+              stage: 'cash_machine_progress',
+              messageKey: PaymentMessageKeys.cashFailure,
+              errorType: PaymentErrorType.device,
+              cancelMachine: true,
+            );
+            if (event is CashMachineStageEvent) {
+              if (event.stage == lastStage) return;
+              lastStage = event.stage;
+            }
+            final status = _statusForEvent(event);
+            if (status != null) {
+              emitStatus(status);
+              if (status.type == PaymentStatusType.failure) {
+                awaitingManualConfirm = false;
+                pendingReceipt = null;
+                failFromStatus(status);
+              }
+            }
+          },
+          onError: (error, stack) {
+            _logger.warning('现金机事件流异常', error, stack);
+            if (!isFinished) {
+              final status = PaymentStatus(
+                type: PaymentStatusType.failure,
+                messageKey: PaymentMessageKeys.errorUnknown,
+                messageArgs: {'detail': error.toString()},
+                errorType: PaymentErrorType.device,
+                retryable: true,
+              );
               awaitingManualConfirm = false;
               pendingReceipt = null;
+              emitStatus(status);
               failFromStatus(status);
             }
-          }
-        }, onError: (error, stack) {
-          _logger.warning('现金机事件流异常', error, stack);
-          if (!isFinished) {
-            final status = PaymentStatus(
-              type: PaymentStatusType.failure,
-              messageKey: PaymentMessageKeys.errorUnknown,
-              messageArgs: {'detail': error.toString()},
-              errorType: PaymentErrorType.device,
-              retryable: true,
-            );
-            awaitingManualConfirm = false;
-            pendingReceipt = null;
-            emitStatus(status);
-            failFromStatus(status);
-          }
-        });
+          },
+        );
         pendingReceipt = await _cashMachine.runPayment(context.order.total);
         if (isFinished) return;
         awaitingManualConfirm = true;
@@ -204,20 +225,24 @@ class CashPaymentFlow implements PaymentFlow {
         _logger.severe('Cash payment flow failed', e, stack);
         awaitingManualConfirm = false;
         pendingReceipt = null;
-        emitStatus(PaymentStatus(
-          type: PaymentStatusType.failure,
-          messageKey: PaymentMessageKeys.cashFailure,
-          messageArgs: {'detail': e.toString()},
-          errorType: PaymentErrorType.device,
-          retryable: true,
-        ));
-        await finish(PaymentResult.failure(
-          message: e.toString(),
-          messageKey: PaymentMessageKeys.cashFailure,
-          messageArgs: {'detail': e.toString()},
-          errorType: PaymentErrorType.device,
-          retryable: true,
-        ));
+        emitStatus(
+          PaymentStatus(
+            type: PaymentStatusType.failure,
+            messageKey: PaymentMessageKeys.cashFailure,
+            messageArgs: {'detail': e.toString()},
+            errorType: PaymentErrorType.device,
+            retryable: true,
+          ),
+        );
+        await finish(
+          PaymentResult.failure(
+            message: e.toString(),
+            messageKey: PaymentMessageKeys.cashFailure,
+            messageArgs: {'detail': e.toString()},
+            errorType: PaymentErrorType.device,
+            retryable: true,
+          ),
+        );
       }
     }
 
@@ -244,11 +269,13 @@ class CashPaymentFlow implements PaymentFlow {
           errorType: PaymentErrorType.backend,
           cancelMachine: true,
         );
-        emitStatus(const PaymentStatus(
-          type: PaymentStatusType.processing,
-          messageKey: PaymentMessageKeys.cashConfirming,
-          phase: PaymentPhase.confirming,
-        ));
+        emitStatus(
+          const PaymentStatus(
+            type: PaymentStatusType.processing,
+            messageKey: PaymentMessageKeys.cashConfirming,
+            phase: PaymentPhase.confirming,
+          ),
+        );
         final receipt = await _cashMachine.completePayment();
         if (isFinished) return;
         final payload = receipt.toJson();
@@ -257,33 +284,44 @@ class CashPaymentFlow implements PaymentFlow {
           'receipt': payload,
         });
         if (isFinished) return;
-        emitStatus(const PaymentStatus(
-          type: PaymentStatusType.success,
-          messageKey: PaymentMessageKeys.cashSuccess,
-        ));
+        emitStatus(
+          const PaymentStatus(
+            type: PaymentStatusType.success,
+            messageKey: PaymentMessageKeys.cashSuccess,
+          ),
+        );
         clearStageTimer();
-        await finish(PaymentResult.success(
-          messageKey: PaymentMessageKeys.cashSuccess,
-          payload: {
-          'receipt': payload,
-        }));
+        await finish(
+          PaymentResult.success(
+            messageKey: PaymentMessageKeys.cashSuccess,
+            payload: {'receipt': payload},
+          ),
+        );
       } catch (e, stack) {
         confirmRequested = false;
+        if (isFinished) {
+          _logger.fine('Finalize cash payment aborted after finish', e, stack);
+          return;
+        }
         _logger.severe('Finalize cash payment failed', e, stack);
-        controller.add(PaymentStatus(
-          type: PaymentStatusType.failure,
-          messageKey: PaymentMessageKeys.cashConfirmFailed,
-          messageArgs: {'detail': e.toString()},
-          errorType: PaymentErrorType.backend,
-          retryable: true,
-        ));
-        await finish(PaymentResult.failure(
-          message: e.toString(),
-          messageKey: PaymentMessageKeys.cashConfirmFailed,
-          messageArgs: {'detail': e.toString()},
-          errorType: PaymentErrorType.backend,
-          retryable: true,
-        ));
+        emitStatus(
+          PaymentStatus(
+            type: PaymentStatusType.failure,
+            messageKey: PaymentMessageKeys.cashConfirmFailed,
+            messageArgs: {'detail': e.toString()},
+            errorType: PaymentErrorType.backend,
+            retryable: true,
+          ),
+        );
+        await finish(
+          PaymentResult.failure(
+            message: e.toString(),
+            messageKey: PaymentMessageKeys.cashConfirmFailed,
+            messageArgs: {'detail': e.toString()},
+            errorType: PaymentErrorType.backend,
+            retryable: true,
+          ),
+        );
         rethrow;
       }
     }
@@ -300,17 +338,21 @@ class CashPaymentFlow implements PaymentFlow {
       } catch (e, stack) {
         _logger.warning('Failed to cancel cash transaction', e, stack);
       }
-      emitStatus(const PaymentStatus(
-        type: PaymentStatusType.cancelled,
-        messageKey: PaymentMessageKeys.cashCancelled,
-        errorType: PaymentErrorType.userCancelled,
-        retryable: true,
-      ));
-      await finish(PaymentResult.cancelled(
-        messageKey: PaymentMessageKeys.cashCancelled,
-        errorType: PaymentErrorType.userCancelled,
-        retryable: true,
-      ));
+      emitStatus(
+        const PaymentStatus(
+          type: PaymentStatusType.cancelled,
+          messageKey: PaymentMessageKeys.cashCancelled,
+          errorType: PaymentErrorType.userCancelled,
+          retryable: true,
+        ),
+      );
+      await finish(
+        PaymentResult.cancelled(
+          messageKey: PaymentMessageKeys.cashCancelled,
+          errorType: PaymentErrorType.userCancelled,
+          retryable: true,
+        ),
+      );
     }
 
     return PaymentFlowRun(
@@ -330,6 +372,7 @@ class CashPaymentFlow implements PaymentFlow {
       var type = PaymentStatusType.processing;
       switch (event.stage) {
         case CashMachineStage.accepting:
+        case CashMachineStage.waitingDrawerClose:
           type = PaymentStatusType.waitingForUser;
           break;
         case CashMachineStage.error:
@@ -343,9 +386,13 @@ class CashPaymentFlow implements PaymentFlow {
         message: message,
         messageKey: messageKey,
         details: {'stage': event.stage.name},
-        errorType: type == PaymentStatusType.failure ? PaymentErrorType.device : null,
+        errorType: type == PaymentStatusType.failure
+            ? PaymentErrorType.device
+            : null,
         retryable: type == PaymentStatusType.failure ? true : null,
-        phase: type == PaymentStatusType.waitingForUser ? PaymentPhase.waitingUser : null,
+        phase: type == PaymentStatusType.waitingForUser
+            ? PaymentPhase.waitingUser
+            : null,
       );
     } else if (event is CashMachineAmountEvent) {
       return PaymentStatus(
@@ -370,7 +417,9 @@ class CashPaymentFlow implements PaymentFlow {
       return PaymentStatus(
         type: PaymentStatusType.failure,
         message: event.message,
-        messageKey: event.message.isEmpty ? PaymentMessageKeys.cashStageError : null,
+        messageKey: event.message.isEmpty
+            ? PaymentMessageKeys.cashStageError
+            : null,
         errorType: PaymentErrorType.device,
         retryable: true,
       );
@@ -391,6 +440,8 @@ class CashPaymentFlow implements PaymentFlow {
       case CashMachineStage.counting:
         return PaymentMessageKeys.cashStageCounting;
       case CashMachineStage.closing:
+        return PaymentMessageKeys.cashStageClosing;
+      case CashMachineStage.waitingDrawerClose:
         return PaymentMessageKeys.cashStageClosing;
       case CashMachineStage.completed:
         return PaymentMessageKeys.cashStageCompleted;

@@ -9,31 +9,39 @@ import 'package:shop_staff/domain/services/cash_machine_service.dart';
 
 void main() {
   group('CashPaymentFlow boundary conditions', () {
-    test('finalize before await-confirmation throws PAYMENT_FINALIZE_NOT_REQUIRED', () async {
-      final runPaymentCompleter = Completer<CashMachineReceipt>();
-      final machine = _FakeCashMachineService(
-        runPaymentCompleter: runPaymentCompleter,
-      );
-      final backend = _FakePaymentBackendGateway();
-      final flow = CashPaymentFlow(cashMachine: machine, backendGateway: backend);
-      final run = flow.start(_context());
+    test(
+      'finalize before await-confirmation throws PAYMENT_FINALIZE_NOT_REQUIRED',
+      () async {
+        final runPaymentCompleter = Completer<CashMachineReceipt>();
+        final machine = _FakeCashMachineService(
+          runPaymentCompleter: runPaymentCompleter,
+        );
+        final backend = _FakePaymentBackendGateway();
+        final flow = CashPaymentFlow(
+          cashMachine: machine,
+          backendGateway: backend,
+        );
+        final run = flow.start(_context());
 
-      expect(
-        () => run.finalize!(),
-        throwsA(
-          isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            'PAYMENT_FINALIZE_NOT_REQUIRED',
+        expect(
+          () => run.finalize!(),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              'PAYMENT_FINALIZE_NOT_REQUIRED',
+            ),
           ),
-        ),
-      );
+        );
 
-      await run.cancel();
-      runPaymentCompleter.complete(const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200));
-      await run.result;
-      expect(machine.cancelCount, greaterThanOrEqualTo(1));
-    });
+        await run.cancel();
+        runPaymentCompleter.complete(
+          const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200),
+        );
+        await run.result;
+        expect(machine.cancelCount, greaterThanOrEqualTo(1));
+      },
+    );
 
     test('finalize succeeds after await-confirmation stage', () async {
       final runPaymentCompleter = Completer<CashMachineReceipt>();
@@ -41,13 +49,18 @@ void main() {
         runPaymentCompleter: runPaymentCompleter,
       );
       final backend = _FakePaymentBackendGateway();
-      final flow = CashPaymentFlow(cashMachine: machine, backendGateway: backend);
+      final flow = CashPaymentFlow(
+        cashMachine: machine,
+        backendGateway: backend,
+      );
       final run = flow.start(_context());
 
       final awaitConfirm = run.statuses.firstWhere(
         (status) => status.details?['stage'] == 'await_confirmation',
       );
-      runPaymentCompleter.complete(const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200));
+      runPaymentCompleter.complete(
+        const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200),
+      );
       await awaitConfirm;
 
       await run.finalize!();
@@ -58,68 +71,135 @@ void main() {
       expect(backend.confirmedPayloads.single['method'], PaymentChannels.cash);
     });
 
-    test('second finalize while confirming throws PAYMENT_FINALIZE_NOT_REQUIRED', () async {
-      final runPaymentCompleter = Completer<CashMachineReceipt>();
-      final completePaymentCompleter = Completer<CashMachineReceipt>();
-      final machine = _FakeCashMachineService(
-        runPaymentCompleter: runPaymentCompleter,
-        completePaymentCompleter: completePaymentCompleter,
-      );
-      final backend = _FakePaymentBackendGateway();
-      final flow = CashPaymentFlow(cashMachine: machine, backendGateway: backend);
-      final run = flow.start(_context());
+    test(
+      'second finalize while confirming throws PAYMENT_FINALIZE_NOT_REQUIRED',
+      () async {
+        final runPaymentCompleter = Completer<CashMachineReceipt>();
+        final completePaymentCompleter = Completer<CashMachineReceipt>();
+        final machine = _FakeCashMachineService(
+          runPaymentCompleter: runPaymentCompleter,
+          completePaymentCompleter: completePaymentCompleter,
+        );
+        final backend = _FakePaymentBackendGateway();
+        final flow = CashPaymentFlow(
+          cashMachine: machine,
+          backendGateway: backend,
+        );
+        final run = flow.start(_context());
 
-      final awaitConfirm = run.statuses.firstWhere(
-        (status) => status.details?['stage'] == 'await_confirmation',
-      );
-      runPaymentCompleter.complete(const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200));
-      await awaitConfirm;
+        final awaitConfirm = run.statuses.firstWhere(
+          (status) => status.details?['stage'] == 'await_confirmation',
+        );
+        runPaymentCompleter.complete(
+          const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200),
+        );
+        await awaitConfirm;
 
-      final firstFinalize = run.finalize!();
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+        final firstFinalize = run.finalize!();
+        await Future<void>.delayed(const Duration(milliseconds: 10));
 
-      expect(
-        () => run.finalize!(),
-        throwsA(
-          isA<StateError>().having(
-            (e) => e.message,
-            'message',
-            'PAYMENT_FINALIZE_NOT_REQUIRED',
+        expect(
+          () => run.finalize!(),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              'PAYMENT_FINALIZE_NOT_REQUIRED',
+            ),
           ),
-        ),
-      );
+        );
 
-      completePaymentCompleter.complete(
-        const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200),
-      );
-      await firstFinalize;
-      final result = await run.result;
-      expect(result.status, PaymentStatusType.success);
-    });
+        completePaymentCompleter.complete(
+          const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200),
+        );
+        await firstFinalize;
+        final result = await run.result;
+        expect(result.status, PaymentStatusType.success);
+      },
+    );
 
-    test('cancel after await-confirmation ends flow and later finalize is a no-op', () async {
-      final runPaymentCompleter = Completer<CashMachineReceipt>();
-      final machine = _FakeCashMachineService(
-        runPaymentCompleter: runPaymentCompleter,
-      );
-      final backend = _FakePaymentBackendGateway();
-      final flow = CashPaymentFlow(cashMachine: machine, backendGateway: backend);
-      final run = flow.start(_context());
+    test(
+      'waitingDrawerClose stage is surfaced as waiting-for-user during finalize',
+      () async {
+        final runPaymentCompleter = Completer<CashMachineReceipt>();
+        final completePaymentCompleter = Completer<CashMachineReceipt>();
+        final machine = _FakeCashMachineService(
+          runPaymentCompleter: runPaymentCompleter,
+          completePaymentCompleter: completePaymentCompleter,
+        );
+        final backend = _FakePaymentBackendGateway();
+        final flow = CashPaymentFlow(
+          cashMachine: machine,
+          backendGateway: backend,
+        );
+        final run = flow.start(_context());
 
-      final awaitConfirm = run.statuses.firstWhere(
-        (status) => status.details?['stage'] == 'await_confirmation',
-      );
-      runPaymentCompleter.complete(const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200));
-      await awaitConfirm;
+        final awaitConfirm = run.statuses.firstWhere(
+          (status) => status.details?['stage'] == 'await_confirmation',
+        );
+        runPaymentCompleter.complete(
+          const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200),
+        );
+        await awaitConfirm;
 
-      await run.cancel();
-      final result = await run.result;
-      expect(result.status, PaymentStatusType.cancelled);
+        final waitingForClose = run.statuses.firstWhere(
+          (status) =>
+              status.details?['stage'] ==
+              CashMachineStage.waitingDrawerClose.name,
+        );
 
-      await run.finalize!();
-      expect(machine.completeCount, 0);
-      expect(backend.confirmedPayloads, isEmpty);
-    });
+        final finalizeFuture = run.finalize!();
+        machine.emitEvent(
+          const CashMachineStageEvent(
+            CashMachineStage.waitingDrawerClose,
+            message: '请关闭钱箱，关闭后将自动完成现金交易。',
+          ),
+        );
+
+        final waitingStatus = await waitingForClose;
+        expect(waitingStatus.type, PaymentStatusType.waitingForUser);
+
+        completePaymentCompleter.complete(
+          const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200),
+        );
+        await finalizeFuture;
+
+        final result = await run.result;
+        expect(result.status, PaymentStatusType.success);
+      },
+    );
+
+    test(
+      'cancel after await-confirmation ends flow and later finalize is a no-op',
+      () async {
+        final runPaymentCompleter = Completer<CashMachineReceipt>();
+        final machine = _FakeCashMachineService(
+          runPaymentCompleter: runPaymentCompleter,
+        );
+        final backend = _FakePaymentBackendGateway();
+        final flow = CashPaymentFlow(
+          cashMachine: machine,
+          backendGateway: backend,
+        );
+        final run = flow.start(_context());
+
+        final awaitConfirm = run.statuses.firstWhere(
+          (status) => status.details?['stage'] == 'await_confirmation',
+        );
+        runPaymentCompleter.complete(
+          const CashMachineReceipt(acceptedAmount: 1200, expectedAmount: 1200),
+        );
+        await awaitConfirm;
+
+        await run.cancel();
+        final result = await run.result;
+        expect(result.status, PaymentStatusType.cancelled);
+
+        await run.finalize!();
+        expect(machine.completeCount, 0);
+        expect(backend.confirmedPayloads, isEmpty);
+      },
+    );
   });
 }
 
@@ -141,10 +221,11 @@ class _FakeCashMachineService implements CashMachineService {
   _FakeCashMachineService({
     Completer<CashMachineReceipt>? runPaymentCompleter,
     Completer<CashMachineReceipt>? completePaymentCompleter,
-  })  : _runPaymentCompleter = runPaymentCompleter,
-        _completePaymentCompleter = completePaymentCompleter;
+  }) : _runPaymentCompleter = runPaymentCompleter,
+       _completePaymentCompleter = completePaymentCompleter;
 
-  final StreamController<CashMachineEvent> _events = StreamController<CashMachineEvent>.broadcast();
+  final StreamController<CashMachineEvent> _events =
+      StreamController<CashMachineEvent>.broadcast();
   final Completer<CashMachineReceipt>? _runPaymentCompleter;
   final Completer<CashMachineReceipt>? _completePaymentCompleter;
 
@@ -185,13 +266,22 @@ class _FakeCashMachineService implements CashMachineService {
   Future<void> dispose() async {
     await _events.close();
   }
+
+  void emitEvent(CashMachineEvent event) {
+    if (!_events.isClosed) {
+      _events.add(event);
+    }
+  }
 }
 
 class _FakePaymentBackendGateway implements PaymentBackendGateway {
   final List<Map<String, dynamic>> confirmedPayloads = <Map<String, dynamic>>[];
 
   @override
-  Future<void> confirmPayment(PaymentContext context, Map<String, dynamic> payload) async {
+  Future<void> confirmPayment(
+    PaymentContext context,
+    Map<String, dynamic> payload,
+  ) async {
     confirmedPayloads.add(Map<String, dynamic>.from(payload));
   }
 }
