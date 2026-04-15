@@ -448,6 +448,54 @@ abstract class AppLocalizations {
   /// **'The drawer reported an error. Check the connection and try again.'**
   String get settingsCashMachineStatusError;
 
+  /// No description provided for @settingsPaymentModeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment flow mode'**
+  String get settingsPaymentModeTitle;
+
+  /// No description provided for @settingsPaymentModeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose whether each payment method runs the real transaction flow or bookkeeping only'**
+  String get settingsPaymentModeSubtitle;
+
+  /// No description provided for @settingsPaymentModeCashLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get settingsPaymentModeCashLabel;
+
+  /// No description provided for @settingsPaymentModeCashHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A cash drawer usually means bookkeeping mode, while a cash machine usually means the real flow.'**
+  String get settingsPaymentModeCashHint;
+
+  /// No description provided for @settingsPaymentModeCardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card'**
+  String get settingsPaymentModeCardLabel;
+
+  /// No description provided for @settingsPaymentModeQrLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'QR payment'**
+  String get settingsPaymentModeQrLabel;
+
+  /// No description provided for @settingsPaymentModeBookkeeping.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookkeeping'**
+  String get settingsPaymentModeBookkeeping;
+
+  /// No description provided for @settingsPaymentModeReal.
+  ///
+  /// In en, this message translates to:
+  /// **'Real flow'**
+  String get settingsPaymentModeReal;
+
   /// No description provided for @settingsPosNetworkTitle.
   ///
   /// In en, this message translates to:
@@ -1455,6 +1503,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Send payment options to customer display'**
   String get paymentSelectionPushTooltip;
+
+  /// No description provided for @paymentSelectionSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending order'**
+  String get paymentSelectionSummaryTitle;
+
+  /// No description provided for @paymentSelectionAmountDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount due'**
+  String get paymentSelectionAmountDue;
+
+  /// No description provided for @paymentSelectionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select the primary payment method'**
+  String get paymentSelectionHint;
+
+  /// No description provided for @paymentSelectionOrderNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ticket No.'**
+  String get paymentSelectionOrderNumberLabel;
+
+  /// No description provided for @paymentSelectionDiscountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get paymentSelectionDiscountLabel;
+
+  /// No description provided for @paymentSelectionTax10Label.
+  ///
+  /// In en, this message translates to:
+  /// **'10% tax'**
+  String get paymentSelectionTax10Label;
+
+  /// No description provided for @paymentSelectionTax8Label.
+  ///
+  /// In en, this message translates to:
+  /// **'8% tax'**
+  String get paymentSelectionTax8Label;
 
   /// No description provided for @paymentGroupCashTitle.
   ///

@@ -1,4 +1,3 @@
-
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/product.dart';
@@ -45,22 +44,22 @@ class PosState {
   });
 
   factory PosState.initial() => const PosState(
-      categories: [],
-      currentCategory: '',
-      products: [],
-      cart: [],
-      orderNumber: 1000,
-      loading: true,
-      error: null,
-      searchQuery: '',
-      suspended: [],
-      suspendedCounter: 0,
-      favoriteProductIds: {},
-      orderMode: 'dine_in',
-      discount: 0,
-      lastOrderResult: null,
-      posDialog: null,
-    );
+    categories: [],
+    currentCategory: '',
+    products: [],
+    cart: [],
+    orderNumber: 1000,
+    loading: true,
+    error: null,
+    searchQuery: '',
+    suspended: [],
+    suspendedCounter: 0,
+    favoriteProductIds: {},
+    orderMode: 'dine_in',
+    discount: 0,
+    lastOrderResult: null,
+    posDialog: null,
+  );
 
   double get subtotal => cart.fold(0, (p, e) => p + e.lineTotal);
   double get total => (subtotal - discount).clamp(0, double.infinity);
@@ -79,7 +78,7 @@ class PosState {
     Set<int>? favoriteProductIds,
     String? orderMode,
     double? discount,
-    OrderSubmissionResult? lastOrderResult,
+    Object? lastOrderResult = _unset,
     Object? posDialog = _unset,
   }) {
     return PosState(
@@ -96,8 +95,12 @@ class PosState {
       favoriteProductIds: favoriteProductIds ?? this.favoriteProductIds,
       orderMode: orderMode ?? this.orderMode,
       discount: discount ?? this.discount,
-      lastOrderResult: lastOrderResult ?? this.lastOrderResult,
-      posDialog: identical(posDialog, _unset) ? this.posDialog : posDialog as PosDialogState?,
+      lastOrderResult: identical(lastOrderResult, _unset)
+          ? this.lastOrderResult
+          : lastOrderResult as OrderSubmissionResult?,
+      posDialog: identical(posDialog, _unset)
+          ? this.posDialog
+          : posDialog as PosDialogState?,
     );
   }
 }

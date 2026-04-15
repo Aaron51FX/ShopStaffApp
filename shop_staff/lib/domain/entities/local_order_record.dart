@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'cart_item.dart';
 import 'order_submission_result.dart';
+import '../payments/payment_models.dart';
 
 abstract class LocalOrderPayMethods {
   static const String abnormalCancelForceExit = 'ABNORMAL_CANCEL_FORCE_EXIT';
@@ -13,6 +14,7 @@ class LocalOrderRecord extends Equatable {
     required this.createdAt,
     required this.isPaid,
     this.payMethod = "",
+    this.paymentMode = PaymentFlowMode.real,
     required this.items,
     required this.machineCode,
     required this.language,
@@ -31,6 +33,8 @@ class LocalOrderRecord extends Equatable {
 
   /// Payment method resolved from print document. Defaults to unknown.
   final String payMethod;
+
+  final PaymentFlowMode paymentMode;
 
   /// Cart snapshot at submit time.
   final List<CartItem> items;
@@ -60,6 +64,7 @@ class LocalOrderRecord extends Equatable {
   LocalOrderRecord copyWith({
     bool? isPaid,
     String? payMethod,
+    PaymentFlowMode? paymentMode,
     bool? abnormalExit,
     String? abnormalReason,
     String? abnormalSessionId,
@@ -69,6 +74,7 @@ class LocalOrderRecord extends Equatable {
       createdAt: createdAt,
       isPaid: isPaid ?? this.isPaid,
       payMethod: payMethod ?? this.payMethod,
+      paymentMode: paymentMode ?? this.paymentMode,
       items: items,
       machineCode: machineCode,
       language: language,
@@ -84,19 +90,20 @@ class LocalOrderRecord extends Equatable {
 
   @override
   List<Object?> get props => [
-        orderId,
-        createdAt,
-        isPaid,
-        payMethod,
-        items,
-        machineCode,
-        language,
-        takeout,
-        discount,
-        clientTotal,
-        orderResult,
-        abnormalExit,
-        abnormalReason,
-        abnormalSessionId,
-      ];
+    orderId,
+    createdAt,
+    isPaid,
+    payMethod,
+    paymentMode,
+    items,
+    machineCode,
+    language,
+    takeout,
+    discount,
+    clientTotal,
+    orderResult,
+    abnormalExit,
+    abnormalReason,
+    abnormalSessionId,
+  ];
 }

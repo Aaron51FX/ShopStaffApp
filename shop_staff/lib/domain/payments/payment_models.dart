@@ -2,6 +2,31 @@ import 'dart:async';
 
 import '../entities/order_submission_result.dart';
 
+enum PaymentFlowMode { real, bookkeeping }
+
+extension PaymentFlowModeX on PaymentFlowMode {
+  String get wireValue {
+    switch (this) {
+      case PaymentFlowMode.real:
+        return 'real';
+      case PaymentFlowMode.bookkeeping:
+        return 'bookkeeping';
+    }
+  }
+
+  static PaymentFlowMode fromWireValue(String? raw) {
+    switch (raw?.trim().toLowerCase()) {
+      case 'bookkeeping':
+      case 'offline':
+      case 'ledger':
+        return PaymentFlowMode.bookkeeping;
+      case 'real':
+      default:
+        return PaymentFlowMode.real;
+    }
+  }
+}
+
 /// Canonical status types a payment flow can emit.
 enum PaymentStatusType {
   initialized,
@@ -271,6 +296,7 @@ abstract class PaymentChannels {
   static const String cash = 'cash';
   static const String card = 'card';
   static const String qr = 'qr';
+  static const String bookkeeping = 'bookkeeping';
 }
 
 /// Rich context passed to a payment flow.
@@ -278,12 +304,14 @@ class PaymentContext {
   const PaymentContext({
     required this.order,
     required this.channel,
+    required this.mode,
     this.channelConfig,
     this.metadata,
   });
 
   final OrderSubmissionResult order;
   final PaymentChannel channel;
+  final PaymentFlowMode mode;
   final Map<String, dynamic>? channelConfig;
   final Map<String, dynamic>? metadata;
 }

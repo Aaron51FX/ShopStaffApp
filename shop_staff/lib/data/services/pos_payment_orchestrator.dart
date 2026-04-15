@@ -9,8 +9,8 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
   PosPaymentOrchestrator({
     required Map<String, PaymentFlow> flows,
     Logger? logger,
-  })  : _flows = flows,
-        _logger = logger ?? Logger('PosPaymentOrchestrator');
+  }) : _flows = flows,
+       _logger = logger ?? Logger('PosPaymentOrchestrator');
 
   final Map<String, PaymentFlow> _flows;
   final Logger _logger;
@@ -19,7 +19,11 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
 
   @override
   PaymentSession start(PaymentContext context) {
-    final key = context.channel.group;
+    final key =
+        context.mode == PaymentFlowMode.bookkeeping &&
+            context.channel.group != PaymentChannels.cash
+        ? PaymentChannels.bookkeeping
+        : context.channel.group;
     final flow = _flows[key];
     if (flow == null) {
       throw UnsupportedError('当前不支持的支付方式: ${context.channel.group}');
@@ -54,7 +58,12 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
             PaymentResult.failure(message: error.toString()),
           );
         }
-        controller.add(PaymentStatus(type: PaymentStatusType.failure, message: error.toString()));
+        controller.add(
+          PaymentStatus(
+            type: PaymentStatusType.failure,
+            message: error.toString(),
+          ),
+        );
       },
       onDone: () {
         if (!entry.completer.isCompleted) {
@@ -70,28 +79,36 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
       },
     );
 
-    run.result.then((result) {
-      if (!entry.completer.isCompleted) {
-        entry.completer.complete(result);
-      }
-      if (entry.lastStatus?.isTerminal != true) {
-        controller.add(_statusFromResult(result));
-      }
-    }).catchError((error, stack) {
-      _logger.severe('支付流程执行失败', error, stack);
-      if (!entry.completer.isCompleted) {
-        entry.completer.complete(
-          PaymentResult.failure(message: error.toString()),
-        );
-      }
-      controller.add(PaymentStatus(type: PaymentStatusType.failure, message: error.toString()));
-    }).whenComplete(() async {
-      await entry.subscription?.cancel();
-      if (!controller.isClosed) {
-        await controller.close();
-      }
-      _sessions.remove(sessionId);
-    });
+    run.result
+        .then((result) {
+          if (!entry.completer.isCompleted) {
+            entry.completer.complete(result);
+          }
+          if (entry.lastStatus?.isTerminal != true) {
+            controller.add(_statusFromResult(result));
+          }
+        })
+        .catchError((error, stack) {
+          _logger.severe('支付流程执行失败', error, stack);
+          if (!entry.completer.isCompleted) {
+            entry.completer.complete(
+              PaymentResult.failure(message: error.toString()),
+            );
+          }
+          controller.add(
+            PaymentStatus(
+              type: PaymentStatusType.failure,
+              message: error.toString(),
+            ),
+          );
+        })
+        .whenComplete(() async {
+          await entry.subscription?.cancel();
+          if (!controller.isClosed) {
+            await controller.close();
+          }
+          _sessions.remove(sessionId);
+        });
 
     entry.finalize = run.finalize;
 

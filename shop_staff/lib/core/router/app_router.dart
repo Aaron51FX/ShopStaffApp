@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
+import 'package:shop_staff/presentations/payment/viewmodels/payment_selection_page_args.dart';
 import 'package:shop_staff/presentations/settings/pages/settings_page.dart';
 import '../../presentations/pos/pages/pos_page.dart';
 import '../../presentations/auth/pages/login_page.dart';
@@ -9,6 +10,7 @@ import '../../presentations/splash/pages/splash_page.dart';
 import '../../presentations/pos/pages/suspended_orders_page.dart';
 import '../../presentations/order/pages/local_orders_page.dart';
 import '../../presentations/payment/pages/payment_flow_page.dart';
+import '../../presentations/payment/pages/payment_selection_page.dart';
 import '../../presentations/entry/pages/entry_page.dart';
 import '../../presentations/customer/pages/customer_page.dart';
 import '../../presentations/printing/print_root_view.dart';
@@ -38,6 +40,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         '/pos/suspended',
         '/orders',
         '/settings',
+        '/payment-selection',
         '/payment',
       };
       final needsGuard =
@@ -89,6 +92,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/settings',
             name: 'settings',
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/payment-selection',
+            name: 'payment-selection',
+            builder: (context, state) {
+              final args = state.extra;
+              if (args is! PaymentSelectionPageArgs) {
+                return const Scaffold(body: Center(child: Text('缺少支付选择参数')));
+              }
+              return PaymentSelectionPage(args: args);
+            },
           ),
           GoRoute(
             path: '/payment',

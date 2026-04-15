@@ -214,6 +214,7 @@ PaymentContext _context() {
       total: 1200,
     ),
     channel: const PaymentChannel(group: PaymentChannels.cash, code: 'cash'),
+    mode: PaymentFlowMode.real,
   );
 }
 

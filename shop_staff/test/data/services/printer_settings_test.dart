@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/settings/app_settings_models.dart';
 
 void main() {
@@ -118,6 +119,28 @@ void main() {
       final decoded = BasicSettings.fromJson(basic.toJson());
 
       expect(decoded.displayLocaleCode, 'ja');
+    });
+
+    test('resolves payment modes and preserves explicit overrides', () {
+      const basic = BasicSettings(
+        cashMachine: CashMachineSettings(
+          enabled: true,
+          brand: CashMachineBrand.star,
+        ),
+        paymentModes: PaymentModeSettings(
+          card: PaymentFlowMode.bookkeeping,
+          qr: PaymentFlowMode.real,
+        ),
+      );
+
+      final decoded = BasicSettings.fromJson(basic.toJson());
+
+      expect(
+        decoded.paymentModes.resolveCash(decoded.cashMachine),
+        PaymentFlowMode.bookkeeping,
+      );
+      expect(decoded.paymentModes.resolveCard(), PaymentFlowMode.bookkeeping);
+      expect(decoded.paymentModes.resolveQr(), PaymentFlowMode.real);
     });
   });
 }

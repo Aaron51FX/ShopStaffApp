@@ -23,9 +23,9 @@ class StartPaymentUseCase {
     required PaymentOrchestrator orchestrator,
     required PreparePaymentChannelConfigUseCase prepareConfig,
     Logger? logger,
-  })  : _orchestrator = orchestrator,
-        _prepareConfig = prepareConfig,
-        _logger = logger ?? Logger('StartPaymentUseCase');
+  }) : _orchestrator = orchestrator,
+       _prepareConfig = prepareConfig,
+       _logger = logger ?? Logger('StartPaymentUseCase');
 
   final PaymentOrchestrator _orchestrator;
   final PreparePaymentChannelConfigUseCase _prepareConfig;
@@ -42,6 +42,7 @@ class StartPaymentUseCase {
     final context = PaymentContext(
       order: args.order,
       channel: channel,
+      mode: args.paymentMode,
       channelConfig: config,
       metadata: args.metadata,
     );

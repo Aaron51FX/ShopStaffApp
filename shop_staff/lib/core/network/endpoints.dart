@@ -5,6 +5,7 @@ class Endpoints {
   Endpoints(this.config);
 
   String get _b => config.apiBase;
+  String get _booking => config.bookingBase;
   String get _face => config.faceBase;
 
   String get bootIndex => '$_b/pad/web/boot/index';
@@ -18,6 +19,8 @@ class Endpoints {
   String get stockBooking => '$_b/pad/web/boot/stock-booking';
 
   String get orderV4 => '$_b/pad/web/boot/v4/order';
+  String get offlineOrderV1 => '$_booking/web/staff/v1/offline/order';
+  String get staffOrderV1 => '$_booking/web/staff/v1/order';
   String get calculateOrder => '$_b/pad/web/boot/v3/calculate/order';
   String get toPay => '$_b/pad/web/boot/toPay';
   String get toPayV2 => '$_b/pad/web/boot/toPay/v2';

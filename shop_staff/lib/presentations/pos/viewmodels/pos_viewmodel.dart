@@ -3,23 +3,23 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multipeer_session/multipeer_session.dart';
-import 'package:shop_staff/application/pos/usecases/build_payment_flow_args_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_categories_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_category_products_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
-import 'package:shop_staff/application/pos/usecases/prepare_payment_selection_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/suspended_orders_usecases.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
+import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/presentations/payment/viewmodels/payment_selection_page_args.dart';
 import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
 import 'pos_state.dart';
 
-import 'pos_dialog_state.dart';
 import 'pos_effect.dart';
 
 final orderModeSelectionProvider = StateProvider<String>((ref) => 'dine_in');
@@ -60,14 +60,13 @@ class PosViewModel extends StateNotifier<PosState> {
   final Ref _ref;
   final SubmitOrderUseCase _submitOrderUseCase;
   final LocalOrdersUseCases _localOrdersUseCases;
-  final PreparePaymentSelectionUseCase _preparePaymentSelectionUseCase;
-  final BuildPaymentFlowArgsUseCase _buildPaymentFlowArgsUseCase;
   final FetchCategoriesUseCase _fetchCategoriesUseCase;
   final FetchCategoryProductsUseCase _fetchCategoryProductsUseCase;
   final SuspendedOrdersUseCases _suspendedOrders;
   bool _bootstrapped = false;
 
-  final StreamController<PosEffect> _effects = StreamController<PosEffect>.broadcast();
+  final StreamController<PosEffect> _effects =
+      StreamController<PosEffect>.broadcast();
   Stream<PosEffect> get effects => _effects.stream;
 
   void _emit(PosEffect effect) {
@@ -80,26 +79,25 @@ class PosViewModel extends StateNotifier<PosState> {
     required String initialMode,
     SubmitOrderUseCase? submitOrderUseCase,
     LocalOrdersUseCases? localOrdersUseCases,
-    PreparePaymentSelectionUseCase? preparePaymentSelectionUseCase,
-    BuildPaymentFlowArgsUseCase? buildPaymentFlowArgsUseCase,
     FetchCategoriesUseCase? fetchCategoriesUseCase,
     FetchCategoryProductsUseCase? fetchCategoryProductsUseCase,
     SuspendedOrdersUseCases? suspendedOrders,
-  })  : _submitOrderUseCase = submitOrderUseCase ?? _ref.read(submitOrderUseCaseProvider),
-      _localOrdersUseCases = localOrdersUseCases ?? _ref.read(localOrdersUseCasesProvider),
-        _preparePaymentSelectionUseCase =
-            preparePaymentSelectionUseCase ?? _ref.read(preparePaymentSelectionUseCaseProvider),
-        _buildPaymentFlowArgsUseCase =
-            buildPaymentFlowArgsUseCase ?? _ref.read(buildPaymentFlowArgsUseCaseProvider),
-        _fetchCategoriesUseCase = fetchCategoriesUseCase ?? _ref.read(fetchCategoriesUseCaseProvider),
-        _fetchCategoryProductsUseCase =
-            fetchCategoryProductsUseCase ?? _ref.read(fetchCategoryProductsUseCaseProvider),
-        _suspendedOrders = suspendedOrders ?? _ref.read(suspendedOrdersUseCasesProvider),
-        super(
-        PosState.initial().copyWith(
-          orderMode: initialMode == 'take_out' ? 'take_out' : 'dine_in',
-        ),
-      );
+  }) : _submitOrderUseCase =
+           submitOrderUseCase ?? _ref.read(submitOrderUseCaseProvider),
+       _localOrdersUseCases =
+           localOrdersUseCases ?? _ref.read(localOrdersUseCasesProvider),
+       _fetchCategoriesUseCase =
+           fetchCategoriesUseCase ?? _ref.read(fetchCategoriesUseCaseProvider),
+       _fetchCategoryProductsUseCase =
+           fetchCategoryProductsUseCase ??
+           _ref.read(fetchCategoryProductsUseCaseProvider),
+       _suspendedOrders =
+           suspendedOrders ?? _ref.read(suspendedOrdersUseCasesProvider),
+       super(
+         PosState.initial().copyWith(
+           orderMode: initialMode == 'take_out' ? 'take_out' : 'dine_in',
+         ),
+       );
   int _lastPeerMessageSeq = 0;
   String? _lastCategoryFetchKey; // machineCode|language|takeout
 
@@ -119,7 +117,12 @@ class PosViewModel extends StateNotifier<PosState> {
   bool _ensurePeerLinkEnabled({bool toast = true}) {
     final enabled = peerLinkEnabled();
     if (!enabled && toast) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.peerSyncDisabled, isError: true));
+      _emit(
+        const PosToastEffect(
+          messageKey: PosToastKey.peerSyncDisabled,
+          isError: true,
+        ),
+      );
     }
     return enabled;
   }
@@ -131,7 +134,8 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   bool canPushToCustomer() {
-    return peerLinkEnabled() && _ref.read(peerLinkControllerProvider).isConnected;
+    return peerLinkEnabled() &&
+        _ref.read(peerLinkControllerProvider).isConnected;
   }
 
   Future<void> bootstrap() async {
@@ -155,7 +159,11 @@ class PosViewModel extends StateNotifier<PosState> {
       final language = _ref.read(shopLanguageProvider);
       final takeout = state.orderMode == 'take_out';
       final cats = await _fetchCategoriesUseCase.execute(
-        FetchCategoriesInput(machineCode: machineCode, language: language, takeout: takeout),
+        FetchCategoriesInput(
+          machineCode: machineCode,
+          language: language,
+          takeout: takeout,
+        ),
       );
       _lastCategoryFetchKey = '$machineCode|$language|$takeout';
 
@@ -212,27 +220,44 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
+      _emit(
+        const PosToastEffect(
+          messageKey: PosToastKey.peerNotConnected,
+          isError: true,
+        ),
+      );
       return;
     }
     final payload = {
       'categories': categories
-          .map((c) => {
-                'code': c.categoryCode,
-                'name': c.categoryName,
-                'image': c.image,
-              })
+          .map(
+            (c) => {
+              'code': c.categoryCode,
+              'name': c.categoryName,
+              'image': c.image,
+            },
+          )
           .toList(),
     };
-    await controller.sendMessage(PeerMessage(type: 'category_grid', payload: payload));
+    await controller.sendMessage(
+      PeerMessage(type: 'category_grid', payload: payload),
+    );
   }
 
-  Future<void> pushProductToCustomer(Product product, {int quantity = 1}) async {
+  Future<void> pushProductToCustomer(
+    Product product, {
+    int quantity = 1,
+  }) async {
     if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
+      _emit(
+        const PosToastEffect(
+          messageKey: PosToastKey.peerNotConnected,
+          isError: true,
+        ),
+      );
       return;
     }
     final payload = {
@@ -243,20 +268,33 @@ class PosViewModel extends StateNotifier<PosState> {
       'categoryId': product.categoryId,
       'quantity': quantity,
     };
-    await controller.sendMessage(PeerMessage(type: 'product_preview', payload: payload));
+    await controller.sendMessage(
+      PeerMessage(type: 'product_preview', payload: payload),
+    );
     _emit(const PosToastEffect(messageKey: PosToastKey.pushedToCustomer));
   }
 
-  Future<void> _sendOptionsToCustomer({required Product product, required List<SelectedOption> options}) async {
+  Future<void> _sendOptionsToCustomer({
+    required Product product,
+    required List<SelectedOption> options,
+  }) async {
     if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
+      _emit(
+        const PosToastEffect(
+          messageKey: PosToastKey.peerNotConnected,
+          isError: true,
+        ),
+      );
       return;
     }
     final basePrice = product.price;
-    final optionsExtra = options.fold<double>(0, (p, e) => p + e.extraPrice * e.quantity);
+    final optionsExtra = options.fold<double>(
+      0,
+      (p, e) => p + e.extraPrice * e.quantity,
+    );
     final total = basePrice + optionsExtra;
     final payload = {
       'id': product.id,
@@ -265,26 +303,39 @@ class PosViewModel extends StateNotifier<PosState> {
       'basePrice': basePrice,
       'totalPrice': total,
       'options': options
-          .map((o) => {
-                'groupCode': o.groupCode,
-                'groupName': o.groupName,
-                'optionCode': o.optionCode,
-                'optionName': o.optionName,
-                'extraPrice': o.extraPrice,
-                'quantity': o.quantity,
-              })
+          .map(
+            (o) => {
+              'groupCode': o.groupCode,
+              'groupName': o.groupName,
+              'optionCode': o.optionCode,
+              'optionName': o.optionName,
+              'extraPrice': o.extraPrice,
+              'quantity': o.quantity,
+            },
+          )
           .toList(),
     };
-    await controller.sendMessage(PeerMessage(type: 'product_options', payload: payload));
+    await controller.sendMessage(
+      PeerMessage(type: 'product_options', payload: payload),
+    );
     _emit(const PosToastEffect(messageKey: PosToastKey.pushedConfigToCustomer));
   }
 
-  Future<void> _sendOptionGroupToCustomer({required Product product, required OptionGroupEntity group, required Map<String, int> selected}) async {
+  Future<void> _sendOptionGroupToCustomer({
+    required Product product,
+    required OptionGroupEntity group,
+    required Map<String, int> selected,
+  }) async {
     if (!_ensurePeerLinkEnabled()) return;
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
+      _emit(
+        const PosToastEffect(
+          messageKey: PosToastKey.peerNotConnected,
+          isError: true,
+        ),
+      );
       return;
     }
     final payload = {
@@ -296,23 +347,23 @@ class PosViewModel extends StateNotifier<PosState> {
       'multiple': group.multiple,
       'minSelect': group.minSelect,
       'maxSelect': group.maxSelect,
-      'options': group.options
-          .map(
-            (o) {
-              final qty = selected[o.code] ?? 0;
-              return {
-                'optionCode': o.code,
-                'optionName': o.name,
-                'selected': qty > 0,
-                'quantity': qty,
-                'extraPrice': o.extraPrice,
-              };
-            },
-          )
-          .toList(),
+      'options': group.options.map((o) {
+        final qty = selected[o.code] ?? 0;
+        return {
+          'optionCode': o.code,
+          'optionName': o.name,
+          'selected': qty > 0,
+          'quantity': qty,
+          'extraPrice': o.extraPrice,
+        };
+      }).toList(),
     };
-    await controller.sendMessage(PeerMessage(type: 'option_group', payload: payload));
-    _emit(const PosToastEffect(messageKey: PosToastKey.pushedOptionGroupToCustomer));
+    await controller.sendMessage(
+      PeerMessage(type: 'option_group', payload: payload),
+    );
+    _emit(
+      const PosToastEffect(messageKey: PosToastKey.pushedOptionGroupToCustomer),
+    );
   }
 
   Future<void> sendCartToCustomer() async {
@@ -320,11 +371,21 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
+      _emit(
+        const PosToastEffect(
+          messageKey: PosToastKey.peerNotConnected,
+          isError: true,
+        ),
+      );
       return;
     }
     if (state.cart.isEmpty) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.cartEmptyCannotPush, isError: true));
+      _emit(
+        const PosToastEffect(
+          messageKey: PosToastKey.cartEmptyCannotPush,
+          isError: true,
+        ),
+      );
       return;
     }
 
@@ -358,24 +419,10 @@ class PosViewModel extends StateNotifier<PosState> {
           .toList(),
     };
 
-    await controller.sendMessage(PeerMessage(type: 'cart_snapshot', payload: payload));
+    await controller.sendMessage(
+      PeerMessage(type: 'cart_snapshot', payload: payload),
+    );
     _emit(const PosToastEffect(messageKey: PosToastKey.cartSentToCustomer));
-  }
-
-  Future<void> _sendPaymentSelectionToCustomer(ShopInfoModel shop, double total) async {
-    if (!_ensurePeerLinkEnabled()) return;
-    final controller = _ref.read(peerLinkControllerProvider.notifier);
-    if (!_ref.read(peerLinkControllerProvider).isConnected) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.peerNotConnected, isError: true));
-      return;
-    }
-
-    final selection = _preparePaymentSelectionUseCase.execute(shop: shop);
-    final payload = selection.toPayload(orderNumber: state.orderNumber, total: total);
-
-    debugPrint('Sending payment selection to customer: $payload');
-
-    await controller.sendMessage(PeerMessage(type: 'payment_selection', payload: payload));
   }
 
   Future<void> clearCustomerDisplay() async {
@@ -383,7 +430,9 @@ class PosViewModel extends StateNotifier<PosState> {
     final controller = _ref.read(peerLinkControllerProvider.notifier);
     final connected = _ref.read(peerLinkControllerProvider).isConnected;
     if (!connected) return;
-    await controller.sendMessage(const PeerMessage(type: 'reset_display', payload: {}));
+    await controller.sendMessage(
+      const PeerMessage(type: 'reset_display', payload: {}),
+    );
     _emit(const PosToastEffect(messageKey: PosToastKey.clearedCustomerDisplay));
   }
 
@@ -639,7 +688,11 @@ class PosViewModel extends StateNotifier<PosState> {
     if (!force && key == _lastCategoryFetchKey) return;
     try {
       final cats = await _fetchCategoriesUseCase.execute(
-        FetchCategoriesInput(machineCode: machineCode, language: language, takeout: takeout),
+        FetchCategoriesInput(
+          machineCode: machineCode,
+          language: language,
+          takeout: takeout,
+        ),
       );
       _lastCategoryFetchKey = key;
       final firstCat = cats.isNotEmpty
@@ -715,6 +768,11 @@ class PosViewModel extends StateNotifier<PosState> {
 
   Future<void> _submitOrder() async {
     if (state.cart.isEmpty) return;
+    final shop = _ref.read(shopInfoProvider);
+    if (shop == null) {
+      state = state.copyWith(error: '无法下单: 缺少店铺信息');
+      return;
+    }
     final machineCode = _ref.read(machineCodeProvider);
     if (machineCode == null || machineCode.isEmpty) {
       state = state.copyWith(error: '无法下单: 缺少machineCode');
@@ -723,145 +781,104 @@ class PosViewModel extends StateNotifier<PosState> {
     final language = _ref.read(shopLanguageProvider);
     final takeout = state.orderMode == 'take_out';
     final itemsSnapshot = List<CartItem>.from(state.cart);
+    final subtotal = state.subtotal;
+    final discount = state.discount;
+    final nextOrderNumber = state.orderNumber + 1;
+
     try {
+      state = state.copyWith(loading: true, error: null, lastOrderResult: null);
       final output = await _submitOrderUseCase.execute(
         SubmitOrderInput(
           items: itemsSnapshot,
           machineCode: machineCode,
           language: language,
           takeout: takeout,
-          discount: state.discount,
+          discount: discount,
+          shopCode: shop.shopCode,
         ),
       );
       final result = output.order;
-      final total = output.total;
-
-      // Save local order record (best-effort; should not block payment flow).
-      try {
-        await _localOrdersUseCases.save(
-          LocalOrderRecord(
-            orderId: result.orderId,
-            createdAt: DateTime.now(),
-            isPaid: false,
-            items: itemsSnapshot,
+      await _saveLocalOrderRecord(
+        order: result,
+        items: itemsSnapshot,
+        machineCode: machineCode,
+        language: language,
+        takeout: takeout,
+        discount: discount,
+        total: output.total,
+        paymentMode: PaymentFlowMode.real,
+      );
+      state = state.copyWith(
+        loading: false,
+        cart: const [],
+        discount: 0,
+        orderNumber: nextOrderNumber,
+        lastOrderResult: result,
+        posDialog: null,
+      );
+      _emit(
+        PosNavigateEffect(
+          location: '/payment-selection',
+          extra: PaymentSelectionPageArgs(
+            order: result,
+            shop: shop,
             machineCode: machineCode,
             language: language,
             takeout: takeout,
-            discount: state.discount,
-            clientTotal: total,
-            orderResult: result,
+            items: itemsSnapshot,
+            orderNumber: nextOrderNumber,
+            subtotal: subtotal,
+            discount: discount,
           ),
-        );
-      } catch (e) {
-        debugPrint('Failed to save local order record: $e');
-        _emit(const PosToastEffect(messageKey: PosToastKey.localOrderSaveFailed, isError: true));
-      }
-
-      state = state.copyWith(
-        orderNumber: state.orderNumber + 1,
-        lastOrderResult: result,
+        ),
       );
-      debugPrint(
-        'Order submitted: ${result.orderId} total=${result.total} tax1=${result.tax1} tax2=${result.tax2}',
-      );
-      // After successful order, present payment selection dialog
-      final shop = _ref.read(shopInfoProvider);
-      if (shop != null) {
-        if (peerLinkEnabled()) {
-          unawaited(_sendPaymentSelectionToCustomer(shop, total));
-        }
-        state = state.copyWith(posDialog: PosDialogState.paymentSelection(shop: shop, total: total));
-      }
     } catch (e) {
-      state = state.copyWith(error: '下单失败: $e');
-      _emit(const PosToastEffect(messageKey: PosToastKey.orderSubmitFailed, isError: true));
-    }
-  }
-
-  void startPaymentFlowFromDialog({
-    required ShopInfoModel shop,
-    required String group,
-    required String code,
-    required String? label,
-  }) {
-    final machineCode = _ref.read(machineCodeProvider);
-    final result = state.lastOrderResult;
-    if (machineCode == null || machineCode.isEmpty || result == null) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.noPayableOrder, isError: true));
-      return;
-    }
-
-    try {
-      final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
-      final args = _buildPaymentFlowArgsUseCase.execute(
-        order: result,
-        shop: shop,
-        machineCode: machineCode,
-        group: group,
-        code: code,
-        label: label,
-        posInfo: posInfo,
-      );
-      state = state.copyWith(cart: []);
-      dismissPosDialog();
-      _emit(PosNavigateEffect(location: '/payment', extra: args));
-    } catch (e) {
-      debugPrint('Failed to start payment flow: $e');
+      debugPrint('Failed to submit order before payment selection: $e');
+      state = state.copyWith(loading: false, error: '下单失败: $e');
       _emit(PosToastEffect(message: e.toString(), isError: true));
     }
   }
 
-  Future<void> pushPaymentSelectionFromDialog({
-    required ShopInfoModel shop,
+  Future<void> _saveLocalOrderRecord({
+    required OrderSubmissionResult order,
+    required List<CartItem> items,
+    required String machineCode,
+    required String language,
+    required bool takeout,
+    required double discount,
     required double total,
+    required PaymentFlowMode paymentMode,
   }) async {
-    await _sendPaymentSelectionToCustomer(shop, total);
-  }
-
-  void _handlePaymentChoiceFromCustomer(PeerMessage message) {
-    final payload = message.payload;
-    final group = (payload['group'] ?? '') as String? ?? '';
-    final code = (payload['code'] ?? '') as String? ?? '';
-    final label = (payload['label'] ?? '') as String?;
-
-    final shop = _ref.read(shopInfoProvider);
-    final machineCode = _ref.read(machineCodeProvider);
-    final result = state.lastOrderResult;
-    if (shop == null || machineCode == null || machineCode.isEmpty || result == null) {
-      _emit(const PosToastEffect(messageKey: PosToastKey.noPayableOrder, isError: true));
-      return;
-    }
-    dismissPosDialog();
-    // close any open dialogs/routes (UI layer handles actual pop)
-    _emit(const PosPopToRootEffect());
-
     try {
-      final posInfo = _ref.read(appSettingsSnapshotProvider)?.posTerminal;
-      final args = _buildPaymentFlowArgsUseCase.execute(
-        order: result,
-        shop: shop,
-        machineCode: machineCode,
-        group: group,
-        code: code,
-        label: label,
-        posInfo: posInfo,
+      await _localOrdersUseCases.save(
+        LocalOrderRecord(
+          orderId: order.orderId,
+          createdAt: DateTime.now(),
+          isPaid: false,
+          paymentMode: paymentMode,
+          items: items,
+          machineCode: machineCode,
+          language: language,
+          takeout: takeout,
+          discount: discount,
+          clientTotal: total,
+          orderResult: order,
+        ),
       );
-      state = state.copyWith(cart: []);
-      _emit(PosNavigateEffect(location: '/payment', extra: args));
     } catch (e) {
-      debugPrint('Failed to start payment from customer choice: $e');
-      _emit(PosToastEffect(message: e.toString(), isError: true));
+      debugPrint('Failed to save local order record: $e');
+      _emit(
+        const PosToastEffect(
+          messageKey: PosToastKey.localOrderSaveFailed,
+          isError: true,
+        ),
+      );
     }
   }
 
   void handlePeerMessage(PeerLinkState next, PeerLinkState? prev) {
     if (next.messageSeq == _lastPeerMessageSeq) return;
     _lastPeerMessageSeq = next.messageSeq;
-    final msg = next.lastMessage;
-    if (msg == null) return;
-    if (msg.type == 'payment_choice') {
-      _handlePaymentChoiceFromCustomer(msg);
-    }
   }
 
   Map<String, Map<String, int>> buildInitialOptionSelection(
@@ -871,7 +888,8 @@ class PosViewModel extends StateNotifier<PosState> {
     final selected = <String, Map<String, int>>{};
     if (existing != null) {
       for (final o in existing.options) {
-        selected.putIfAbsent(o.groupCode, () => <String, int>{})[o.optionCode] = o.quantity;
+        selected.putIfAbsent(o.groupCode, () => <String, int>{})[o.optionCode] =
+            o.quantity;
       }
       return selected;
     }
@@ -939,7 +957,11 @@ class PosViewModel extends StateNotifier<PosState> {
     required OptionGroupEntity group,
     required Map<String, int> selected,
   }) async {
-    await _sendOptionGroupToCustomer(product: product, group: group, selected: selected);
+    await _sendOptionGroupToCustomer(
+      product: product,
+      group: group,
+      selected: selected,
+    );
   }
 
   @override

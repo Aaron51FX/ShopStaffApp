@@ -212,6 +212,32 @@ class AppLocalizationsEn extends AppLocalizations {
       'The drawer reported an error. Check the connection and try again.';
 
   @override
+  String get settingsPaymentModeTitle => 'Payment flow mode';
+
+  @override
+  String get settingsPaymentModeSubtitle =>
+      'Choose whether each payment method runs the real transaction flow or bookkeeping only';
+
+  @override
+  String get settingsPaymentModeCashLabel => 'Cash';
+
+  @override
+  String get settingsPaymentModeCashHint =>
+      'A cash drawer usually means bookkeeping mode, while a cash machine usually means the real flow.';
+
+  @override
+  String get settingsPaymentModeCardLabel => 'Credit card';
+
+  @override
+  String get settingsPaymentModeQrLabel => 'QR payment';
+
+  @override
+  String get settingsPaymentModeBookkeeping => 'Bookkeeping';
+
+  @override
+  String get settingsPaymentModeReal => 'Real flow';
+
+  @override
   String get settingsPosNetworkTitle => 'POS terminal network';
 
   @override
@@ -743,6 +769,27 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paymentSelectionPushTooltip =>
       'Send payment options to customer display';
+
+  @override
+  String get paymentSelectionSummaryTitle => 'Pending order';
+
+  @override
+  String get paymentSelectionAmountDue => 'Amount due';
+
+  @override
+  String get paymentSelectionHint => 'Select the primary payment method';
+
+  @override
+  String get paymentSelectionOrderNumberLabel => 'Ticket No.';
+
+  @override
+  String get paymentSelectionDiscountLabel => 'Discount';
+
+  @override
+  String get paymentSelectionTax10Label => '10% tax';
+
+  @override
+  String get paymentSelectionTax8Label => '8% tax';
 
   @override
   String get paymentGroupCashTitle => 'Cash';

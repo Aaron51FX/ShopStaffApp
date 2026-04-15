@@ -197,6 +197,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCashMachineStatusError => '钱箱返回异常状态，请检查连接后重试。';
 
   @override
+  String get settingsPaymentModeTitle => '支付流程模式';
+
+  @override
+  String get settingsPaymentModeSubtitle => '为每种支付方式选择走真实交易还是仅记账上报';
+
+  @override
+  String get settingsPaymentModeCashLabel => '现金';
+
+  @override
+  String get settingsPaymentModeCashHint => '钱箱通常用于记账模式，现金机通常用于真实交易。';
+
+  @override
+  String get settingsPaymentModeCardLabel => '信用卡';
+
+  @override
+  String get settingsPaymentModeQrLabel => '二维码';
+
+  @override
+  String get settingsPaymentModeBookkeeping => '记账';
+
+  @override
+  String get settingsPaymentModeReal => '真实流程';
+
+  @override
   String get settingsPosNetworkTitle => 'POS终端网络';
 
   @override
@@ -702,6 +726,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get paymentSelectionPushTooltip => '推送支付方式到顾客端';
+
+  @override
+  String get paymentSelectionSummaryTitle => '待结算订单';
+
+  @override
+  String get paymentSelectionAmountDue => '应付金额';
+
+  @override
+  String get paymentSelectionHint => '请选择主要支付方式';
+
+  @override
+  String get paymentSelectionOrderNumberLabel => '流水号';
+
+  @override
+  String get paymentSelectionDiscountLabel => '优惠';
+
+  @override
+  String get paymentSelectionTax10Label => '10% 税额';
+
+  @override
+  String get paymentSelectionTax8Label => '8% 税额';
 
   @override
   String get paymentGroupCashTitle => '现金';

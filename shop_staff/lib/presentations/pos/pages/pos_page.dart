@@ -8,14 +8,12 @@ import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
-import 'package:shop_staff/presentations/pos/viewmodels/pos_dialog_state.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_effect.dart';
 import '../widgets/cart_panel.dart';
 import '../widgets/discount_input_dialog.dart';
 import '../widgets/pos_app_bar.dart';
 import '../widgets/product_grid.dart';
 import '../widgets/side_bar.dart';
-import '../widgets/payment_selection_dialog.dart';
 import '../widgets/show_product_option_dialog.dart';
 
 class PosPage extends ConsumerStatefulWidget {
@@ -26,55 +24,19 @@ class PosPage extends ConsumerStatefulWidget {
 }
 
 class _PosPageState extends ConsumerState<PosPage> {
-  ProviderSubscription<PosDialogState?>? _dialogSub;
   ProviderSubscription<AsyncValue<PosEffect>>? _effectsSub;
-  bool _isPaymentDialogVisible = false;
 
   @override
   void initState() {
     super.initState();
-    _dialogSub = ref.listenManual<PosDialogState?>(
-      posViewModelProvider.select((s) => s.posDialog),
-      (prev, next) {
-        if (next == null) return;
-        if (next.type != PosDialogType.paymentSelection) return;
-        if (_isPaymentDialogVisible) return;
-
-        _isPaymentDialogVisible = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (!mounted) return;
-          final vm = ref.read(posViewModelProvider.notifier);
-          await showPaymentSelectionDialog(
-            context: context,
-            shop: next.shop,
-            onSelected: (group, code, label) {
-              vm.startPaymentFlowFromDialog(
-                shop: next.shop,
-                group: group,
-                code: code,
-                label: label,
-              );
-            },
-            onPushToCustomer: vm.peerLinkEnabled()
-                ? () => vm.pushPaymentSelectionFromDialog(shop: next.shop, total: next.total)
-                : null,
-          );
-          if (mounted) {
-            vm.dismissPosDialog();
-          }
-          _isPaymentDialogVisible = false;
-        });
-      },
-    );
-
-    _effectsSub = ref.listenManual<AsyncValue<PosEffect>>(
-      posEffectsProvider,
-      (prev, next) {
-        final effect = next.valueOrNull;
-        if (effect == null) return;
-        unawaited(_handleEffect(effect));
-      },
-    );
+    _effectsSub = ref.listenManual<AsyncValue<PosEffect>>(posEffectsProvider, (
+      prev,
+      next,
+    ) {
+      final effect = next.valueOrNull;
+      if (effect == null) return;
+      unawaited(_handleEffect(effect));
+    });
   }
 
   Future<void> _handleEffect(PosEffect effect) async {
@@ -98,12 +60,17 @@ class _PosPageState extends ConsumerState<PosPage> {
     }
 
     if (effect is PosPopToRootEffect) {
-      Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+      Navigator.of(
+        context,
+        rootNavigator: true,
+      ).popUntil((route) => route.isFirst);
       return;
     }
 
     if (effect is PosRequestClearCartConfirmEffect) {
-      final ok = await ref.read(dialogControllerProvider.notifier).confirm(
+      final ok = await ref
+          .read(dialogControllerProvider.notifier)
+          .confirm(
             title: t.posClearCartTitle,
             message: t.posClearCartMessage,
             destructive: true,
@@ -115,10 +82,9 @@ class _PosPageState extends ConsumerState<PosPage> {
     }
 
     if (effect is PosRequestSuspendConfirmEffect) {
-      final ok = await ref.read(dialogControllerProvider.notifier).confirm(
-            title: t.posSuspendTitle,
-            message: t.posSuspendMessage,
-          );
+      final ok = await ref
+          .read(dialogControllerProvider.notifier)
+          .confirm(title: t.posSuspendTitle, message: t.posSuspendMessage);
       if (ok) {
         vm.confirmSuspendCurrentOrder();
       }
@@ -133,7 +99,8 @@ class _PosPageState extends ConsumerState<PosPage> {
         PosToastKey.peerNotConnected => t.posToastPeerNotConnected,
         PosToastKey.pushedToCustomer => t.posToastPushedToCustomer,
         PosToastKey.pushedConfigToCustomer => t.posToastPushedConfigToCustomer,
-        PosToastKey.pushedOptionGroupToCustomer => t.posToastPushedOptionGroupToCustomer,
+        PosToastKey.pushedOptionGroupToCustomer =>
+          t.posToastPushedOptionGroupToCustomer,
         PosToastKey.cartEmptyCannotPush => t.posToastCartEmptyCannotPush,
         PosToastKey.cartSentToCustomer => t.posToastCartSentToCustomer,
         PosToastKey.clearedCustomerDisplay => t.posToastClearedCustomerDisplay,
@@ -147,7 +114,6 @@ class _PosPageState extends ConsumerState<PosPage> {
 
   @override
   void dispose() {
-    _dialogSub?.close();
     _effectsSub?.close();
     super.dispose();
   }
@@ -177,20 +143,28 @@ class _PosPageState extends ConsumerState<PosPage> {
                   product: p,
                   existing: null,
                   peerLinkEnabled: vm.peerLinkEnabled(),
-                  buildSelectedOptions: (selected) => vm.buildSelectedOptions(p, selected),
-                  validateMissingGroups: (selected) => vm.validateMissingOptionGroups(p, selected),
+                  buildSelectedOptions: (selected) =>
+                      vm.buildSelectedOptions(p, selected),
+                  validateMissingGroups: (selected) =>
+                      vm.validateMissingOptionGroups(p, selected),
                   onConfirmed: (options) => vm.addProduct(p, options: options),
                   onSendAll: vm.peerLinkEnabled()
-                      ? (options) => vm.pushSelectedOptionsToCustomer(product: p, options: options)
+                      ? (options) => vm.pushSelectedOptionsToCustomer(
+                          product: p,
+                          options: options,
+                        )
                       : null,
                   onSendGroup: vm.peerLinkEnabled()
                       ? (group, selections) => vm.pushOptionGroupToCustomer(
-                            product: p,
-                            group: group,
-                            selected: selections,
-                          )
+                          product: p,
+                          group: group,
+                          selected: selections,
+                        )
                       : null,
-                  initialSelected: vm.buildInitialOptionSelection(p, existing: null),
+                  initialSelected: vm.buildInitialOptionSelection(
+                    p,
+                    existing: null,
+                  ),
                 );
               },
             ),
@@ -204,24 +178,32 @@ class _PosPageState extends ConsumerState<PosPage> {
                   product: p,
                   existing: item,
                   peerLinkEnabled: vm.peerLinkEnabled(),
-                  buildSelectedOptions: (selected) => vm.buildSelectedOptions(p, selected),
-                  validateMissingGroups: (selected) => vm.validateMissingOptionGroups(p, selected),
+                  buildSelectedOptions: (selected) =>
+                      vm.buildSelectedOptions(p, selected),
+                  validateMissingGroups: (selected) =>
+                      vm.validateMissingOptionGroups(p, selected),
                   onConfirmed: (options) => vm.updateCartItemOptions(
                     oldId: item.id,
                     product: p,
                     newOptions: options,
                   ),
                   onSendAll: vm.peerLinkEnabled()
-                      ? (options) => vm.pushSelectedOptionsToCustomer(product: p, options: options)
+                      ? (options) => vm.pushSelectedOptionsToCustomer(
+                          product: p,
+                          options: options,
+                        )
                       : null,
                   onSendGroup: vm.peerLinkEnabled()
                       ? (group, selections) => vm.pushOptionGroupToCustomer(
-                            product: p,
-                            group: group,
-                            selected: selections,
-                          )
+                          product: p,
+                          group: group,
+                          selected: selections,
+                        )
                       : null,
-                  initialSelected: vm.buildInitialOptionSelection(p, existing: item),
+                  initialSelected: vm.buildInitialOptionSelection(
+                    p,
+                    existing: item,
+                  ),
                 );
               },
               onCheckout: vm.checkout,

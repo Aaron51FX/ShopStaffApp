@@ -7,8 +7,8 @@ class PreparePaymentChannelConfigUseCase {
   PreparePaymentChannelConfigUseCase({
     required AppSettingsSnapshot? Function() readSettingsSnapshot,
     Logger? logger,
-  })  : _readSettingsSnapshot = readSettingsSnapshot,
-        _logger = logger ?? Logger('PreparePaymentChannelConfigUseCase');
+  }) : _readSettingsSnapshot = readSettingsSnapshot,
+       _logger = logger ?? Logger('PreparePaymentChannelConfigUseCase');
 
   final AppSettingsSnapshot? Function() _readSettingsSnapshot;
   final Logger _logger;
@@ -25,8 +25,10 @@ class PreparePaymentChannelConfigUseCase {
     config.putIfAbsent('machineCode', () => args.metadata?['machineCode']);
 
     final posInfo = _readSettingsSnapshot()?.posTerminal;
-    final needsPos = args.channelGroup == PaymentChannels.card ||
-        args.channelGroup == PaymentChannels.qr;
+    final needsPos =
+        args.paymentMode == PaymentFlowMode.real &&
+        (args.channelGroup == PaymentChannels.card ||
+            args.channelGroup == PaymentChannels.qr);
     if (needsPos) {
       final ip = posInfo?.posIp?.toString();
       final dynamic portRaw = posInfo?.posPort;

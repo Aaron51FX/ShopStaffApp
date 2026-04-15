@@ -17,9 +17,12 @@ import 'datasources/remote/pos_remote_datasource.dart';
 
 // Repository implementations (new centralized path)
 import 'repositories_impl/menu_repository_impl.dart';
+import 'repositories_impl/bookkeeping_order_repository_impl.dart';
 import 'repositories_impl/order_repository_impl.dart';
 import 'services/payment_backend_gateway.dart';
+import 'services/bookkeeping_payment_backend_gateway.dart';
 import 'services/payment_channel_support.dart';
+import 'services/payment_flows/bookkeeping_payment_flow.dart';
 import 'services/payment_flows/card_payment_flow.dart';
 import 'services/payment_flows/cash_payment_flow.dart';
 import 'services/payment_flows/qr_payment_flow.dart';
@@ -38,6 +41,7 @@ import 'package:shop_staff/presentations/printing/printing_providers.dart';
 
 // Public repository interfaces
 import '../domain/repositories/menu_repository.dart';
+import '../domain/repositories/bookkeeping_order_repository.dart';
 import '../domain/repositories/order_repository.dart';
 import '../domain/payments/payment_models.dart';
 import '../domain/services/pos_payment_service.dart';
@@ -85,6 +89,13 @@ final orderRepositoryProvider = Provider<OrderRepository>((ref) {
   return OrderRepositoryImpl(ds);
 });
 
+final bookkeepingOrderRepositoryProvider = Provider<BookkeepingOrderRepository>(
+  (ref) {
+    final ds = ref.watch(posRemoteDataSourceProvider);
+    return BookkeepingOrderRepositoryImpl(ds);
+  },
+);
+
 final posPaymentServiceProvider = Provider<PosPaymentService>((ref) {
   return PosPaymentServiceImpl(
     cardGateway: ref.watch(posCardPaymentGatewayProvider),
@@ -98,7 +109,10 @@ final posCardPaymentGatewayProvider = Provider<PosCardPaymentGateway>((ref) {
 });
 
 final paymentBackendGatewayProvider = Provider<PaymentBackendGateway>((ref) {
-  return StubPaymentBackendGateway(logger: Logger('PaymentBackendGatewayStub'));
+  return BookkeepingPaymentBackendGateway(
+    bookkeepingOrders: ref.watch(bookkeepingOrderRepositoryProvider),
+    logger: Logger('PaymentBackendGateway'),
+  );
 });
 
 final printRepositoryProvider = Provider<PrintRepository>((ref) {
@@ -249,8 +263,16 @@ final qrPaymentFlowProvider = Provider<QrPaymentFlow>((ref) {
   );
 });
 
+final bookkeepingPaymentFlowProvider = Provider<BookkeepingPaymentFlow>((ref) {
+  return BookkeepingPaymentFlow(
+    backendGateway: ref.watch(paymentBackendGatewayProvider),
+    logger: Logger('BookkeepingPaymentFlow'),
+  );
+});
+
 final paymentFlowsProvider = Provider<Map<String, PaymentFlow>>((ref) {
   return {
+    PaymentChannels.bookkeeping: ref.watch(bookkeepingPaymentFlowProvider),
     PaymentChannels.card: ref.watch(cardPaymentFlowProvider),
     PaymentChannels.cash: ref.watch(cashPaymentFlowProvider),
     PaymentChannels.qr: ref.watch(qrPaymentFlowProvider),

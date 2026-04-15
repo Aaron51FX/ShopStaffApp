@@ -96,6 +96,12 @@ class PosRemoteDataSource {
   Future<dynamic> submitOrderV4(Map<String, dynamic> payload) async =>
       _client.postJson(_e.orderV4, body: payload);
 
+  Future<dynamic> submitOfflineOrderV1(Map<String, dynamic> payload) async =>
+      _client.postJson(_e.offlineOrderV1, body: payload);
+
+  Future<dynamic> recordStaffOrderV1(Map<String, dynamic> payload) async =>
+      _client.postJson(_e.staffOrderV1, body: payload);
+
   Future<dynamic> calculateOrder(Map<String, dynamic> payload) async =>
       _client.postJson(_e.calculateOrder, body: payload);
 

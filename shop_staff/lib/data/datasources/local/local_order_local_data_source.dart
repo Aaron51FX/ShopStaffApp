@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 
 class LocalOrderLocalDataSource {
@@ -48,12 +49,26 @@ class LocalOrderLocalDataSource {
     await save(existing.copyWith(isPaid: isPaid));
   }
 
-  Future<void> updatePayMethod(String orderId, String payMethod, {bool isPaid = false}) async {
+  Future<void> updatePayMethod(
+    String orderId,
+    String payMethod, {
+    bool isPaid = false,
+  }) async {
     if (payMethod.trim().isEmpty) return;
     final existing = await getById(orderId);
     if (existing == null) return;
     if (existing.payMethod == payMethod) return;
     await save(existing.copyWith(payMethod: payMethod, isPaid: isPaid));
+  }
+
+  Future<void> updatePaymentMode(
+    String orderId,
+    PaymentFlowMode paymentMode,
+  ) async {
+    final existing = await getById(orderId);
+    if (existing == null) return;
+    if (existing.paymentMode == paymentMode) return;
+    await save(existing.copyWith(paymentMode: paymentMode));
   }
 
   Future<void> delete(String orderId) async {
@@ -62,21 +77,22 @@ class LocalOrderLocalDataSource {
   }
 
   Map<String, dynamic> _toMap(LocalOrderRecord o) => {
-        'orderId': o.orderId,
-        'createdAt': o.createdAt.millisecondsSinceEpoch,
-        'isPaid': o.isPaid,
-        'payMethod': o.payMethod,
-        'abnormalExit': o.abnormalExit,
-        'abnormalReason': o.abnormalReason,
-        'abnormalSessionId': o.abnormalSessionId,
-        'machineCode': o.machineCode,
-        'language': o.language,
-        'takeout': o.takeout,
-        'discount': o.discount,
-        'clientTotal': o.clientTotal,
-        'items': o.items.map(_cartItemToMap).toList(),
-        'orderResult': _orderResultToMap(o.orderResult),
-      };
+    'orderId': o.orderId,
+    'createdAt': o.createdAt.millisecondsSinceEpoch,
+    'isPaid': o.isPaid,
+    'payMethod': o.payMethod,
+    'paymentMode': o.paymentMode.wireValue,
+    'abnormalExit': o.abnormalExit,
+    'abnormalReason': o.abnormalReason,
+    'abnormalSessionId': o.abnormalSessionId,
+    'machineCode': o.machineCode,
+    'language': o.language,
+    'takeout': o.takeout,
+    'discount': o.discount,
+    'clientTotal': o.clientTotal,
+    'items': o.items.map(_cartItemToMap).toList(),
+    'orderResult': _orderResultToMap(o.orderResult),
+  };
 
   LocalOrderRecord _fromMap(Map<String, dynamic> m) {
     final orderResultRaw = m['orderResult'];
@@ -86,9 +102,12 @@ class LocalOrderLocalDataSource {
 
     return LocalOrderRecord(
       orderId: (m['orderId'] ?? '').toString(),
-      createdAt: DateTime.fromMillisecondsSinceEpoch((m['createdAt'] as int?) ?? 0),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        (m['createdAt'] as int?) ?? 0,
+      ),
       isPaid: (m['isPaid'] as bool?) ?? false,
       payMethod: (m['payMethod'] ?? '').toString(),
+      paymentMode: PaymentFlowModeX.fromWireValue(m['paymentMode']?.toString()),
       abnormalExit: (m['abnormalExit'] as bool?) ?? false,
       abnormalReason: m['abnormalReason']?.toString(),
       abnormalSessionId: m['abnormalSessionId']?.toString(),
@@ -106,65 +125,69 @@ class LocalOrderLocalDataSource {
   }
 
   Map<String, dynamic> _orderResultToMap(OrderSubmissionResult r) => {
-        'orderId': r.orderId,
-        'tax1': r.tax1,
-        'baseTax1': r.baseTax1,
-        'tax2': r.tax2,
-        'baseTax2': r.baseTax2,
-        'total': r.total,
-        'message': r.message,
-        'menuLackMap': r.menuLackMap,
-      };
+    'orderId': r.orderId,
+    'tax1': r.tax1,
+    'baseTax1': r.baseTax1,
+    'tax2': r.tax2,
+    'baseTax2': r.baseTax2,
+    'total': r.total,
+    'message': r.message,
+    'menuLackMap': r.menuLackMap,
+  };
 
   Map<String, dynamic> _cartItemToMap(CartItem c) => {
-        'id': c.id,
-        'quantity': c.quantity,
-        'note': c.note,
-        'product': {
-          'id': c.product.id,
-          'name': c.product.name,
-          'categoryId': c.product.categoryId,
-          'price': c.product.price,
-          'originalPrice': c.product.originalPrice,
-          'tax': c.product.tax,
-          'imageUrl': c.product.imageUrl,
-        },
-        'options': c.options
-            .map((o) => {
-                  'groupCode': o.groupCode,
-                  'groupName': o.groupName,
-                  'optionCode': o.optionCode,
-                  'optionName': o.optionName,
-                  'extraPrice': o.extraPrice,
-                  'quantity': o.quantity,
-                })
-            .toList(),
-      };
+    'id': c.id,
+    'quantity': c.quantity,
+    'note': c.note,
+    'product': {
+      'id': c.product.id,
+      'name': c.product.name,
+      'categoryId': c.product.categoryId,
+      'price': c.product.price,
+      'originalPrice': c.product.originalPrice,
+      'tax': c.product.tax,
+      'imageUrl': c.product.imageUrl,
+    },
+    'options': c.options
+        .map(
+          (o) => {
+            'groupCode': o.groupCode,
+            'groupName': o.groupName,
+            'optionCode': o.optionCode,
+            'optionName': o.optionName,
+            'extraPrice': o.extraPrice,
+            'quantity': o.quantity,
+          },
+        )
+        .toList(),
+  };
 
   CartItem _cartItemFromMap(Map<String, dynamic> m) => CartItem(
-        id: (m['id'] ?? '').toString(),
-        quantity: (m['quantity'] as int?) ?? 0,
-        note: m['note'] as String?,
-        product: Product(
-          id: (m['product']['id'] as num).toInt(),
-          name: (m['product']['name'] ?? '').toString(),
-          categoryId: (m['product']['categoryId'] ?? '').toString(),
-          price: (m['product']['price'] as num).toDouble(),
-          originalPrice: (m['product']['originalPrice'] as num).toDouble(),
-          tax: (m['product']['tax'] as num).toInt(),
-          imageUrl: (m['product']['imageUrl'] ?? '').toString(),
-          optionGroups: const [],
-        ),
-        options: (m['options'] as List? ?? const [])
-            .whereType<Map>()
-            .map((e) => SelectedOption(
-                  groupCode: (e['groupCode'] ?? '').toString(),
-                  groupName: (e['groupName'] ?? '').toString(),
-                  optionCode: (e['optionCode'] ?? '').toString(),
-                  optionName: (e['optionName'] ?? '').toString(),
-                  extraPrice: ((e['extraPrice'] as num?) ?? 0).toDouble(),
-                  quantity: ((e['quantity'] as num?) ?? 1).toInt(),
-                ))
-            .toList(),
-      );
+    id: (m['id'] ?? '').toString(),
+    quantity: (m['quantity'] as int?) ?? 0,
+    note: m['note'] as String?,
+    product: Product(
+      id: (m['product']['id'] as num).toInt(),
+      name: (m['product']['name'] ?? '').toString(),
+      categoryId: (m['product']['categoryId'] ?? '').toString(),
+      price: (m['product']['price'] as num).toDouble(),
+      originalPrice: (m['product']['originalPrice'] as num).toDouble(),
+      tax: (m['product']['tax'] as num).toInt(),
+      imageUrl: (m['product']['imageUrl'] ?? '').toString(),
+      optionGroups: const [],
+    ),
+    options: (m['options'] as List? ?? const [])
+        .whereType<Map>()
+        .map(
+          (e) => SelectedOption(
+            groupCode: (e['groupCode'] ?? '').toString(),
+            groupName: (e['groupName'] ?? '').toString(),
+            optionCode: (e['optionCode'] ?? '').toString(),
+            optionName: (e['optionName'] ?? '').toString(),
+            extraPrice: ((e['extraPrice'] as num?) ?? 0).toDouble(),
+            quantity: ((e['quantity'] as num?) ?? 1).toInt(),
+          ),
+        )
+        .toList(),
+  );
 }

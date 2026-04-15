@@ -200,6 +200,31 @@ class AppLocalizationsJa extends AppLocalizations {
       'ドロワーが異常状態を返しました。接続を確認して再試行してください。';
 
   @override
+  String get settingsPaymentModeTitle => '決済フローモード';
+
+  @override
+  String get settingsPaymentModeSubtitle => '各支払方法ごとに実決済を行うか、記帳のみ行うかを選択します';
+
+  @override
+  String get settingsPaymentModeCashLabel => '現金';
+
+  @override
+  String get settingsPaymentModeCashHint =>
+      'ドロワー運用は記帳モード、現金機運用は実決済フローを想定しています。';
+
+  @override
+  String get settingsPaymentModeCardLabel => 'クレジットカード';
+
+  @override
+  String get settingsPaymentModeQrLabel => 'QR決済';
+
+  @override
+  String get settingsPaymentModeBookkeeping => '記帳';
+
+  @override
+  String get settingsPaymentModeReal => '実決済';
+
+  @override
   String get settingsPosNetworkTitle => 'POS端末ネットワーク';
 
   @override
@@ -708,6 +733,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get paymentSelectionPushTooltip => '支払い方法を顧客端に送信';
+
+  @override
+  String get paymentSelectionSummaryTitle => '会計待ちの注文';
+
+  @override
+  String get paymentSelectionAmountDue => 'お支払い金額';
+
+  @override
+  String get paymentSelectionHint => '主要な支払い方法を選択してください';
+
+  @override
+  String get paymentSelectionOrderNumberLabel => '連番';
+
+  @override
+  String get paymentSelectionDiscountLabel => '割引';
+
+  @override
+  String get paymentSelectionTax10Label => '10% 税額';
+
+  @override
+  String get paymentSelectionTax8Label => '8% 税額';
 
   @override
   String get paymentGroupCashTitle => '現金';

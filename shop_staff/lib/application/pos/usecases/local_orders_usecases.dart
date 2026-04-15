@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:shop_staff/data/datasources/local/local_order_local_data_source.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
 
 final localOrdersUseCasesProvider = Provider<LocalOrdersUseCases>((ref) {
   return LocalOrdersUseCases(
@@ -16,8 +17,8 @@ class LocalOrdersUseCases {
   LocalOrdersUseCases({
     required LocalOrderLocalDataSource local,
     Logger? logger,
-  })  : _local = local,
-        _logger = logger ?? Logger('LocalOrdersUseCases');
+  }) : _local = local,
+       _logger = logger ?? Logger('LocalOrdersUseCases');
 
   final LocalOrderLocalDataSource _local;
   final Logger _logger;
@@ -44,6 +45,14 @@ class LocalOrdersUseCases {
   Future<void> updatePayMethod(String orderId, String payMethod) async {
     _logger.fine('Update local order id=$orderId payMethod=$payMethod');
     await _local.updatePayMethod(orderId, payMethod);
+  }
+
+  Future<void> updatePaymentMode(
+    String orderId,
+    PaymentFlowMode paymentMode,
+  ) async {
+    _logger.fine('Update local order id=$orderId paymentMode=$paymentMode');
+    await _local.updatePaymentMode(orderId, paymentMode);
   }
 
   Future<void> delete(String orderId) async {

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
 
 enum PrinterBackend { widgetRaster, starXpandNative }
 
@@ -104,6 +105,77 @@ extension CashMachineBrandX on CashMachineBrand {
 const Object _copyWithUnset = Object();
 
 @immutable
+class PaymentModeSettings {
+  const PaymentModeSettings({this.cash, this.card, this.qr});
+
+  final PaymentFlowMode? cash;
+  final PaymentFlowMode? card;
+  final PaymentFlowMode? qr;
+
+  PaymentModeSettings copyWith({
+    Object? cash = _copyWithUnset,
+    Object? card = _copyWithUnset,
+    Object? qr = _copyWithUnset,
+  }) {
+    return PaymentModeSettings(
+      cash: identical(cash, _copyWithUnset)
+          ? this.cash
+          : cash as PaymentFlowMode?,
+      card: identical(card, _copyWithUnset)
+          ? this.card
+          : card as PaymentFlowMode?,
+      qr: identical(qr, _copyWithUnset) ? this.qr : qr as PaymentFlowMode?,
+    );
+  }
+
+  PaymentFlowMode resolveCash(CashMachineSettings cashMachine) {
+    return cash ?? _defaultCashMode(cashMachine);
+  }
+
+  PaymentFlowMode resolveCard() => card ?? PaymentFlowMode.real;
+
+  PaymentFlowMode resolveQr() => qr ?? PaymentFlowMode.real;
+
+  PaymentFlowMode resolveForGroup(
+    String group, {
+    required CashMachineSettings cashMachine,
+  }) {
+    switch (group) {
+      case 'cash':
+        return resolveCash(cashMachine);
+      case 'card':
+        return resolveCard();
+      case 'qr':
+      default:
+        return resolveQr();
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'cash': cash?.wireValue,
+      'card': card?.wireValue,
+      'qr': qr?.wireValue,
+    }..removeWhere((key, value) => value == null);
+  }
+
+  factory PaymentModeSettings.fromJson(Map<String, dynamic> json) {
+    return PaymentModeSettings(
+      cash: _readMode(json['cash']),
+      card: _readMode(json['card']),
+      qr: _readMode(json['qr']),
+    );
+  }
+
+  static PaymentFlowMode _defaultCashMode(CashMachineSettings cashMachine) {
+    if (cashMachine.brand == CashMachineBrand.star) {
+      return PaymentFlowMode.bookkeeping;
+    }
+    return PaymentFlowMode.real;
+  }
+}
+
+@immutable
 class CashMachineSettings {
   const CashMachineSettings({
     this.enabled = false,
@@ -199,6 +271,7 @@ class BasicSettings {
     this.displayLocaleCode,
     this.cashMachineEnabled,
     this.cashMachine = const CashMachineSettings(),
+    this.paymentModes = const PaymentModeSettings(),
     this.peerLinkEnabled = true,
   });
 
@@ -210,6 +283,7 @@ class BasicSettings {
   final String? displayLocaleCode;
   final bool? cashMachineEnabled;
   final CashMachineSettings cashMachine;
+  final PaymentModeSettings paymentModes;
   final bool peerLinkEnabled;
 
   BasicSettings copyWith({
@@ -221,6 +295,7 @@ class BasicSettings {
     Object? displayLocaleCode = _copyWithUnset,
     bool? cashMachineEnabled,
     CashMachineSettings? cashMachine,
+    PaymentModeSettings? paymentModes,
     bool? peerLinkEnabled,
   }) {
     final baseCashMachine = cashMachine ?? this.cashMachine;
@@ -241,6 +316,7 @@ class BasicSettings {
           : displayLocaleCode as String?,
       cashMachineEnabled: resolvedCashMachineEnabled,
       cashMachine: resolvedCashMachine,
+      paymentModes: paymentModes ?? this.paymentModes,
       peerLinkEnabled: peerLinkEnabled ?? this.peerLinkEnabled,
     );
   }
@@ -255,6 +331,7 @@ class BasicSettings {
       'displayLocaleCode': displayLocaleCode,
       'cashMachineEnabled': cashMachineEnabled,
       'cashMachine': cashMachine.toJson(),
+      'paymentModes': paymentModes.toJson(),
       'peerLinkEnabled': peerLinkEnabled,
     }..removeWhere((key, value) => value == null);
   }
@@ -281,6 +358,11 @@ class BasicSettings {
       displayLocaleCode: _trimOrNull(json['displayLocaleCode'] as String?),
       cashMachineEnabled: cashMachine.enabled,
       cashMachine: cashMachine,
+      paymentModes: json['paymentModes'] is Map
+          ? PaymentModeSettings.fromJson(
+              Map<String, dynamic>.from(json['paymentModes'] as Map),
+            )
+          : const PaymentModeSettings(),
       peerLinkEnabled: _readBool(json['peerLinkEnabled']) ?? true,
     );
   }
@@ -592,4 +674,14 @@ String? _trimOrNull(String? value) {
   if (value == null) return null;
   final trimmed = value.trim();
   return trimmed.isEmpty ? null : trimmed;
+}
+
+PaymentFlowMode? _readMode(dynamic value) {
+  if (value == null) return null;
+  if (value is String) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    return PaymentFlowModeX.fromWireValue(trimmed);
+  }
+  return null;
 }

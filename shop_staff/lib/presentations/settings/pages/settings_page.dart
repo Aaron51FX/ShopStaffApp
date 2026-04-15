@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:starxpand_flutter/starxpand_flutter.dart';
 import '../../../core/app_role.dart';
@@ -530,6 +531,49 @@ class _SystemSettingsView extends ConsumerWidget {
         ),
 
         _SectionCard(
+          title: t.settingsPaymentModeTitle,
+          subtitle: t.settingsPaymentModeSubtitle,
+          children: [
+            _PaymentModePreferenceTile(
+              icon: Icons.attach_money_rounded,
+              label: t.settingsPaymentModeCashLabel,
+              helper: t.settingsPaymentModeCashHint,
+              value: basic.paymentModes.resolveCash(basic.cashMachine),
+              onChanged: (mode) => vm.saveBasicSettings(
+                basic.copyWith(
+                  paymentModes: basic.paymentModes.copyWith(cash: mode),
+                ),
+              ),
+              t: t,
+            ),
+            const SizedBox(height: 12),
+            _PaymentModePreferenceTile(
+              icon: Icons.credit_card_rounded,
+              label: t.settingsPaymentModeCardLabel,
+              value: basic.paymentModes.resolveCard(),
+              onChanged: (mode) => vm.saveBasicSettings(
+                basic.copyWith(
+                  paymentModes: basic.paymentModes.copyWith(card: mode),
+                ),
+              ),
+              t: t,
+            ),
+            const SizedBox(height: 12),
+            _PaymentModePreferenceTile(
+              icon: Icons.qr_code_2_rounded,
+              label: t.settingsPaymentModeQrLabel,
+              value: basic.paymentModes.resolveQr(),
+              onChanged: (mode) => vm.saveBasicSettings(
+                basic.copyWith(
+                  paymentModes: basic.paymentModes.copyWith(qr: mode),
+                ),
+              ),
+              t: t,
+            ),
+          ],
+        ),
+
+        _SectionCard(
           title: t.settingsPosNetworkTitle,
           subtitle: t.settingsPosNetworkSubtitle,
           children: [
@@ -609,32 +653,32 @@ class _SystemSettingsView extends ConsumerWidget {
           title: t.settingsLanguageSectionTitle,
           subtitle: t.settingsLanguageSectionSubtitle,
           children: [
-            _LanguageOptionTile(
-              label: t.settingsLanguageSystem,
-              value: null,
+            RadioGroup<Locale?>(
               groupValue: selectedLocale,
-              onSelect: (_) => onLocaleSelected(null),
-            ),
-            const SizedBox(height: 8),
-            _LanguageOptionTile(
-              label: t.settingsLanguageChinese,
-              value: const Locale('zh'),
-              groupValue: selectedLocale,
-              onSelect: (_) => onLocaleSelected(const Locale('zh')),
-            ),
-            const SizedBox(height: 8),
-            _LanguageOptionTile(
-              label: t.settingsLanguageJapanese,
-              value: const Locale('ja'),
-              groupValue: selectedLocale,
-              onSelect: (_) => onLocaleSelected(const Locale('ja')),
-            ),
-            const SizedBox(height: 8),
-            _LanguageOptionTile(
-              label: t.settingsLanguageEnglish,
-              value: const Locale('en'),
-              groupValue: selectedLocale,
-              onSelect: (_) => onLocaleSelected(const Locale('en')),
+              onChanged: onLocaleSelected,
+              child: Column(
+                children: [
+                  _LanguageOptionTile(
+                    label: t.settingsLanguageSystem,
+                    value: null,
+                  ),
+                  const SizedBox(height: 8),
+                  _LanguageOptionTile(
+                    label: t.settingsLanguageChinese,
+                    value: const Locale('zh'),
+                  ),
+                  const SizedBox(height: 8),
+                  _LanguageOptionTile(
+                    label: t.settingsLanguageJapanese,
+                    value: const Locale('ja'),
+                  ),
+                  const SizedBox(height: 8),
+                  _LanguageOptionTile(
+                    label: t.settingsLanguageEnglish,
+                    value: const Locale('en'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -692,13 +736,94 @@ class _RoleSelector extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
-          backgroundColor: theme.colorScheme.surfaceVariant.withValues(
+          backgroundColor: theme.colorScheme.surfaceContainerHighest.withValues(
             alpha: 0.32,
           ),
           selectedColor: theme.colorScheme.primary.withValues(alpha: 0.16),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         );
       }).toList(),
+    );
+  }
+}
+
+class _PaymentModePreferenceTile extends StatelessWidget {
+  const _PaymentModePreferenceTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    required this.t,
+    this.helper,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? helper;
+  final PaymentFlowMode value;
+  final Future<void> Function(PaymentFlowMode mode) onChanged;
+  final AppLocalizations t;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 20, color: colorScheme.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (helper != null && helper!.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              helper!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            children: [
+              ChoiceChip(
+                selected: value == PaymentFlowMode.bookkeeping,
+                onSelected: value == PaymentFlowMode.bookkeeping
+                    ? null
+                    : (_) => onChanged(PaymentFlowMode.bookkeeping),
+                label: Text(t.settingsPaymentModeBookkeeping),
+              ),
+              ChoiceChip(
+                selected: value == PaymentFlowMode.real,
+                onSelected: value == PaymentFlowMode.real
+                    ? null
+                    : (_) => onChanged(PaymentFlowMode.real),
+                label: Text(t.settingsPaymentModeReal),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
@@ -2482,17 +2607,10 @@ class _ErrorBanner extends StatelessWidget {
 }
 
 class _LanguageOptionTile extends StatelessWidget {
-  const _LanguageOptionTile({
-    required this.label,
-    required this.value,
-    required this.groupValue,
-    required this.onSelect,
-  });
+  const _LanguageOptionTile({required this.label, required this.value});
 
   final String label;
   final Locale? value;
-  final Locale? groupValue;
-  final void Function(Locale? locale) onSelect;
 
   @override
   Widget build(BuildContext context) {
@@ -2505,8 +2623,6 @@ class _LanguageOptionTile extends StatelessWidget {
       ),
       child: RadioListTile<Locale?>(
         value: value,
-        groupValue: groupValue,
-        onChanged: onSelect,
         dense: true,
         title: Text(
           label,

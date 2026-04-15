@@ -34,6 +34,7 @@ class AppConfig {
   final AppEnvironment env;
   final String apiBase;
   final String apiProfileBase;
+  final String bookingBase;
   final String fileBase;
   final String faceBase;
 
@@ -41,6 +42,7 @@ class AppConfig {
     required this.env,
     required this.apiBase,
     required this.apiProfileBase,
+    required this.bookingBase,
     required this.fileBase,
     required this.faceBase,
   });
@@ -52,6 +54,7 @@ class AppConfig {
           env: AppEnvironment.production,
           apiProfileBase: 'https://api.smartwe.jp',
           apiBase: 'https://api.smartwe.jp',
+          bookingBase: 'https://admin.gutingjun.com/api/booking',
           fileBase: 'https://app.smartwe.co.jp',
           faceBase: 'https://oa.gutingjun.com/api',
         );
@@ -60,6 +63,7 @@ class AppConfig {
           env: AppEnvironment.staging,
           apiProfileBase: 'https://sit-api.smartwe.jp',
           apiBase: 'https://sit-api.smartwe.jp',
+          bookingBase: 'https://sit-admin.gutingjun.com/api/booking',
           fileBase: 'https://app.smartwe.co.jp',
           faceBase: 'https://oa.gutingjun.com/api',
         );
