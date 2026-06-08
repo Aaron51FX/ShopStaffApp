@@ -122,7 +122,7 @@ class PosRemoteDataSource {
   ) async => _client.postJson(_e.rejishimeiAdminVerify, body: payload);
 
   Future<dynamic> fetchStaffRejishime(Map<String, dynamic> payload) async =>
-      _client.postJson(_e.staffRejishime, body: payload);
+      _client.postJson(_e.rejishimeiPrintInfo, body: payload);
 
   Future<dynamic> confirmRejishime(Map<String, dynamic> payload) async =>
       _client.postJson(_e.rejishimeiConfirm, body: payload);

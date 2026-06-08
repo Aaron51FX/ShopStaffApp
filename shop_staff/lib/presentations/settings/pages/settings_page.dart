@@ -16,6 +16,8 @@ import '../viewmodels/settings_viewmodel.dart';
 import '../../../core/localization/locale_providers.dart';
 import '../../cash_machine/widgets/cash_machine_check_dialog.dart';
 import '../../entry/viewmodels/entry_viewmodels.dart';
+import 'cash_register_closure_page.dart';
+import 'shop_info_detail_page.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -351,50 +353,54 @@ class _BusinessInfoView extends ConsumerWidget {
     return _RefreshableScroll(
       onRefresh: onRefresh,
       children: [
-        _SectionCard(
+        _NavigationRow(
+          icon: Icons.storefront_rounded,
           title: t.settingsBusinessInfoTitle,
-          subtitle: t.settingsBusinessInfoSubtitle,
-          children: [
-            _InfoRow(
-              icon: Icons.storefront_rounded,
-              label: t.settingsBusinessNameLabel,
-              value: _displayValue(t, basic.shopName ?? shop?.shopName),
-            ),
-            _InfoRow(
-              icon: Icons.qr_code_2_rounded,
-              label: t.settingsBusinessCodeLabel,
-              value: _displayValue(t, basic.shopCode ?? shop?.shopCode),
-            ),
-            _InfoRow(
-              icon: Icons.phone_iphone,
-              label: t.settingsBusinessPhoneLabel,
-              value: _displayValue(
-                t,
-                basic.contactNumber ?? shop?.shopTelephone,
+          subtitle:
+              '${_displayValue(t, basic.shopName ?? shop?.shopName)} / '
+              '${_displayValue(t, basic.shopCode ?? shop?.shopCode)}',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => ShopInfoDetailPage(state: state),
               ),
-            ),
-            _InfoRow(
-              icon: Icons.place_rounded,
-              label: t.settingsBusinessAddressLabel,
-              value: _displayValue(t, basic.address ?? shop?.shopAddress),
-            ),
-          ],
+            );
+          },
         ),
-        _SectionCard(
-          title: t.settingsBusinessHoursTitle,
-          subtitle: t.settingsBusinessHoursSubtitle,
-          children: [
-            _InfoRow(
-              icon: Icons.schedule_rounded,
-              label: t.settingsBusinessHoursLabel,
-              value: _displayValue(t, shop?.businessTime),
-            ),
-            _InfoRow(
-              icon: Icons.event_seat_rounded,
-              label: t.settingsBusinessSeatsLabel,
-              value: _displayValue(t, shop?.seatNumber),
-            ),
-          ],
+        const SizedBox(height: 12),
+        _NavigationRow(
+          icon: Icons.phone_iphone,
+          title: t.settingsBusinessPhoneLabel,
+          subtitle: _displayValue(
+            t,
+            basic.contactNumber ?? shop?.shopTelephone,
+          ),
+        ),
+        const SizedBox(height: 12),
+        _NavigationRow(
+          icon: Icons.place_rounded,
+          title: t.settingsBusinessAddressLabel,
+          subtitle: _displayValue(t, basic.address ?? shop?.shopAddress),
+        ),
+        const SizedBox(height: 12),
+        _NavigationRow(
+          icon: Icons.point_of_sale_rounded,
+          title: 'レジ締め',
+          subtitle: 'メール認証、集計確認、履歴、消込',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => CashRegisterClosurePage(
+                  machineCode:
+                      shop?.machineCode ??
+                      shop?.stationMachineCode ??
+                      basic.machineCode ??
+                      '',
+                  shopName: _displayValue(t, basic.shopName ?? shop?.shopName),
+                ),
+              ),
+            );
+          },
         ),
         //log out button
         Padding(
@@ -1190,6 +1196,74 @@ class _InfoRow extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _NavigationRow extends StatelessWidget {
+  const _NavigationRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.08)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, size: 22, color: theme.colorScheme.primary),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.65,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (onTap != null) const Icon(Icons.chevron_right_rounded),
+          ],
+        ),
       ),
     );
   }

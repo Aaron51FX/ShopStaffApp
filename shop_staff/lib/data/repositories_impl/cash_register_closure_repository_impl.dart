@@ -54,29 +54,28 @@ class CashRegisterClosureRepositoryImpl
   Future<CashRegisterClosureSummary> fetchStaffRejishime(
     CashRegisterClosureVerifyInput input,
   ) async {
-    final response = _parseResponse<CashRegisterClosureSummary>(
-      await _remote.fetchStaffRejishime(input.toJson()),
-      (raw) {
-        if (raw is! Map) {
-          throw ApiException(
-            'Cash register closure data is missing',
-            data: raw,
-          );
-        }
-        return CashRegisterClosureSummary.fromJson(
-          Map<String, dynamic>.from(raw),
-        );
-      },
+    final rawResponse = await _remote.fetchStaffRejishime(input.toJson());
+    if (rawResponse is! Map) {
+      throw ApiException('API response is not an object', data: rawResponse);
+    }
+    final response = ApiResponse<dynamic>.fromJson(
+      Map<String, dynamic>.from(rawResponse),
     );
-    final data = response.data;
-    if (data == null) {
+    _ensureOk(response);
+
+    final rawData = response.data;
+    if (rawData == null) {
+      throw const NoLatestCashRegisterClosureDataException();
+    }
+    if (rawData is! Map) {
       throw ApiException(
-        response.message.isEmpty
-            ? 'Cash register closure data is missing'
-            : response.message,
+        'Cash register closure data is missing',
+        data: rawData,
       );
     }
-    return data;
+    return CashRegisterClosureSummary.fromJson(
+      Map<String, dynamic>.from(rawData),
+    );
   }
 
   @override

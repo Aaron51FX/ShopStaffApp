@@ -54,6 +54,12 @@ class CashRegisterCashInfoEntry {
       remain: (json['remain'] ?? '').toString(),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'backup': backup,
+    'income': income,
+    'remain': remain,
+  };
 }
 
 class CashRegisterClosureSummary {
@@ -165,6 +171,42 @@ class CashRegisterClosureSummary {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+    'machineCode': machineCode,
+    'shopCode': shopCode,
+    'shopName': shopName,
+    'startTime': startTime,
+    'endTime': endTime,
+    'printTime': printTime,
+    'verifyCode': verifyCode,
+    'verifyEmail': verifyEmail,
+    'verifyUserName': verifyUserName,
+    'cashInfo': cashInfo.map((key, value) => MapEntry(key, value.toJson())),
+    'cashInfoGlory': Map<String, int>.from(cashInfoGlory),
+    'aliPayTotal': aliPayTotal,
+    'au_PayTotal': auPayTotal,
+    'cashTotal': cashTotal,
+    'creditCardTotal': creditCardTotal,
+    'd_PayTotal': dPayTotal,
+    'discountTotal': discountTotal,
+    'm_PayTotal': mPayTotal,
+    'noTaxTotal': noTaxTotal,
+    'payPayTotal': payPayTotal,
+    'qty': qty,
+    'qtyA': qtyA,
+    'qtyB': qtyB,
+    'r_PayTotal': rPayTotal,
+    'repaymentQty': repaymentQty,
+    'repaymentTotal': repaymentTotal,
+    'taxTotal': taxTotal,
+    'taxTotalA': taxTotalA,
+    'taxTotalB': taxTotalB,
+    'total': total,
+    'trafficTotal': trafficTotal,
+    'voucherAmountTotal': voucherAmountTotal,
+    'wechatTotal': wechatTotal,
+  };
+
   static Map<String, CashRegisterCashInfoEntry> _readCashInfo(dynamic raw) {
     if (raw is! Map) return const {};
     return raw.map((key, value) {
@@ -194,4 +236,11 @@ class CashRegisterClosureSummary {
     if (value is String) return num.tryParse(value)?.round() ?? 0;
     return 0;
   }
+}
+
+class NoLatestCashRegisterClosureDataException implements Exception {
+  const NoLatestCashRegisterClosureDataException();
+
+  @override
+  String toString() => 'No latest cash register closure data';
 }

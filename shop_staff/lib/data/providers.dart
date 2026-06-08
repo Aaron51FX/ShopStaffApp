@@ -11,6 +11,7 @@ import '../core/network/dio_client.dart';
 import '../core/storage/key_value_store.dart';
 import 'datasources/local/suspended_order_local_data_source.dart';
 import 'datasources/local/local_order_local_data_source.dart';
+import 'datasources/local/cash_register_closure_local_data_source.dart';
 
 // Data source (unified export stub)
 import 'datasources/remote/pos_remote_datasource.dart';
@@ -312,6 +313,11 @@ final localOrderLocalDataSourceProvider = Provider<LocalOrderLocalDataSource>((
 ) {
   return LocalOrderLocalDataSource();
 });
+
+final cashRegisterClosureLocalDataSourceProvider =
+    Provider<CashRegisterClosureLocalDataSource>((ref) {
+      return CashRegisterClosureLocalDataSource();
+    });
 
 // Global in-memory ShopInfo (single source of truth after activation)
 final shopInfoProvider = StateProvider<ShopInfoModel?>((_) => null);
