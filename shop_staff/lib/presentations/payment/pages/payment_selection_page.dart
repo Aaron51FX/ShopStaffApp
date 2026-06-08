@@ -3,17 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:multipeer_session/multipeer_session.dart';
+import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/build_payment_flow_args_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
 import 'package:shop_staff/application/pos/usecases/prepare_payment_selection_usecase.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/providers.dart';
+import 'package:shop_staff/domain/entities/local_order_record.dart';
+import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/settings/app_settings_models.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_selection_page_args.dart';
+import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 
 class PaymentSelectionPage extends ConsumerStatefulWidget {
   const PaymentSelectionPage({super.key, required this.args});
@@ -30,6 +34,8 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
   late int _lastPeerMessageSeq;
   bool _submitting = false;
   PaymentSelectionOption? _selectedOption;
+  OrderSubmissionResult? _submittedOrder;
+  double? _submittedTotal;
 
   @override
   void initState() {
@@ -89,11 +95,9 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
       return;
     }
 
-    final payload = PreparePaymentSelectionOutput(options: _options())
-        .toPayload(
-          orderNumber: widget.args.orderNumber,
-          total: widget.args.order.total.toDouble(),
-        );
+    final payload = PreparePaymentSelectionOutput(
+      options: _options(),
+    ).toPayload(orderNumber: widget.args.orderNumber, total: widget.args.total);
     await controller.sendMessage(
       PeerMessage(type: 'payment_selection', payload: payload),
     );
@@ -126,20 +130,17 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
 
     setState(() => _submitting = true);
     try {
+      final submittedOrder = await _ensureSubmittedOrder(
+        paymentMode: paymentMode,
+      );
       final localOrders = ref.read(localOrdersUseCasesProvider);
-      await localOrders.updatePaymentMode(
-        widget.args.order.orderId,
-        paymentMode,
-      );
-      await localOrders.updatePayMethod(
-        widget.args.order.orderId,
-        option.label,
-      );
+      await localOrders.updatePaymentMode(submittedOrder.orderId, paymentMode);
+      await localOrders.updatePayMethod(submittedOrder.orderId, option.label);
 
       final args = ref
           .read(buildPaymentFlowArgsUseCaseProvider)
           .execute(
-            order: widget.args.order,
+            order: submittedOrder,
             shop: widget.args.shop,
             machineCode: widget.args.machineCode,
             group: option.group,
@@ -164,6 +165,79 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
     }
   }
 
+  Future<OrderSubmissionResult> _ensureSubmittedOrder({
+    required PaymentFlowMode paymentMode,
+  }) async {
+    final existing = _submittedOrder;
+    if (existing != null) {
+      return existing;
+    }
+
+    final output = await _submitOrder();
+    final submittedOrder = output.order;
+    await _saveLocalOrderRecord(
+      order: submittedOrder,
+      total: output.total,
+      paymentMode: paymentMode,
+    );
+    _submittedOrder = submittedOrder;
+    _submittedTotal = output.total;
+    ref
+        .read(posViewModelProvider.notifier)
+        .completeCheckoutSubmission(
+          order: submittedOrder,
+          orderNumber: widget.args.orderNumber,
+        );
+    return submittedOrder;
+  }
+
+  Future<SubmitOrderOutput> _submitOrder() {
+    return ref
+        .read(submitOrderUseCaseProvider)
+        .execute(
+          SubmitOrderInput(
+            items: widget.args.items,
+            machineCode: widget.args.machineCode,
+            language: widget.args.language,
+            takeout: widget.args.takeout,
+            discount: widget.args.discount,
+            shopCode: widget.args.shop.shopCode,
+          ),
+        );
+  }
+
+  Future<void> _saveLocalOrderRecord({
+    required OrderSubmissionResult order,
+    required double total,
+    required PaymentFlowMode paymentMode,
+  }) async {
+    try {
+      await ref
+          .read(localOrdersUseCasesProvider)
+          .save(
+            LocalOrderRecord(
+              orderId: order.orderId,
+              createdAt: DateTime.now(),
+              isPaid: false,
+              paymentMode: paymentMode,
+              items: widget.args.items,
+              machineCode: widget.args.machineCode,
+              language: widget.args.language,
+              takeout: widget.args.takeout,
+              discount: widget.args.discount,
+              clientTotal: total,
+              orderResult: order,
+            ),
+          );
+    } catch (error) {
+      debugPrint('Failed to save local order record: $error');
+      if (!mounted) return;
+      SimpleToast.errorGlobal(
+        AppLocalizations.of(context).posToastLocalOrderSaveFailed,
+      );
+    }
+  }
+
   String _resolveSelectionError(AppLocalizations t, Object error) {
     final raw = error.toString();
     if (raw.contains('POS_IP_MISSING')) {
@@ -183,7 +257,11 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
     final t = AppLocalizations.of(context);
     final options = _options();
     final formatter = NumberFormat.currency(locale: 'ja_JP', symbol: '¥');
-    final summary = _PaymentSummaryData.fromArgs(widget.args);
+    final submittedOrder = _submittedOrder;
+    final summary = _PaymentSummaryData.fromArgs(
+      widget.args,
+      order: submittedOrder,
+    );
     final snapshot = ref.watch(appSettingsSnapshotProvider);
     final basic = snapshot?.basic ?? const BasicSettings();
     final peerEnabled = basic.peerLinkEnabled;
@@ -222,6 +300,8 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
                           args: widget.args,
                           summary: summary,
                           formatter: formatter,
+                          submittedOrder: submittedOrder,
+                          submittedTotal: _submittedTotal,
                         ),
                       ),
                       const SizedBox(width: 20),
@@ -231,6 +311,8 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
                           args: widget.args,
                           basic: basic,
                           formatter: formatter,
+                          submittedOrder: submittedOrder,
+                          submittedTotal: _submittedTotal,
                           busy: _submitting,
                           selectedOption: _selectedOption,
                           onSelect: _selectOption,
@@ -246,6 +328,8 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
                         args: widget.args,
                         summary: summary,
                         formatter: formatter,
+                        submittedOrder: submittedOrder,
+                        submittedTotal: _submittedTotal,
                       ),
                       const SizedBox(height: 16),
                       Expanded(
@@ -254,6 +338,8 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
                           args: widget.args,
                           basic: basic,
                           formatter: formatter,
+                          submittedOrder: submittedOrder,
+                          submittedTotal: _submittedTotal,
                           busy: _submitting,
                           selectedOption: _selectedOption,
                           onSelect: _selectOption,
@@ -276,15 +362,21 @@ class _SummaryPanel extends StatelessWidget {
     required this.args,
     required this.summary,
     required this.formatter,
+    required this.submittedOrder,
+    required this.submittedTotal,
   });
 
   final PaymentSelectionPageArgs args;
   final _PaymentSummaryData summary;
   final NumberFormat formatter;
+  final OrderSubmissionResult? submittedOrder;
+  final double? submittedTotal;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final amount =
+        submittedTotal ?? submittedOrder?.total.toDouble() ?? args.total;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -312,7 +404,7 @@ class _SummaryPanel extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            formatter.format(args.order.total),
+            formatter.format(amount),
             style: const TextStyle(
               fontSize: 38,
               fontWeight: FontWeight.w900,
@@ -328,7 +420,11 @@ class _SummaryPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          _SummaryRow(label: t.paymentOrderIdLabel, value: args.order.orderId),
+          if (submittedOrder != null)
+            _SummaryRow(
+              label: t.paymentOrderIdLabel,
+              value: submittedOrder!.orderId,
+            ),
           _SummaryRow(
             label: t.paymentSelectionOrderNumberLabel,
             value: '#${args.orderNumber}',
@@ -372,7 +468,7 @@ class _SummaryPanel extends StatelessWidget {
                 ),
                 const Spacer(),
                 Text(
-                  formatter.format(args.order.total),
+                  formatter.format(amount),
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
@@ -394,6 +490,8 @@ class _OptionsPanel extends StatelessWidget {
     required this.args,
     required this.basic,
     required this.formatter,
+    required this.submittedOrder,
+    required this.submittedTotal,
     required this.busy,
     required this.selectedOption,
     required this.onSelect,
@@ -404,6 +502,8 @@ class _OptionsPanel extends StatelessWidget {
   final PaymentSelectionPageArgs args;
   final BasicSettings basic;
   final NumberFormat formatter;
+  final OrderSubmissionResult? submittedOrder;
+  final double? submittedTotal;
   final bool busy;
   final PaymentSelectionOption? selectedOption;
   final ValueChanged<PaymentSelectionOption> onSelect;
@@ -466,7 +566,10 @@ class _OptionsPanel extends StatelessWidget {
                             option.group,
                             cashMachine: basic.cashMachine,
                           ),
-                          amount: args.order.total.toDouble(),
+                          amount:
+                              submittedTotal ??
+                              submittedOrder?.total.toDouble() ??
+                              args.total,
                           formatter: formatter,
                           busy: busy,
                           selected: selectedOption?.group == option.group,
@@ -488,7 +591,10 @@ class _OptionsPanel extends StatelessWidget {
                     selectedOption!.group,
                     cashMachine: basic.cashMachine,
                   ),
-            amount: args.order.total.toDouble(),
+            amount:
+                submittedTotal ??
+                submittedOrder?.total.toDouble() ??
+                args.total,
             busy: busy,
             onSubmit: onSubmit,
           ),
@@ -978,12 +1084,15 @@ class _PaymentSummaryData {
   final double tax10;
   final double tax8;
 
-  factory _PaymentSummaryData.fromArgs(PaymentSelectionPageArgs args) {
+  factory _PaymentSummaryData.fromArgs(
+    PaymentSelectionPageArgs args, {
+    OrderSubmissionResult? order,
+  }) {
     return _PaymentSummaryData(
       subtotal: args.subtotal,
       discount: args.discount,
-      tax10: args.order.tax1.toDouble(),
-      tax8: args.order.tax2.toDouble(),
+      tax10: order?.tax1.toDouble() ?? 0,
+      tax8: order?.tax2.toDouble() ?? 0,
     );
   }
 }

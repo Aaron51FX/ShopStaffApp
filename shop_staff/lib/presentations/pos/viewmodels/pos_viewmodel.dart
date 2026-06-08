@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multipeer_session/multipeer_session.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_categories_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_category_products_usecase.dart';
-import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
-import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/suspended_orders_usecases.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/data/providers.dart';
@@ -15,7 +13,6 @@ import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
-import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_selection_page_args.dart';
 import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
 import 'pos_state.dart';
@@ -58,8 +55,6 @@ final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((
 
 class PosViewModel extends StateNotifier<PosState> {
   final Ref _ref;
-  final SubmitOrderUseCase _submitOrderUseCase;
-  final LocalOrdersUseCases _localOrdersUseCases;
   final FetchCategoriesUseCase _fetchCategoriesUseCase;
   final FetchCategoryProductsUseCase _fetchCategoryProductsUseCase;
   final SuspendedOrdersUseCases _suspendedOrders;
@@ -77,16 +72,10 @@ class PosViewModel extends StateNotifier<PosState> {
   PosViewModel(
     this._ref, {
     required String initialMode,
-    SubmitOrderUseCase? submitOrderUseCase,
-    LocalOrdersUseCases? localOrdersUseCases,
     FetchCategoriesUseCase? fetchCategoriesUseCase,
     FetchCategoryProductsUseCase? fetchCategoryProductsUseCase,
     SuspendedOrdersUseCases? suspendedOrders,
-  }) : _submitOrderUseCase =
-           submitOrderUseCase ?? _ref.read(submitOrderUseCaseProvider),
-       _localOrdersUseCases =
-           localOrdersUseCases ?? _ref.read(localOrdersUseCasesProvider),
-       _fetchCategoriesUseCase =
+  }) : _fetchCategoriesUseCase =
            fetchCategoriesUseCase ?? _ref.read(fetchCategoriesUseCaseProvider),
        _fetchCategoryProductsUseCase =
            fetchCategoryProductsUseCase ??
@@ -612,7 +601,50 @@ class PosViewModel extends StateNotifier<PosState> {
   }
 
   void checkout() {
-    _submitOrder();
+    if (state.cart.isEmpty) return;
+    final shop = _ref.read(shopInfoProvider);
+    if (shop == null) {
+      state = state.copyWith(error: '无法下单: 缺少店铺信息');
+      return;
+    }
+    final machineCode = _ref.read(machineCodeProvider);
+    if (machineCode == null || machineCode.isEmpty) {
+      state = state.copyWith(error: '无法下单: 缺少machineCode');
+      return;
+    }
+    final language = _ref.read(shopLanguageProvider);
+    final takeout = state.orderMode == 'take_out';
+    final itemsSnapshot = List<CartItem>.from(state.cart);
+
+    _emit(
+      PosNavigateEffect(
+        location: '/payment-selection',
+        extra: PaymentSelectionPageArgs(
+          shop: shop,
+          machineCode: machineCode,
+          language: language,
+          takeout: takeout,
+          items: itemsSnapshot,
+          orderNumber: state.orderNumber + 1,
+          subtotal: state.subtotal,
+          discount: state.discount,
+        ),
+      ),
+    );
+  }
+
+  void completeCheckoutSubmission({
+    required OrderSubmissionResult order,
+    required int orderNumber,
+  }) {
+    state = state.copyWith(
+      cart: const [],
+      discount: 0,
+      orderNumber: orderNumber,
+      lastOrderResult: order,
+      posDialog: null,
+      error: null,
+    );
   }
 
   void toggleFavorite(Product p) {
@@ -764,116 +796,6 @@ class PosViewModel extends StateNotifier<PosState> {
         .map((e) => '${e.groupCode}:${e.optionCode}')
         .join('|');
     return '${p.id}-$optionKey';
-  }
-
-  Future<void> _submitOrder() async {
-    if (state.cart.isEmpty) return;
-    final shop = _ref.read(shopInfoProvider);
-    if (shop == null) {
-      state = state.copyWith(error: '无法下单: 缺少店铺信息');
-      return;
-    }
-    final machineCode = _ref.read(machineCodeProvider);
-    if (machineCode == null || machineCode.isEmpty) {
-      state = state.copyWith(error: '无法下单: 缺少machineCode');
-      return;
-    }
-    final language = _ref.read(shopLanguageProvider);
-    final takeout = state.orderMode == 'take_out';
-    final itemsSnapshot = List<CartItem>.from(state.cart);
-    final subtotal = state.subtotal;
-    final discount = state.discount;
-    final nextOrderNumber = state.orderNumber + 1;
-
-    try {
-      state = state.copyWith(loading: true, error: null, lastOrderResult: null);
-      final output = await _submitOrderUseCase.execute(
-        SubmitOrderInput(
-          items: itemsSnapshot,
-          machineCode: machineCode,
-          language: language,
-          takeout: takeout,
-          discount: discount,
-          shopCode: shop.shopCode,
-        ),
-      );
-      final result = output.order;
-      await _saveLocalOrderRecord(
-        order: result,
-        items: itemsSnapshot,
-        machineCode: machineCode,
-        language: language,
-        takeout: takeout,
-        discount: discount,
-        total: output.total,
-        paymentMode: PaymentFlowMode.real,
-      );
-      state = state.copyWith(
-        loading: false,
-        cart: const [],
-        discount: 0,
-        orderNumber: nextOrderNumber,
-        lastOrderResult: result,
-        posDialog: null,
-      );
-      _emit(
-        PosNavigateEffect(
-          location: '/payment-selection',
-          extra: PaymentSelectionPageArgs(
-            order: result,
-            shop: shop,
-            machineCode: machineCode,
-            language: language,
-            takeout: takeout,
-            items: itemsSnapshot,
-            orderNumber: nextOrderNumber,
-            subtotal: subtotal,
-            discount: discount,
-          ),
-        ),
-      );
-    } catch (e) {
-      debugPrint('Failed to submit order before payment selection: $e');
-      state = state.copyWith(loading: false, error: '下单失败: $e');
-      _emit(PosToastEffect(message: e.toString(), isError: true));
-    }
-  }
-
-  Future<void> _saveLocalOrderRecord({
-    required OrderSubmissionResult order,
-    required List<CartItem> items,
-    required String machineCode,
-    required String language,
-    required bool takeout,
-    required double discount,
-    required double total,
-    required PaymentFlowMode paymentMode,
-  }) async {
-    try {
-      await _localOrdersUseCases.save(
-        LocalOrderRecord(
-          orderId: order.orderId,
-          createdAt: DateTime.now(),
-          isPaid: false,
-          paymentMode: paymentMode,
-          items: items,
-          machineCode: machineCode,
-          language: language,
-          takeout: takeout,
-          discount: discount,
-          clientTotal: total,
-          orderResult: order,
-        ),
-      );
-    } catch (e) {
-      debugPrint('Failed to save local order record: $e');
-      _emit(
-        const PosToastEffect(
-          messageKey: PosToastKey.localOrderSaveFailed,
-          isError: true,
-        ),
-      );
-    }
   }
 
   void handlePeerMessage(PeerLinkState next, PeerLinkState? prev) {
