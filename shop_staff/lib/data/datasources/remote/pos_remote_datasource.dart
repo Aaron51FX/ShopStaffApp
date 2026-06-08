@@ -114,6 +114,19 @@ class PosRemoteDataSource {
   Future<dynamic> cancelCreditCard(Map<String, dynamic> payload) async =>
       _client.postJson(_e.creditCardCancel, body: payload);
 
+  Future<dynamic> fetchRejishimeMailList(Map<String, dynamic> payload) async =>
+      _client.postJson(_e.rejishimeiMailList, body: payload);
+
+  Future<dynamic> sendRejishimeAdminVerify(
+    Map<String, dynamic> payload,
+  ) async => _client.postJson(_e.rejishimeiAdminVerify, body: payload);
+
+  Future<dynamic> fetchStaffRejishime(Map<String, dynamic> payload) async =>
+      _client.postJson(_e.staffRejishime, body: payload);
+
+  Future<dynamic> confirmRejishime(Map<String, dynamic> payload) async =>
+      _client.postJson(_e.rejishimeiConfirm, body: payload);
+
   //print info
   Future<dynamic> printInfo(Map<String, dynamic> payload) async =>
       _client.postJson(_e.printV9, body: payload);

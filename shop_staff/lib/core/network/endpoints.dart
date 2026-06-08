@@ -26,6 +26,9 @@ class Endpoints {
   String get toPayV2 => '$_b/pad/web/boot/toPay/v2';
   String get posPayReport => '$_b/pad/web/boot/pos/pay/report';
 
+  String get staffRejishime => '$_booking/web/staff/cash/register';
+  String get latestOneHourOrders => '$_booking/web/staff/recent/history';
+
   String get printV5 => '$_b/pad/web/boot/v5/print';
   String get printV6 => '$_b/pad/web/boot/v6/print';
   String get printV7 => '$_b/pad/web/boot/v7/print';
