@@ -18,16 +18,18 @@ class _HistoryList extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '履歴',
+            AppLocalizations.of(context).cashRegisterClosureHistoryTitle,
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 12),
           if (records.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 18),
-              child: Text('最近一ヶ月の履歴はありません'),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              child: Text(
+                AppLocalizations.of(context).cashRegisterClosureHistoryEmpty,
+              ),
             )
           else
             for (final record in records)

@@ -18,6 +18,26 @@
 - View files should not own domain or data orchestration. They may call ViewModel/usecase methods, but business rules and persistence decisions belong in ViewModels, usecases, repositories, or services.
 - If a feature has multiple independent flows, each flow should get its own page/section/widget file rather than being appended to an existing page file.
 
+## Navigation Rules
+
+- Use the app-level router for page navigation.
+- Do not create feature navigation with `Navigator.of(context).push(MaterialPageRoute(...))` unless there is a documented reason that the route must stay outside the app router.
+- Presentation code should navigate through `GoRouter` routes exposed by `appRouterProvider` or a route helper.
+- Pages that require parameters must define typed route argument classes instead of passing loose maps or relying on widget-local state.
+- Route guards must cover nested paths, not only top-level paths.
+- Dialog dismissal may use `Navigator.pop` for the dialog context, but page-to-page navigation should remain router-managed.
+- Router-managed navigation keeps route ownership, shell wrappers, transitions, deep links, and guard behavior consistent.
+
+## Localization Rules
+
+- All user-visible UI text must be localized when the feature is implemented.
+- Do not ship hardcoded Chinese, Japanese, or English UI strings in pages, sections, widgets, dialogs, route fallback pages, empty states, error banners, or button labels.
+- Add keys to all supported ARB files at the same time. The current supported locales are Chinese, English, and Japanese.
+- Run Flutter l10n generation after ARB changes.
+- Brand names and external protocol identifiers may remain literal only when they are not translated in product copy.
+- Print labels shown to users or printed for customers/operators should also use localization keys unless they are external fixed codes.
+- If a string needs placeholders, define placeholder metadata in the ARB files when adding the key.
+
 ## Settings Feature Structure
 
 - `settings_page.dart` must remain the settings route shell only: section selection, top-level layout, and dispatch to section widgets.

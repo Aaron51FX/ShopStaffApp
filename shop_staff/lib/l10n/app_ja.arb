@@ -607,5 +607,64 @@
     "placeholders": {
       "detail": {}
     }
-  }
+  },
+  "routeArgsMissing": "画面パラメータが不足しています",
+  "cashRegisterClosureTitle": "レジ締め",
+  "cashRegisterClosureSettingsSubtitle": "メール認証、集計確認、履歴、消込",
+  "cashRegisterClosureLatestAction": "最新レジ締めを取得",
+  "cashRegisterClosureMailDialogTitle": "メールを選択",
+  "cashRegisterClosureMailEmpty": "メールアドレスが登録されていません",
+  "cashRegisterClosureNoLatestBusinessData": "最新の営業データがありません",
+  "cashRegisterClosureVerifyCodeTitle": "確認コード",
+  "cashRegisterClosureVerifySentTo": "{email} に送信しました",
+  "@cashRegisterClosureVerifySentTo": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "cashRegisterClosureGetAction": "取得",
+  "cashRegisterClosureDetailTitle": "レジ締め詳細",
+  "cashRegisterClosureConfirmAction": "消込",
+  "cashRegisterClosureConfirmTitle": "消込確認",
+  "cashRegisterClosureConfirmMessage": "現在のレジ締めを消込します。実行後は元に戻せません。",
+  "cashRegisterClosureConfirmSuccessTitle": "消込成功",
+  "cashRegisterClosurePrintPrompt": "レジ締めを印刷しますか？",
+  "cashRegisterClosurePrintSkip": "印刷しない",
+  "cashRegisterClosurePrintAction": "印刷",
+  "cashRegisterClosureNoActivePrinter": "有効なプリンターがありません",
+  "cashRegisterClosureHistoryTitle": "履歴",
+  "cashRegisterClosureHistoryEmpty": "最近一ヶ月の履歴はありません",
+  "cashRegisterClosureMachineCode": "機番 {machineCode}",
+  "@cashRegisterClosureMachineCode": {
+    "placeholders": {
+      "machineCode": {}
+    }
+  },
+  "cashRegisterClosureStartTime": "開始",
+  "cashRegisterClosureEndTime": "終了",
+  "cashRegisterClosureSalesTitle": "売上",
+  "cashRegisterClosureSalesAmount": "販売額",
+  "cashRegisterClosureSalesAmountHelper": "税込 / 税抜 / 税額を含む集計",
+  "cashRegisterClosureSalesTotal": "売上合計",
+  "cashRegisterClosureNoTax": "税抜",
+  "cashRegisterClosureTax": "税額",
+  "cashRegisterClosureBeforeAdjustment": "税込前",
+  "cashRegisterClosureDiscount": "割引",
+  "cashRegisterClosureVoucher": "代金券",
+  "cashRegisterClosureSalesQuantity": "販売数量",
+  "cashRegisterClosureQuantity": "{count} 点",
+  "@cashRegisterClosureQuantity": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "cashRegisterClosureRefundAmount": "返金額",
+  "cashRegisterClosureRefundQuantity": "返金数量",
+  "cashRegisterClosurePaymentComposition": "決済構成",
+  "cashRegisterClosurePaymentNoData": "決済データがありません",
+  "cashRegisterClosureTotalLabel": "合計",
+  "cashRegisterClosurePaymentCash": "現金",
+  "cashRegisterClosurePaymentCredit": "クレジットカード",
+  "cashRegisterClosurePaymentTraffic": "交通系",
+  "cashRegisterClosurePaymentOtherQr": "その他QR"
 }

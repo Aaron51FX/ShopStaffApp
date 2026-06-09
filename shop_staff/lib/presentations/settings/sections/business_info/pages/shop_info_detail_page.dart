@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/settings/state/settings_state.dart';
+import 'package:shop_staff/presentations/settings/providers/settings_providers.dart';
 
-class ShopInfoDetailPage extends StatelessWidget {
-  const ShopInfoDetailPage({super.key, required this.state});
-
-  final SettingsState state;
+class ShopInfoDetailPage extends ConsumerWidget {
+  const ShopInfoDetailPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(settingsControllerProvider);
     final t = AppLocalizations.of(context);
     final basic = state.snapshot.basic;
     final shop = state.shopInfo;

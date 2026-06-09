@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shop_staff/application/cash_register_closure/cash_register_closure_usecases.dart';
+import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/datasources/local/cash_register_closure_local_data_source.dart';
 import 'package:shop_staff/domain/entities/cash_register_closure.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/cash_register_closure/widgets/cash_register_closure_common_widgets.dart';
-import 'cash_register_closure_detail_page.dart';
+import 'cash_register_closure_route_args.dart';
 
 part '../widgets/cash_register_closure_history_list.dart';
 
@@ -73,19 +75,20 @@ class _CashRegisterClosurePageState
             verifyUserName: selected.verifyUserName,
           );
       if (!mounted) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => CashRegisterClosureDetailPage.pending(
-            machineCode: widget.machineCode,
-            shopName: widget.shopName,
-            mail: selected,
-          ),
-        ),
-      );
+      await ref
+          .read(appRouterProvider)
+          .push(
+            '/cash-register-closure/detail',
+            extra: CashRegisterClosureDetailPageArgs.pending(
+              machineCode: widget.machineCode,
+              shopName: widget.shopName,
+              mail: selected,
+            ),
+          );
       await _loadHistory();
     } catch (error) {
       if (mounted) {
-        setState(() => _error = _readableError(error));
+        setState(() => _error = _readableError(context, error));
       }
     } finally {
       if (mounted) {
@@ -101,11 +104,15 @@ class _CashRegisterClosurePageState
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('メールを選択'),
+          title: Text(
+            AppLocalizations.of(context).cashRegisterClosureMailDialogTitle,
+          ),
           content: SizedBox(
             width: 520,
             child: mails.isEmpty
-                ? const Text('メールアドレスが登録されていません')
+                ? Text(
+                    AppLocalizations.of(context).cashRegisterClosureMailEmpty,
+                  )
                 : ListView.separated(
                     shrinkWrap: true,
                     itemCount: mails.length,
@@ -124,7 +131,7 @@ class _CashRegisterClosurePageState
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('キャンセル'),
+              child: Text(AppLocalizations.of(context).dialogCancel),
             ),
           ],
         );
@@ -133,16 +140,17 @@ class _CashRegisterClosurePageState
   }
 
   void _showHistory(CashRegisterClosureHistoryRecord record) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => CashRegisterClosureDetailPage(
-          machineCode: widget.machineCode,
-          shopName: widget.shopName,
-          summary: record.summary,
-          isHistory: true,
-        ),
-      ),
-    );
+    ref
+        .read(appRouterProvider)
+        .push(
+          '/cash-register-closure/detail',
+          extra: CashRegisterClosureDetailPageArgs(
+            machineCode: widget.machineCode,
+            shopName: widget.shopName,
+            summary: record.summary,
+            isHistory: true,
+          ),
+        );
   }
 
   @override
@@ -151,7 +159,7 @@ class _CashRegisterClosurePageState
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: const Text('レジ締め'),
+        title: Text(AppLocalizations.of(context).cashRegisterClosureTitle),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.stone500,
         actions: [
@@ -164,7 +172,9 @@ class _CashRegisterClosurePageState
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.refresh_rounded),
-            label: const Text('获取最新レジ締め'),
+            label: Text(
+              AppLocalizations.of(context).cashRegisterClosureLatestAction,
+            ),
           ),
           const SizedBox(width: 12),
         ],
@@ -191,9 +201,9 @@ class _CashRegisterClosurePageState
   }
 }
 
-String _readableError(Object error) {
+String _readableError(BuildContext context, Object error) {
   if (error is NoLatestCashRegisterClosureDataException) {
-    return '没有最新的营业数据';
+    return AppLocalizations.of(context).cashRegisterClosureNoLatestBusinessData;
   }
   return error.toString();
 }

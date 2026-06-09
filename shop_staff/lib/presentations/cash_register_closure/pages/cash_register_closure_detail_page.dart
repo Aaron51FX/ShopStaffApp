@@ -10,6 +10,7 @@ import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/entities/cash_register_closure.dart';
 import 'package:shop_staff/domain/settings/app_settings_models.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/printing/print_job_models.dart';
 import 'package:shop_staff/presentations/printing/show_print_dialog.dart';
 import 'package:shop_staff/presentations/cash_register_closure/widgets/cash_register_closure_common_widgets.dart';
@@ -105,7 +106,7 @@ class _CashRegisterClosureDetailPageState
       });
     } catch (error) {
       if (mounted) {
-        setState(() => _error = _readableError(error));
+        setState(() => _error = _readableError(context, error));
       }
     } finally {
       if (mounted) {
@@ -122,16 +123,20 @@ class _CashRegisterClosureDetailPageState
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('销核確認'),
-          content: const Text('現在のレジ締めを销核します。実行後は元に戻せません。'),
+          title: Text(
+            AppLocalizations.of(context).cashRegisterClosureConfirmTitle,
+          ),
+          content: Text(
+            AppLocalizations.of(context).cashRegisterClosureConfirmMessage,
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('キャンセル'),
+              child: Text(AppLocalizations.of(context).dialogCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('確認'),
+              child: Text(AppLocalizations.of(context).dialogConfirm),
             ),
           ],
         );
@@ -154,16 +159,26 @@ class _CashRegisterClosureDetailPageState
         context: context,
         builder: (dialogContext) {
           return AlertDialog(
-            title: const Text('销核成功'),
-            content: const Text('レジ締めを印刷しますか？'),
+            title: Text(
+              AppLocalizations.of(
+                context,
+              ).cashRegisterClosureConfirmSuccessTitle,
+            ),
+            content: Text(
+              AppLocalizations.of(context).cashRegisterClosurePrintPrompt,
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('印刷しない'),
+                child: Text(
+                  AppLocalizations.of(context).cashRegisterClosurePrintSkip,
+                ),
               ),
               FilledButton(
                 onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text('印刷'),
+                child: Text(
+                  AppLocalizations.of(context).cashRegisterClosurePrintAction,
+                ),
               ),
             ],
           );
@@ -174,7 +189,7 @@ class _CashRegisterClosureDetailPageState
       }
     } catch (error) {
       if (mounted) {
-        setState(() => _error = _readableError(error));
+        setState(() => _error = _readableError(context, error));
       }
     } finally {
       if (mounted) {
@@ -190,7 +205,9 @@ class _CashRegisterClosureDetailPageState
         ref.read(appSettingsSnapshotProvider)?.printers ??
         const <PrinterSettings>[];
     if (printers.where((printer) => printer.isOn).isEmpty) {
-      _showSnack('有効なプリンターがありません');
+      _showSnack(
+        AppLocalizations.of(context).cashRegisterClosureNoActivePrinter,
+      );
       return;
     }
     await showPrintStatusDialog(
@@ -199,7 +216,11 @@ class _CashRegisterClosureDetailPageState
       request: PrintJobRequest(
         machineCode: widget.machineCode,
         printers: printers,
-        document: _buildPrintDocument(summary, widget.shopName),
+        document: _buildPrintDocument(
+          summary,
+          widget.shopName,
+          AppLocalizations.of(context),
+        ),
       ),
     );
   }
@@ -218,13 +239,19 @@ class _CashRegisterClosureDetailPageState
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: Text(waitingForCode ? '確認コード' : 'レジ締め詳細'),
+        title: Text(
+          waitingForCode
+              ? AppLocalizations.of(context).cashRegisterClosureVerifyCodeTitle
+              : AppLocalizations.of(context).cashRegisterClosureDetailTitle,
+        ),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.stone500,
         actions: [
           if (summary != null)
             IconButton(
-              tooltip: '印刷',
+              tooltip: AppLocalizations.of(
+                context,
+              ).cashRegisterClosurePrintAction,
               onPressed: _loading ? null : _printSummary,
               icon: const Icon(Icons.print_rounded),
             ),
@@ -235,7 +262,9 @@ class _CashRegisterClosureDetailPageState
           ? FloatingActionButton.extended(
               onPressed: _loading ? null : _confirmClosure,
               icon: const Icon(Icons.verified_rounded),
-              label: const Text('销核'),
+              label: Text(
+                AppLocalizations.of(context).cashRegisterClosureConfirmAction,
+              ),
             )
           : null,
       body: SafeArea(
@@ -275,15 +304,32 @@ class _CashRegisterClosureDetailPageState
 PrintInfoDocument _buildPrintDocument(
   CashRegisterClosureSummary summary,
   String fallbackShopName,
+  AppLocalizations t,
 ) {
   final lines = [
-    PrintOrderLine(name: '売上合計', price: summary.total, qty: 1),
-    PrintOrderLine(name: '現金', price: summary.cashTotal, qty: 1),
-    PrintOrderLine(name: 'クレジットカード', price: summary.creditCardTotal, qty: 1),
+    PrintOrderLine(
+      name: t.cashRegisterClosureSalesTotal,
+      price: summary.total,
+      qty: 1,
+    ),
+    PrintOrderLine(
+      name: t.cashRegisterClosurePaymentCash,
+      price: summary.cashTotal,
+      qty: 1,
+    ),
+    PrintOrderLine(
+      name: t.cashRegisterClosurePaymentCredit,
+      price: summary.creditCardTotal,
+      qty: 1,
+    ),
     PrintOrderLine(name: 'PayPay', price: summary.payPayTotal, qty: 1),
     PrintOrderLine(name: 'Alipay', price: summary.aliPayTotal, qty: 1),
     PrintOrderLine(name: 'WeChat', price: summary.wechatTotal, qty: 1),
-    PrintOrderLine(name: '返金', price: summary.repaymentTotal, qty: 1),
+    PrintOrderLine(
+      name: t.cashRegisterClosureRefundAmount,
+      price: summary.repaymentTotal,
+      qty: 1,
+    ),
   ].where((line) => line.price != 0).toList(growable: false);
 
   return PrintInfoDocument(
@@ -294,29 +340,35 @@ PrintInfoDocument _buildPrintDocument(
     orderDate: summary.printTime.isNotEmpty
         ? summary.printTime
         : DateTime.now().toString(),
-    order: 'レジ締め',
+    order: t.cashRegisterClosureTitle,
     serialNumber: 'REGI',
     price: summary.total,
     payPrice: summary.total,
-    payMethod: 'レジ締め',
+    payMethod: t.cashRegisterClosureTitle,
     printInfo: PrintTicketInfo(
       orderTime: summary.printTime,
       fromPlate: 'Shop',
-      orderSnCode: 'レジ締め',
+      orderSnCode: t.cashRegisterClosureTitle,
       orderType: 'Shop_In',
-      payType: 'レジ締め',
+      payType: t.cashRegisterClosureTitle,
       orderLinesMap: {
         PrinterSettings.localType.toString(): lines.isEmpty
-            ? [const PrintOrderLine(name: '売上合計', price: 0, qty: 1)]
+            ? [
+                PrintOrderLine(
+                  name: t.cashRegisterClosureSalesTotal,
+                  price: 0,
+                  qty: 1,
+                ),
+              ]
             : lines,
       },
     ),
   );
 }
 
-String _readableError(Object error) {
+String _readableError(BuildContext context, Object error) {
   if (error is NoLatestCashRegisterClosureDataException) {
-    return '没有最新的营业数据';
+    return AppLocalizations.of(context).cashRegisterClosureNoLatestBusinessData;
   }
   return error.toString();
 }

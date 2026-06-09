@@ -1501,4 +1501,148 @@ class AppLocalizationsEn extends AppLocalizations {
   String paymentErrorUnknown(Object detail) {
     return 'Unknown error: $detail';
   }
+
+  @override
+  String get routeArgsMissing => 'Missing page parameters';
+
+  @override
+  String get cashRegisterClosureTitle => 'Cash register closing';
+
+  @override
+  String get cashRegisterClosureSettingsSubtitle =>
+      'Email verification, totals, history, confirmation';
+
+  @override
+  String get cashRegisterClosureLatestAction => 'Get latest closing';
+
+  @override
+  String get cashRegisterClosureMailDialogTitle => 'Select email';
+
+  @override
+  String get cashRegisterClosureMailEmpty => 'No email address is registered';
+
+  @override
+  String get cashRegisterClosureNoLatestBusinessData =>
+      'No latest business data';
+
+  @override
+  String get cashRegisterClosureVerifyCodeTitle => 'Verification code';
+
+  @override
+  String cashRegisterClosureVerifySentTo(Object email) {
+    return 'Sent to $email';
+  }
+
+  @override
+  String get cashRegisterClosureGetAction => 'Get';
+
+  @override
+  String get cashRegisterClosureDetailTitle => 'Closing details';
+
+  @override
+  String get cashRegisterClosureConfirmAction => 'Confirm closing';
+
+  @override
+  String get cashRegisterClosureConfirmTitle => 'Confirm closing';
+
+  @override
+  String get cashRegisterClosureConfirmMessage =>
+      'Confirm the current cash register closing. This action cannot be undone.';
+
+  @override
+  String get cashRegisterClosureConfirmSuccessTitle => 'Closing confirmed';
+
+  @override
+  String get cashRegisterClosurePrintPrompt =>
+      'Print the cash register closing?';
+
+  @override
+  String get cashRegisterClosurePrintSkip => 'Do not print';
+
+  @override
+  String get cashRegisterClosurePrintAction => 'Print';
+
+  @override
+  String get cashRegisterClosureNoActivePrinter =>
+      'No active printer is available';
+
+  @override
+  String get cashRegisterClosureHistoryTitle => 'History';
+
+  @override
+  String get cashRegisterClosureHistoryEmpty => 'No history in the last month';
+
+  @override
+  String cashRegisterClosureMachineCode(Object machineCode) {
+    return 'Machine $machineCode';
+  }
+
+  @override
+  String get cashRegisterClosureStartTime => 'Start';
+
+  @override
+  String get cashRegisterClosureEndTime => 'End';
+
+  @override
+  String get cashRegisterClosureSalesTitle => 'Sales';
+
+  @override
+  String get cashRegisterClosureSalesAmount => 'Sales amount';
+
+  @override
+  String get cashRegisterClosureSalesAmountHelper =>
+      'Tax included / tax excluded / tax total summary';
+
+  @override
+  String get cashRegisterClosureSalesTotal => 'Sales total';
+
+  @override
+  String get cashRegisterClosureNoTax => 'Tax excluded';
+
+  @override
+  String get cashRegisterClosureTax => 'Tax';
+
+  @override
+  String get cashRegisterClosureBeforeAdjustment => 'Before adjustment';
+
+  @override
+  String get cashRegisterClosureDiscount => 'Discount';
+
+  @override
+  String get cashRegisterClosureVoucher => 'Voucher';
+
+  @override
+  String get cashRegisterClosureSalesQuantity => 'Sales quantity';
+
+  @override
+  String cashRegisterClosureQuantity(Object count) {
+    return '$count items';
+  }
+
+  @override
+  String get cashRegisterClosureRefundAmount => 'Refund amount';
+
+  @override
+  String get cashRegisterClosureRefundQuantity => 'Refund quantity';
+
+  @override
+  String get cashRegisterClosurePaymentComposition => 'Payment composition';
+
+  @override
+  String get cashRegisterClosurePaymentNoData => 'No payment data';
+
+  @override
+  String get cashRegisterClosureTotalLabel => 'Total';
+
+  @override
+  String get cashRegisterClosurePaymentCash => 'Cash';
+
+  @override
+  String get cashRegisterClosurePaymentCredit => 'Credit card';
+
+  @override
+  String get cashRegisterClosurePaymentTraffic => 'Transit IC';
+
+  @override
+  String get cashRegisterClosurePaymentOtherQr => 'Other QR';
 }

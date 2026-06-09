@@ -2805,6 +2805,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown error: {detail}'**
   String paymentErrorUnknown(Object detail);
+
+  /// No description provided for @routeArgsMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing page parameters'**
+  String get routeArgsMissing;
+
+  /// No description provided for @cashRegisterClosureTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash register closing'**
+  String get cashRegisterClosureTitle;
+
+  /// No description provided for @cashRegisterClosureSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Email verification, totals, history, confirmation'**
+  String get cashRegisterClosureSettingsSubtitle;
+
+  /// No description provided for @cashRegisterClosureLatestAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Get latest closing'**
+  String get cashRegisterClosureLatestAction;
+
+  /// No description provided for @cashRegisterClosureMailDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select email'**
+  String get cashRegisterClosureMailDialogTitle;
+
+  /// No description provided for @cashRegisterClosureMailEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No email address is registered'**
+  String get cashRegisterClosureMailEmpty;
+
+  /// No description provided for @cashRegisterClosureNoLatestBusinessData.
+  ///
+  /// In en, this message translates to:
+  /// **'No latest business data'**
+  String get cashRegisterClosureNoLatestBusinessData;
+
+  /// No description provided for @cashRegisterClosureVerifyCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get cashRegisterClosureVerifyCodeTitle;
+
+  /// No description provided for @cashRegisterClosureVerifySentTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {email}'**
+  String cashRegisterClosureVerifySentTo(Object email);
+
+  /// No description provided for @cashRegisterClosureGetAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Get'**
+  String get cashRegisterClosureGetAction;
+
+  /// No description provided for @cashRegisterClosureDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing details'**
+  String get cashRegisterClosureDetailTitle;
+
+  /// No description provided for @cashRegisterClosureConfirmAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm closing'**
+  String get cashRegisterClosureConfirmAction;
+
+  /// No description provided for @cashRegisterClosureConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm closing'**
+  String get cashRegisterClosureConfirmTitle;
+
+  /// No description provided for @cashRegisterClosureConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm the current cash register closing. This action cannot be undone.'**
+  String get cashRegisterClosureConfirmMessage;
+
+  /// No description provided for @cashRegisterClosureConfirmSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing confirmed'**
+  String get cashRegisterClosureConfirmSuccessTitle;
+
+  /// No description provided for @cashRegisterClosurePrintPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Print the cash register closing?'**
+  String get cashRegisterClosurePrintPrompt;
+
+  /// No description provided for @cashRegisterClosurePrintSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Do not print'**
+  String get cashRegisterClosurePrintSkip;
+
+  /// No description provided for @cashRegisterClosurePrintAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Print'**
+  String get cashRegisterClosurePrintAction;
+
+  /// No description provided for @cashRegisterClosureNoActivePrinter.
+  ///
+  /// In en, this message translates to:
+  /// **'No active printer is available'**
+  String get cashRegisterClosureNoActivePrinter;
+
+  /// No description provided for @cashRegisterClosureHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get cashRegisterClosureHistoryTitle;
+
+  /// No description provided for @cashRegisterClosureHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No history in the last month'**
+  String get cashRegisterClosureHistoryEmpty;
+
+  /// No description provided for @cashRegisterClosureMachineCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Machine {machineCode}'**
+  String cashRegisterClosureMachineCode(Object machineCode);
+
+  /// No description provided for @cashRegisterClosureStartTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get cashRegisterClosureStartTime;
+
+  /// No description provided for @cashRegisterClosureEndTime.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get cashRegisterClosureEndTime;
+
+  /// No description provided for @cashRegisterClosureSalesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales'**
+  String get cashRegisterClosureSalesTitle;
+
+  /// No description provided for @cashRegisterClosureSalesAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales amount'**
+  String get cashRegisterClosureSalesAmount;
+
+  /// No description provided for @cashRegisterClosureSalesAmountHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax included / tax excluded / tax total summary'**
+  String get cashRegisterClosureSalesAmountHelper;
+
+  /// No description provided for @cashRegisterClosureSalesTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales total'**
+  String get cashRegisterClosureSalesTotal;
+
+  /// No description provided for @cashRegisterClosureNoTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax excluded'**
+  String get cashRegisterClosureNoTax;
+
+  /// No description provided for @cashRegisterClosureTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get cashRegisterClosureTax;
+
+  /// No description provided for @cashRegisterClosureBeforeAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Before adjustment'**
+  String get cashRegisterClosureBeforeAdjustment;
+
+  /// No description provided for @cashRegisterClosureDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get cashRegisterClosureDiscount;
+
+  /// No description provided for @cashRegisterClosureVoucher.
+  ///
+  /// In en, this message translates to:
+  /// **'Voucher'**
+  String get cashRegisterClosureVoucher;
+
+  /// No description provided for @cashRegisterClosureSalesQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales quantity'**
+  String get cashRegisterClosureSalesQuantity;
+
+  /// No description provided for @cashRegisterClosureQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String cashRegisterClosureQuantity(Object count);
+
+  /// No description provided for @cashRegisterClosureRefundAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund amount'**
+  String get cashRegisterClosureRefundAmount;
+
+  /// No description provided for @cashRegisterClosureRefundQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund quantity'**
+  String get cashRegisterClosureRefundQuantity;
+
+  /// No description provided for @cashRegisterClosurePaymentComposition.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment composition'**
+  String get cashRegisterClosurePaymentComposition;
+
+  /// No description provided for @cashRegisterClosurePaymentNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No payment data'**
+  String get cashRegisterClosurePaymentNoData;
+
+  /// No description provided for @cashRegisterClosureTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get cashRegisterClosureTotalLabel;
+
+  /// No description provided for @cashRegisterClosurePaymentCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get cashRegisterClosurePaymentCash;
+
+  /// No description provided for @cashRegisterClosurePaymentCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit card'**
+  String get cashRegisterClosurePaymentCredit;
+
+  /// No description provided for @cashRegisterClosurePaymentTraffic.
+  ///
+  /// In en, this message translates to:
+  /// **'Transit IC'**
+  String get cashRegisterClosurePaymentTraffic;
+
+  /// No description provided for @cashRegisterClosurePaymentOtherQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Other QR'**
+  String get cashRegisterClosurePaymentOtherQr;
 }
 
 class _AppLocalizationsDelegate

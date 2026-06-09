@@ -1424,4 +1424,142 @@ class AppLocalizationsZh extends AppLocalizations {
   String paymentErrorUnknown(Object detail) {
     return '发生未知错误：$detail';
   }
+
+  @override
+  String get routeArgsMissing => '缺少页面参数';
+
+  @override
+  String get cashRegisterClosureTitle => '收银结算';
+
+  @override
+  String get cashRegisterClosureSettingsSubtitle => '邮箱验证、汇总确认、历史、销核';
+
+  @override
+  String get cashRegisterClosureLatestAction => '获取最新收银结算';
+
+  @override
+  String get cashRegisterClosureMailDialogTitle => '选择邮箱';
+
+  @override
+  String get cashRegisterClosureMailEmpty => '未注册邮箱地址';
+
+  @override
+  String get cashRegisterClosureNoLatestBusinessData => '没有最新的营业数据';
+
+  @override
+  String get cashRegisterClosureVerifyCodeTitle => '验证码';
+
+  @override
+  String cashRegisterClosureVerifySentTo(Object email) {
+    return '已发送至 $email';
+  }
+
+  @override
+  String get cashRegisterClosureGetAction => '获取';
+
+  @override
+  String get cashRegisterClosureDetailTitle => '收银结算详情';
+
+  @override
+  String get cashRegisterClosureConfirmAction => '销核';
+
+  @override
+  String get cashRegisterClosureConfirmTitle => '销核确认';
+
+  @override
+  String get cashRegisterClosureConfirmMessage => '将销核当前收银结算，执行后不可撤销。';
+
+  @override
+  String get cashRegisterClosureConfirmSuccessTitle => '销核成功';
+
+  @override
+  String get cashRegisterClosurePrintPrompt => '是否打印收银结算？';
+
+  @override
+  String get cashRegisterClosurePrintSkip => '不打印';
+
+  @override
+  String get cashRegisterClosurePrintAction => '打印';
+
+  @override
+  String get cashRegisterClosureNoActivePrinter => '没有可用打印机';
+
+  @override
+  String get cashRegisterClosureHistoryTitle => '历史记录';
+
+  @override
+  String get cashRegisterClosureHistoryEmpty => '最近一个月没有历史记录';
+
+  @override
+  String cashRegisterClosureMachineCode(Object machineCode) {
+    return '机器码 $machineCode';
+  }
+
+  @override
+  String get cashRegisterClosureStartTime => '开始';
+
+  @override
+  String get cashRegisterClosureEndTime => '终了';
+
+  @override
+  String get cashRegisterClosureSalesTitle => '销售额';
+
+  @override
+  String get cashRegisterClosureSalesAmount => '销售额';
+
+  @override
+  String get cashRegisterClosureSalesAmountHelper => '含税 / 不含税 / 税额汇总';
+
+  @override
+  String get cashRegisterClosureSalesTotal => '销售合计';
+
+  @override
+  String get cashRegisterClosureNoTax => '不含税';
+
+  @override
+  String get cashRegisterClosureTax => '税额';
+
+  @override
+  String get cashRegisterClosureBeforeAdjustment => '调整前';
+
+  @override
+  String get cashRegisterClosureDiscount => '优惠';
+
+  @override
+  String get cashRegisterClosureVoucher => '代金券';
+
+  @override
+  String get cashRegisterClosureSalesQuantity => '销售数量';
+
+  @override
+  String cashRegisterClosureQuantity(Object count) {
+    return '$count 件';
+  }
+
+  @override
+  String get cashRegisterClosureRefundAmount => '退款金额';
+
+  @override
+  String get cashRegisterClosureRefundQuantity => '退款数量';
+
+  @override
+  String get cashRegisterClosurePaymentComposition => '支付构成';
+
+  @override
+  String get cashRegisterClosurePaymentNoData => '没有支付数据';
+
+  @override
+  String get cashRegisterClosureTotalLabel => '合计';
+
+  @override
+  String get cashRegisterClosurePaymentCash => '现金';
+
+  @override
+  String get cashRegisterClosurePaymentCredit => '信用卡';
+
+  @override
+  String get cashRegisterClosurePaymentTraffic => '交通系';
+
+  @override
+  String get cashRegisterClosurePaymentOtherQr => '其他二维码';
 }

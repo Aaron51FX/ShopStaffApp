@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
 
 class CashRegisterClosureHeader extends StatelessWidget {
   const CashRegisterClosureHeader({super.key, required this.subtitle});
@@ -13,7 +14,7 @@ class CashRegisterClosureHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'レジ締め',
+          AppLocalizations.of(context).cashRegisterClosureTitle,
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w800,
           ),

@@ -607,5 +607,64 @@
     "placeholders": {
       "detail": {}
     }
-  }
+  },
+  "routeArgsMissing": "缺少页面参数",
+  "cashRegisterClosureTitle": "收银结算",
+  "cashRegisterClosureSettingsSubtitle": "邮箱验证、汇总确认、历史、销核",
+  "cashRegisterClosureLatestAction": "获取最新收银结算",
+  "cashRegisterClosureMailDialogTitle": "选择邮箱",
+  "cashRegisterClosureMailEmpty": "未注册邮箱地址",
+  "cashRegisterClosureNoLatestBusinessData": "没有最新的营业数据",
+  "cashRegisterClosureVerifyCodeTitle": "验证码",
+  "cashRegisterClosureVerifySentTo": "已发送至 {email}",
+  "@cashRegisterClosureVerifySentTo": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "cashRegisterClosureGetAction": "获取",
+  "cashRegisterClosureDetailTitle": "收银结算详情",
+  "cashRegisterClosureConfirmAction": "销核",
+  "cashRegisterClosureConfirmTitle": "销核确认",
+  "cashRegisterClosureConfirmMessage": "将销核当前收银结算，执行后不可撤销。",
+  "cashRegisterClosureConfirmSuccessTitle": "销核成功",
+  "cashRegisterClosurePrintPrompt": "是否打印收银结算？",
+  "cashRegisterClosurePrintSkip": "不打印",
+  "cashRegisterClosurePrintAction": "打印",
+  "cashRegisterClosureNoActivePrinter": "没有可用打印机",
+  "cashRegisterClosureHistoryTitle": "历史记录",
+  "cashRegisterClosureHistoryEmpty": "最近一个月没有历史记录",
+  "cashRegisterClosureMachineCode": "机器码 {machineCode}",
+  "@cashRegisterClosureMachineCode": {
+    "placeholders": {
+      "machineCode": {}
+    }
+  },
+  "cashRegisterClosureStartTime": "开始",
+  "cashRegisterClosureEndTime": "终了",
+  "cashRegisterClosureSalesTitle": "销售额",
+  "cashRegisterClosureSalesAmount": "销售额",
+  "cashRegisterClosureSalesAmountHelper": "含税 / 不含税 / 税额汇总",
+  "cashRegisterClosureSalesTotal": "销售合计",
+  "cashRegisterClosureNoTax": "不含税",
+  "cashRegisterClosureTax": "税额",
+  "cashRegisterClosureBeforeAdjustment": "调整前",
+  "cashRegisterClosureDiscount": "优惠",
+  "cashRegisterClosureVoucher": "代金券",
+  "cashRegisterClosureSalesQuantity": "销售数量",
+  "cashRegisterClosureQuantity": "{count} 件",
+  "@cashRegisterClosureQuantity": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "cashRegisterClosureRefundAmount": "退款金额",
+  "cashRegisterClosureRefundQuantity": "退款数量",
+  "cashRegisterClosurePaymentComposition": "支付构成",
+  "cashRegisterClosurePaymentNoData": "没有支付数据",
+  "cashRegisterClosureTotalLabel": "合计",
+  "cashRegisterClosurePaymentCash": "现金",
+  "cashRegisterClosurePaymentCredit": "信用卡",
+  "cashRegisterClosurePaymentTraffic": "交通系",
+  "cashRegisterClosurePaymentOtherQr": "其他二维码"
 }

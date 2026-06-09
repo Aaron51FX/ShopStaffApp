@@ -22,11 +22,7 @@ class _BusinessInfoView extends ConsumerWidget {
               '${_displayValue(t, basic.shopName ?? shop?.shopName)} / '
               '${_displayValue(t, basic.shopCode ?? shop?.shopCode)}',
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => ShopInfoDetailPage(state: state),
-              ),
-            );
+            ref.read(appRouterProvider).push('/settings/shop-info');
           },
         ),
         const SizedBox(height: 12),
@@ -47,21 +43,25 @@ class _BusinessInfoView extends ConsumerWidget {
         const SizedBox(height: 12),
         _NavigationRow(
           icon: Icons.point_of_sale_rounded,
-          title: 'レジ締め',
-          subtitle: 'メール認証、集計確認、履歴、消込',
+          title: t.cashRegisterClosureTitle,
+          subtitle: t.cashRegisterClosureSettingsSubtitle,
           onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => CashRegisterClosurePage(
-                  machineCode:
-                      shop?.machineCode ??
-                      shop?.stationMachineCode ??
-                      basic.machineCode ??
-                      '',
-                  shopName: _displayValue(t, basic.shopName ?? shop?.shopName),
-                ),
-              ),
-            );
+            ref
+                .read(appRouterProvider)
+                .push(
+                  '/cash-register-closure',
+                  extra: CashRegisterClosurePageArgs(
+                    machineCode:
+                        shop?.machineCode ??
+                        shop?.stationMachineCode ??
+                        basic.machineCode ??
+                        '',
+                    shopName: _displayValue(
+                      t,
+                      basic.shopName ?? shop?.shopName,
+                    ),
+                  ),
+                );
           },
         ),
         //log out button

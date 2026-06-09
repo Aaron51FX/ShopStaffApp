@@ -607,5 +607,64 @@
     "placeholders": {
       "detail": {}
     }
-  }
+  },
+  "routeArgsMissing": "Missing page parameters",
+  "cashRegisterClosureTitle": "Cash register closing",
+  "cashRegisterClosureSettingsSubtitle": "Email verification, totals, history, confirmation",
+  "cashRegisterClosureLatestAction": "Get latest closing",
+  "cashRegisterClosureMailDialogTitle": "Select email",
+  "cashRegisterClosureMailEmpty": "No email address is registered",
+  "cashRegisterClosureNoLatestBusinessData": "No latest business data",
+  "cashRegisterClosureVerifyCodeTitle": "Verification code",
+  "cashRegisterClosureVerifySentTo": "Sent to {email}",
+  "@cashRegisterClosureVerifySentTo": {
+    "placeholders": {
+      "email": {}
+    }
+  },
+  "cashRegisterClosureGetAction": "Get",
+  "cashRegisterClosureDetailTitle": "Closing details",
+  "cashRegisterClosureConfirmAction": "Confirm closing",
+  "cashRegisterClosureConfirmTitle": "Confirm closing",
+  "cashRegisterClosureConfirmMessage": "Confirm the current cash register closing. This action cannot be undone.",
+  "cashRegisterClosureConfirmSuccessTitle": "Closing confirmed",
+  "cashRegisterClosurePrintPrompt": "Print the cash register closing?",
+  "cashRegisterClosurePrintSkip": "Do not print",
+  "cashRegisterClosurePrintAction": "Print",
+  "cashRegisterClosureNoActivePrinter": "No active printer is available",
+  "cashRegisterClosureHistoryTitle": "History",
+  "cashRegisterClosureHistoryEmpty": "No history in the last month",
+  "cashRegisterClosureMachineCode": "Machine {machineCode}",
+  "@cashRegisterClosureMachineCode": {
+    "placeholders": {
+      "machineCode": {}
+    }
+  },
+  "cashRegisterClosureStartTime": "Start",
+  "cashRegisterClosureEndTime": "End",
+  "cashRegisterClosureSalesTitle": "Sales",
+  "cashRegisterClosureSalesAmount": "Sales amount",
+  "cashRegisterClosureSalesAmountHelper": "Tax included / tax excluded / tax total summary",
+  "cashRegisterClosureSalesTotal": "Sales total",
+  "cashRegisterClosureNoTax": "Tax excluded",
+  "cashRegisterClosureTax": "Tax",
+  "cashRegisterClosureBeforeAdjustment": "Before adjustment",
+  "cashRegisterClosureDiscount": "Discount",
+  "cashRegisterClosureVoucher": "Voucher",
+  "cashRegisterClosureSalesQuantity": "Sales quantity",
+  "cashRegisterClosureQuantity": "{count} items",
+  "@cashRegisterClosureQuantity": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "cashRegisterClosureRefundAmount": "Refund amount",
+  "cashRegisterClosureRefundQuantity": "Refund quantity",
+  "cashRegisterClosurePaymentComposition": "Payment composition",
+  "cashRegisterClosurePaymentNoData": "No payment data",
+  "cashRegisterClosureTotalLabel": "Total",
+  "cashRegisterClosurePaymentCash": "Cash",
+  "cashRegisterClosurePaymentCredit": "Credit card",
+  "cashRegisterClosurePaymentTraffic": "Transit IC",
+  "cashRegisterClosurePaymentOtherQr": "Other QR"
 }

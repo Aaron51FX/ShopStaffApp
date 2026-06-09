@@ -31,7 +31,7 @@ class _VerifyForm extends StatelessWidget {
           ),
           const SizedBox(height: 18),
           Text(
-            '確認コード',
+            AppLocalizations.of(context).cashRegisterClosureVerifyCodeTitle,
             textAlign: TextAlign.center,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
@@ -39,7 +39,9 @@ class _VerifyForm extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '${mail.verifyEmail} に送信しました',
+            AppLocalizations.of(
+              context,
+            ).cashRegisterClosureVerifySentTo(mail.verifyEmail),
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: AppColors.stone500,
@@ -55,9 +57,11 @@ class _VerifyForm extends StatelessWidget {
               FilteringTextInputFormatter.digitsOnly,
               LengthLimitingTextInputFormatter(6),
             ],
-            decoration: const InputDecoration(
-              labelText: '確認コード',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(
+                context,
+              ).cashRegisterClosureVerifyCodeTitle,
+              border: const OutlineInputBorder(),
             ),
             onSubmitted: (_) => onSubmit(),
           ),
@@ -75,7 +79,9 @@ class _VerifyForm extends StatelessWidget {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: loading ? null : onSubmit,
-            child: const Text('获取'),
+            child: Text(
+              AppLocalizations.of(context).cashRegisterClosureGetAction,
+            ),
           ),
         ],
       ),

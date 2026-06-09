@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shop_staff/l10n/app_localizations.dart';
+import 'package:shop_staff/presentations/cash_register_closure/pages/cash_register_closure_detail_page.dart';
+import 'package:shop_staff/presentations/cash_register_closure/pages/cash_register_closure_page.dart';
+import 'package:shop_staff/presentations/cash_register_closure/pages/cash_register_closure_route_args.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_selection_page_args.dart';
 import 'package:shop_staff/presentations/settings/pages/settings_page.dart';
+import 'package:shop_staff/presentations/settings/sections/business_info/pages/shop_info_detail_page.dart';
 import '../../presentations/pos/pages/pos_page.dart';
 import '../../presentations/auth/pages/login_page.dart';
 import '../../presentations/splash/pages/splash_page.dart';
@@ -44,7 +49,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         '/payment',
       };
       final needsGuard =
-          protectedPaths.contains(loc) || loc.startsWith('/pos/');
+          protectedPaths.contains(loc) ||
+          loc.startsWith('/pos/') ||
+          loc.startsWith('/settings/') ||
+          loc.startsWith('/cash-register-closure');
       if (!hasCode && needsGuard) return '/login';
       if (hasCode && loc == '/login') return '/splash';
       return null;
@@ -94,12 +102,52 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const SettingsPage(),
           ),
           GoRoute(
+            path: '/settings/shop-info',
+            name: 'settings-shop-info',
+            builder: (context, state) => const ShopInfoDetailPage(),
+          ),
+          GoRoute(
+            path: '/cash-register-closure',
+            name: 'cash-register-closure',
+            builder: (context, state) {
+              final args = state.extra;
+              if (args is! CashRegisterClosurePageArgs) {
+                final t = AppLocalizations.of(context);
+                return Scaffold(body: Center(child: Text(t.routeArgsMissing)));
+              }
+              return CashRegisterClosurePage(
+                machineCode: args.machineCode,
+                shopName: args.shopName,
+              );
+            },
+          ),
+          GoRoute(
+            path: '/cash-register-closure/detail',
+            name: 'cash-register-closure-detail',
+            builder: (context, state) {
+              final args = state.extra;
+              if (args is! CashRegisterClosureDetailPageArgs) {
+                final t = AppLocalizations.of(context);
+                return Scaffold(body: Center(child: Text(t.routeArgsMissing)));
+              }
+              return CashRegisterClosureDetailPage(
+                machineCode: args.machineCode,
+                shopName: args.shopName,
+                summary: args.summary,
+                input: args.input,
+                mail: args.mail,
+                isHistory: args.isHistory,
+              );
+            },
+          ),
+          GoRoute(
             path: '/payment-selection',
             name: 'payment-selection',
             builder: (context, state) {
               final args = state.extra;
               if (args is! PaymentSelectionPageArgs) {
-                return const Scaffold(body: Center(child: Text('缺少支付选择参数')));
+                final t = AppLocalizations.of(context);
+                return Scaffold(body: Center(child: Text(t.routeArgsMissing)));
               }
               return PaymentSelectionPage(args: args);
             },
@@ -110,7 +158,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) {
               final args = state.extra;
               if (args is! PaymentFlowPageArgs) {
-                return const Scaffold(body: Center(child: Text('缺少支付参数')));
+                final t = AppLocalizations.of(context);
+                return Scaffold(body: Center(child: Text(t.routeArgsMissing)));
               }
               return PaymentFlowPage(args: args);
             },

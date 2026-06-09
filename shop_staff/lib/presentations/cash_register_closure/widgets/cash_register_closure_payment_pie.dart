@@ -8,23 +8,27 @@ class _PaymentPiePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = _paymentEntries(summary);
+    final entries = _paymentEntries(context, summary);
     final total = entries.fold<int>(0, (sum, entry) => sum + entry.amount);
     return CashRegisterClosurePanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '決済構成',
+            AppLocalizations.of(context).cashRegisterClosurePaymentComposition,
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 16),
           if (entries.isEmpty || total == 0)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 36),
-              child: Center(child: Text('決済データがありません')),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 36),
+              child: Center(
+                child: Text(
+                  AppLocalizations.of(context).cashRegisterClosurePaymentNoData,
+                ),
+              ),
             )
           else
             LayoutBuilder(
@@ -91,7 +95,10 @@ class _PaymentPie extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('合計', style: TextStyle(color: AppColors.stone500)),
+              Text(
+                AppLocalizations.of(context).cashRegisterClosureTotalLabel,
+                style: const TextStyle(color: AppColors.stone500),
+              ),
               const SizedBox(height: 4),
               Text(
                 currency.format(total),
@@ -190,20 +197,39 @@ class _PaymentPiePainter extends CustomPainter {
   }
 }
 
-List<_PaymentEntry> _paymentEntries(CashRegisterClosureSummary summary) {
+List<_PaymentEntry> _paymentEntries(
+  BuildContext context,
+  CashRegisterClosureSummary summary,
+) {
   final otherQr =
       summary.auPayTotal +
       summary.dPayTotal +
       summary.mPayTotal +
       summary.rPayTotal;
   final entries = [
-    _PaymentEntry('現金', summary.cashTotal, AppColors.emerald600),
-    _PaymentEntry('クレジット', summary.creditCardTotal, const Color(0xFF2563EB)),
+    _PaymentEntry(
+      AppLocalizations.of(context).cashRegisterClosurePaymentCash,
+      summary.cashTotal,
+      AppColors.emerald600,
+    ),
+    _PaymentEntry(
+      AppLocalizations.of(context).cashRegisterClosurePaymentCredit,
+      summary.creditCardTotal,
+      const Color(0xFF2563EB),
+    ),
     _PaymentEntry('PayPay', summary.payPayTotal, const Color(0xFFDC2626)),
     _PaymentEntry('Alipay', summary.aliPayTotal, const Color(0xFF0891B2)),
     _PaymentEntry('WeChat', summary.wechatTotal, const Color(0xFF16A34A)),
-    _PaymentEntry('交通系', summary.trafficTotal, const Color(0xFF7C3AED)),
-    _PaymentEntry('その他QR', otherQr, const Color(0xFFF97316)),
+    _PaymentEntry(
+      AppLocalizations.of(context).cashRegisterClosurePaymentTraffic,
+      summary.trafficTotal,
+      const Color(0xFF7C3AED),
+    ),
+    _PaymentEntry(
+      AppLocalizations.of(context).cashRegisterClosurePaymentOtherQr,
+      otherQr,
+      const Color(0xFFF97316),
+    ),
   ].where((entry) => entry.amount > 0).toList(growable: false);
   return entries..sort((a, b) => b.amount.compareTo(a.amount));
 }

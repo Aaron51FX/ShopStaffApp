@@ -1438,4 +1438,142 @@ class AppLocalizationsJa extends AppLocalizations {
   String paymentErrorUnknown(Object detail) {
     return '不明なエラー：$detail';
   }
+
+  @override
+  String get routeArgsMissing => '画面パラメータが不足しています';
+
+  @override
+  String get cashRegisterClosureTitle => 'レジ締め';
+
+  @override
+  String get cashRegisterClosureSettingsSubtitle => 'メール認証、集計確認、履歴、消込';
+
+  @override
+  String get cashRegisterClosureLatestAction => '最新レジ締めを取得';
+
+  @override
+  String get cashRegisterClosureMailDialogTitle => 'メールを選択';
+
+  @override
+  String get cashRegisterClosureMailEmpty => 'メールアドレスが登録されていません';
+
+  @override
+  String get cashRegisterClosureNoLatestBusinessData => '最新の営業データがありません';
+
+  @override
+  String get cashRegisterClosureVerifyCodeTitle => '確認コード';
+
+  @override
+  String cashRegisterClosureVerifySentTo(Object email) {
+    return '$email に送信しました';
+  }
+
+  @override
+  String get cashRegisterClosureGetAction => '取得';
+
+  @override
+  String get cashRegisterClosureDetailTitle => 'レジ締め詳細';
+
+  @override
+  String get cashRegisterClosureConfirmAction => '消込';
+
+  @override
+  String get cashRegisterClosureConfirmTitle => '消込確認';
+
+  @override
+  String get cashRegisterClosureConfirmMessage => '現在のレジ締めを消込します。実行後は元に戻せません。';
+
+  @override
+  String get cashRegisterClosureConfirmSuccessTitle => '消込成功';
+
+  @override
+  String get cashRegisterClosurePrintPrompt => 'レジ締めを印刷しますか？';
+
+  @override
+  String get cashRegisterClosurePrintSkip => '印刷しない';
+
+  @override
+  String get cashRegisterClosurePrintAction => '印刷';
+
+  @override
+  String get cashRegisterClosureNoActivePrinter => '有効なプリンターがありません';
+
+  @override
+  String get cashRegisterClosureHistoryTitle => '履歴';
+
+  @override
+  String get cashRegisterClosureHistoryEmpty => '最近一ヶ月の履歴はありません';
+
+  @override
+  String cashRegisterClosureMachineCode(Object machineCode) {
+    return '機番 $machineCode';
+  }
+
+  @override
+  String get cashRegisterClosureStartTime => '開始';
+
+  @override
+  String get cashRegisterClosureEndTime => '終了';
+
+  @override
+  String get cashRegisterClosureSalesTitle => '売上';
+
+  @override
+  String get cashRegisterClosureSalesAmount => '販売額';
+
+  @override
+  String get cashRegisterClosureSalesAmountHelper => '税込 / 税抜 / 税額を含む集計';
+
+  @override
+  String get cashRegisterClosureSalesTotal => '売上合計';
+
+  @override
+  String get cashRegisterClosureNoTax => '税抜';
+
+  @override
+  String get cashRegisterClosureTax => '税額';
+
+  @override
+  String get cashRegisterClosureBeforeAdjustment => '税込前';
+
+  @override
+  String get cashRegisterClosureDiscount => '割引';
+
+  @override
+  String get cashRegisterClosureVoucher => '代金券';
+
+  @override
+  String get cashRegisterClosureSalesQuantity => '販売数量';
+
+  @override
+  String cashRegisterClosureQuantity(Object count) {
+    return '$count 点';
+  }
+
+  @override
+  String get cashRegisterClosureRefundAmount => '返金額';
+
+  @override
+  String get cashRegisterClosureRefundQuantity => '返金数量';
+
+  @override
+  String get cashRegisterClosurePaymentComposition => '決済構成';
+
+  @override
+  String get cashRegisterClosurePaymentNoData => '決済データがありません';
+
+  @override
+  String get cashRegisterClosureTotalLabel => '合計';
+
+  @override
+  String get cashRegisterClosurePaymentCash => '現金';
+
+  @override
+  String get cashRegisterClosurePaymentCredit => 'クレジットカード';
+
+  @override
+  String get cashRegisterClosurePaymentTraffic => '交通系';
+
+  @override
+  String get cashRegisterClosurePaymentOtherQr => 'その他QR';
 }

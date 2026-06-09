@@ -76,7 +76,9 @@ class _ClosureHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '機番 $machineCode',
+                  AppLocalizations.of(
+                    context,
+                  ).cashRegisterClosureMachineCode(machineCode),
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: AppColors.stone500,
                     fontWeight: FontWeight.w700,
@@ -89,9 +91,17 @@ class _ClosureHeader extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _TimePill(label: '開始', value: summary.startTime),
+              _TimePill(
+                label: AppLocalizations.of(
+                  context,
+                ).cashRegisterClosureStartTime,
+                value: summary.startTime,
+              ),
               const SizedBox(height: 8),
-              _TimePill(label: '終了', value: summary.endTime),
+              _TimePill(
+                label: AppLocalizations.of(context).cashRegisterClosureEndTime,
+                value: summary.endTime,
+              ),
             ],
           ),
         ],
@@ -150,16 +160,18 @@ class _SalesOverview extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '売上',
+            AppLocalizations.of(context).cashRegisterClosureSalesTitle,
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 16),
           _BigAmount(
-            label: '販売額',
+            label: AppLocalizations.of(context).cashRegisterClosureSalesAmount,
             value: currency.format(summary.total),
-            helper: '税込 / 税抜 / 税額を含む集計',
+            helper: AppLocalizations.of(
+              context,
+            ).cashRegisterClosureSalesAmountHelper,
           ),
           const SizedBox(height: 16),
           Wrap(
@@ -167,36 +179,48 @@ class _SalesOverview extends StatelessWidget {
             runSpacing: 12,
             children: [
               CashRegisterClosureMetric(
-                label: '税抜',
+                label: AppLocalizations.of(context).cashRegisterClosureNoTax,
                 value: currency.format(summary.noTaxTotal),
               ),
               CashRegisterClosureMetric(
-                label: '税額',
+                label: AppLocalizations.of(context).cashRegisterClosureTax,
                 value: currency.format(summary.taxTotal),
               ),
               CashRegisterClosureMetric(
-                label: '税込前',
+                label: AppLocalizations.of(
+                  context,
+                ).cashRegisterClosureBeforeAdjustment,
                 value: currency.format(grossBeforeAdjustment),
               ),
               CashRegisterClosureMetric(
-                label: '割引',
+                label: AppLocalizations.of(context).cashRegisterClosureDiscount,
                 value: currency.format(summary.discountTotal),
               ),
               CashRegisterClosureMetric(
-                label: '代金券',
+                label: AppLocalizations.of(context).cashRegisterClosureVoucher,
                 value: currency.format(summary.voucherAmountTotal),
               ),
               CashRegisterClosureMetric(
-                label: '販売数量',
-                value: '${summary.qty} 点',
+                label: AppLocalizations.of(
+                  context,
+                ).cashRegisterClosureSalesQuantity,
+                value: AppLocalizations.of(
+                  context,
+                ).cashRegisterClosureQuantity(summary.qty),
               ),
               CashRegisterClosureMetric(
-                label: '返金額',
+                label: AppLocalizations.of(
+                  context,
+                ).cashRegisterClosureRefundAmount,
                 value: currency.format(summary.repaymentTotal),
               ),
               CashRegisterClosureMetric(
-                label: '返金数量',
-                value: '${summary.repaymentQty} 点',
+                label: AppLocalizations.of(
+                  context,
+                ).cashRegisterClosureRefundQuantity,
+                value: AppLocalizations.of(
+                  context,
+                ).cashRegisterClosureQuantity(summary.repaymentQty),
               ),
             ],
           ),
