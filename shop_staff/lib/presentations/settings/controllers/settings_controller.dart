@@ -2,56 +2,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/core/router/app_router.dart';
+import 'package:shop_staff/data/models/shop_info_models.dart';
+import 'package:shop_staff/data/providers.dart';
+import 'package:shop_staff/domain/settings/app_settings_models.dart';
+import 'package:shop_staff/domain/services/app_settings_service.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
+import 'package:shop_staff/presentations/settings/state/settings_state.dart';
 
-import '../../../data/models/shop_info_models.dart';
-import '../../../data/providers.dart';
-import '../../../domain/settings/app_settings_models.dart';
-import '../../../domain/services/app_settings_service.dart';
-
-enum SettingsSection { systemSettings, machineInfo, businessInfo }
-
-enum SettingsErrorType { load, saveBasic, saveNetwork, savePrinter }
-
-class SettingsState {
-  const SettingsState({
-    this.selected = SettingsSection.systemSettings,
-    this.loading = false,
-    this.error,
-    this.errorType,
-    this.snapshot = const AppSettingsSnapshot(),
-    this.shopInfo,
-  });
-
-  final SettingsSection selected;
-  final bool loading;
-  final String? error;
-  final SettingsErrorType? errorType;
-  final AppSettingsSnapshot snapshot;
-  final ShopInfoModel? shopInfo;
-
-  SettingsState copyWith({
-    SettingsSection? selected,
-    bool? loading,
-    String? error,
-    SettingsErrorType? errorType,
-    bool clearError = false,
-    AppSettingsSnapshot? snapshot,
-    ShopInfoModel? shopInfo,
-  }) {
-    return SettingsState(
-      selected: selected ?? this.selected,
-      loading: loading ?? this.loading,
-      error: clearError ? null : (error ?? this.error),
-      errorType: clearError ? null : (errorType ?? this.errorType),
-      snapshot: snapshot ?? this.snapshot,
-      shopInfo: shopInfo ?? this.shopInfo,
-    );
-  }
-}
-
-class SettingsViewModel extends StateNotifier<SettingsState> {
-  SettingsViewModel(this._ref, {
+class SettingsController extends StateNotifier<SettingsState> {
+  SettingsController(
+    this._ref, {
     required AppSettingsService appSettingsService,
     required AppSettingsSnapshot? initialSnapshot,
     required ShopInfoModel? initialShopInfo,
@@ -146,17 +106,10 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
         .confirm(title: title, message: message, destructive: true);
     if (ok) {
       try {
-        // 清空购物车与本地状态
-        //state = PosState.initial();
-        // // 清理仓库缓存
-        // _menuRepository.clearCache();
-        // 删除激活码与本地设置
         await _ref.read(startupServiceProvider).clear();
-        // 清空全局店铺信息与设置快照
         _ref.read(shopInfoProvider.notifier).state = null;
         _ref.read(appSettingsSnapshotProvider.notifier).state = null;
         _ref.read(orderModeSelectionProvider.notifier).state = 'dine_in';
-        // 跳转登录
         final router = _ref.read(appRouterProvider);
         router.go('/login');
       } catch (e) {
@@ -252,31 +205,3 @@ class SettingsViewModel extends StateNotifier<SettingsState> {
     return mapEquals(a.toJson(), b.toJson());
   }
 }
-
-final settingsViewModelProvider =
-    StateNotifierProvider<SettingsViewModel, SettingsState>((ref) {
-      final service = ref.read(appSettingsServiceProvider);
-      void updateShared(AppSettingsSnapshot snapshot) {
-        ref.read(appSettingsSnapshotProvider.notifier).state = snapshot;
-      }
-
-      final vm = SettingsViewModel(
-        ref,
-        appSettingsService: service,
-        initialSnapshot: ref.read(appSettingsSnapshotProvider),
-        initialShopInfo: ref.read(shopInfoProvider),
-        sharedSnapshotUpdater: updateShared,
-      );
-
-      ref.listen<ShopInfoModel?>(shopInfoProvider, (_, next) {
-        vm.updateShopInfo(next);
-      });
-
-      ref.listen<AppSettingsSnapshot?>(appSettingsSnapshotProvider, (_, next) {
-        if (next != null) {
-          vm.updateSnapshot(next);
-        }
-      });
-
-      return vm;
-    });

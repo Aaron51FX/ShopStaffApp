@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/settings/viewmodels/settings_viewmodel.dart';
+import 'package:shop_staff/presentations/settings/state/settings_state.dart';
 
 class ShopInfoDetailPage extends StatelessWidget {
   const ShopInfoDetailPage({super.key, required this.state});
