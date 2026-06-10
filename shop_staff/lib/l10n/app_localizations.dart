@@ -886,6 +886,24 @@ abstract class AppLocalizations {
   /// **'Label'**
   String get settingsPrinterReceiptLabel;
 
+  /// No description provided for @settingsPrinterPaperWidthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt paper width'**
+  String get settingsPrinterPaperWidthTitle;
+
+  /// No description provided for @settingsPrinterPaperWidth58.
+  ///
+  /// In en, this message translates to:
+  /// **'58mm'**
+  String get settingsPrinterPaperWidth58;
+
+  /// No description provided for @settingsPrinterPaperWidth80.
+  ///
+  /// In en, this message translates to:
+  /// **'80mm'**
+  String get settingsPrinterPaperWidth80;
+
   /// No description provided for @settingsPrinterLabelSizeTitle.
   ///
   /// In en, this message translates to:

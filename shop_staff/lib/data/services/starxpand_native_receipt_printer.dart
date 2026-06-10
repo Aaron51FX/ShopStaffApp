@@ -61,14 +61,11 @@ class StarXpandNativeReceiptPrinter implements NativeReceiptPrinter {
   }
 
   int _paperWidthMm(PrinterSettings printer) {
-    final raw = printer.labelSize.trim().toLowerCase();
-    if (raw.contains('58')) {
-      return 58;
-    }
-    if (raw.contains('80')) {
-      return 80;
-    }
-    return 72;
+    return switch (printer.receiptPaperWidthMm) {
+      58 => 58,
+      80 => 80,
+      _ => 80,
+    };
   }
 
   String? _trimOrNull(String? value) {

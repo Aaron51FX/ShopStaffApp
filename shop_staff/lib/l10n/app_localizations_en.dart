@@ -449,6 +449,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPrinterReceiptLabel => 'Label';
 
   @override
+  String get settingsPrinterPaperWidthTitle => 'Receipt paper width';
+
+  @override
+  String get settingsPrinterPaperWidth58 => '58mm';
+
+  @override
+  String get settingsPrinterPaperWidth80 => '80mm';
+
+  @override
   String get settingsPrinterLabelSizeTitle => 'Label size';
 
   @override

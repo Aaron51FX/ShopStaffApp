@@ -417,6 +417,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsPrinterReceiptLabel => '标签';
 
   @override
+  String get settingsPrinterPaperWidthTitle => '小票纸宽';
+
+  @override
+  String get settingsPrinterPaperWidth58 => '58mm';
+
+  @override
+  String get settingsPrinterPaperWidth80 => '80mm';
+
+  @override
   String get settingsPrinterLabelSizeTitle => '标签尺寸';
 
   @override

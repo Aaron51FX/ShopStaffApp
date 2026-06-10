@@ -345,6 +345,13 @@ PrintInfoDocument _buildPrintDocument(
     price: summary.total,
     payPrice: summary.total,
     payMethod: t.cashRegisterClosureTitle,
+    language: t.localeName,
+    details: [
+      {
+        'documentType': 'cash_register_closure',
+        'summary': _cashRegisterClosurePrintSummaryJson(summary),
+      },
+    ],
     printInfo: PrintTicketInfo(
       orderTime: summary.printTime,
       fromPlate: 'Shop',
@@ -364,6 +371,15 @@ PrintInfoDocument _buildPrintDocument(
       },
     ),
   );
+}
+
+Map<String, dynamic> _cashRegisterClosurePrintSummaryJson(
+  CashRegisterClosureSummary summary,
+) {
+  final json = summary.toJson();
+  json.remove('cashInfo');
+  json.remove('cashInfoGlory');
+  return json;
 }
 
 String _readableError(BuildContext context, Object error) {

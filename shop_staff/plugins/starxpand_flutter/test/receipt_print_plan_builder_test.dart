@@ -134,5 +134,94 @@ void main() {
         isFalse,
       );
     });
+
+    test('builds cash register closure plan from document details', () {
+      final payload = ReceiptDocumentPayload.fromJson(<String, dynamic>{
+        'schema': 'shop_staff.receipt.v1',
+        'kind': 'sale',
+        'shop': <String, dynamic>{'name': 'Tokyo Shop'},
+        'transaction': <String, dynamic>{
+          'receiptId': 'closure-M001',
+          'locale': 'ja-JP',
+          'currency': 'JPY',
+        },
+        'totals': <String, dynamic>{
+          'subtotalMinor': 12345,
+          'grandTotalMinor': 12345,
+        },
+        'extras': <String, dynamic>{
+          'details': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'documentType': 'cash_register_closure',
+              'summary': <String, dynamic>{
+                'machineCode': 'M001',
+                'shopName': 'Tokyo Shop',
+                'startTime': '2026-06-09 09:00',
+                'endTime': '2026-06-09 21:00',
+                'printTime': '2026-06-09 21:10',
+                'verifyUserName': 'Aaron',
+                'total': 12345,
+                'noTaxTotal': 11223,
+                'taxTotal': 1122,
+                'taxTotalA': 1000,
+                'taxTotalB': 122,
+                'qty': 15,
+                'repaymentQty': 1,
+                'cashTotal': 5000,
+                'creditCardTotal': 4000,
+                'payPayTotal': 2000,
+                'aliPayTotal': 1000,
+                'wechatTotal': 345,
+                'r_PayTotal': 0,
+                'au_PayTotal': 0,
+                'd_PayTotal': 0,
+                'm_PayTotal': 0,
+                'trafficTotal': 0,
+                'voucherAmountTotal': 0,
+              },
+            },
+          ],
+        },
+      });
+
+      final plan = ReceiptPrintPlanBuilder.build(payload);
+
+      expect(
+        plan.nodes.any(
+          (node) =>
+              node.type == ReceiptPrintPlanNodeType.text && node.text == '精算情報',
+        ),
+        isTrue,
+      );
+      final salesRow = plan.nodes.firstWhere(
+        (node) =>
+            node.type == ReceiptPrintPlanNodeType.row &&
+            node.columns.any((column) => column.text == '売上'),
+      );
+      expect(salesRow.columns, hasLength(2));
+      expect(salesRow.columns.first.text, '売上');
+      expect(salesRow.columns.first.align, ReceiptPrintPlanAlign.left);
+      expect(salesRow.columns.last.text, '¥ 12,345');
+      expect(salesRow.columns.last.align, ReceiptPrintPlanAlign.right);
+      expect(
+        salesRow.columns.map((column) => column.flex).toList(growable: false),
+        <int>[1, 1],
+      );
+      expect(
+        plan.nodes.any((node) {
+          final text = node.text ?? '';
+          final columnTexts = node.columns.map((column) => column.text).join();
+          return text.contains('釣銭機') || columnTexts.contains('金種');
+        }),
+        isFalse,
+      );
+      expect(
+        plan.nodes.any(
+          (node) =>
+              node.type == ReceiptPrintPlanNodeType.text && node.text == '販売明細',
+        ),
+        isFalse,
+      );
+    });
   });
 }

@@ -28,6 +28,15 @@ class _LocalPrinterTileState extends ConsumerState<_LocalPrinterTile> {
         .savePrinter(widget.printer.copyWith(isOn: value));
   }
 
+  Future<void> _setPaperWidth(int? width) async {
+    if (width == null || width == widget.printer.receiptPaperWidthMm) {
+      return;
+    }
+    await ref
+        .read(settingsControllerProvider.notifier)
+        .savePrinter(widget.printer.copyWith(receiptPaperWidthMm: width));
+  }
+
   Future<void> _startAddFlow() async {
     if (_busy) {
       return;
@@ -309,6 +318,7 @@ class _LocalPrinterTileState extends ConsumerState<_LocalPrinterTile> {
       connectionType: connectionType,
       receipt: current.receipt,
       labelSize: current.labelSize,
+      receiptPaperWidthMm: current.receiptPaperWidthMm,
       continuous: current.continuous,
       isOn: true,
       isDefault: true,
@@ -424,6 +434,36 @@ class _LocalPrinterTileState extends ConsumerState<_LocalPrinterTile> {
               icon: Icons.pin_outlined,
               label: t.settingsLocalPrinterIdentifierLabel,
               value: identifierValue,
+            ),
+            const SizedBox(height: 12),
+            InputDecorator(
+              decoration: InputDecoration(
+                labelText: t.settingsPrinterPaperWidthTitle,
+                prefixIcon: Icon(
+                  Icons.receipt_long,
+                  color: theme.colorScheme.primary,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<int>(
+                  value: _receiptPaperWidthValue(printer.receiptPaperWidthMm),
+                  isExpanded: true,
+                  items: [
+                    DropdownMenuItem<int>(
+                      value: 58,
+                      child: Text(t.settingsPrinterPaperWidth58),
+                    ),
+                    DropdownMenuItem<int>(
+                      value: 80,
+                      child: Text(t.settingsPrinterPaperWidth80),
+                    ),
+                  ],
+                  onChanged: _busy ? null : (value) => _setPaperWidth(value),
+                ),
+              ),
             ),
           ] else
             _EmptyPlaceholder(message: t.settingsValueNotSet),

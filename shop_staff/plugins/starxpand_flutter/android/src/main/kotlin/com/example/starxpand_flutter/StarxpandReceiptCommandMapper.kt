@@ -12,10 +12,19 @@ import com.starmicronics.stario10.starxpandcommand.printer.Alignment
 import com.starmicronics.stario10.starxpandcommand.printer.CharacterEncodingType
 import com.starmicronics.stario10.starxpandcommand.printer.CjkCharacterType
 import com.starmicronics.stario10.starxpandcommand.printer.CutType
+import com.starmicronics.stario10.starxpandcommand.printer.FontType
 import com.starmicronics.stario10.starxpandcommand.printer.ImageParameter
 import com.starmicronics.stario10.starxpandcommand.printer.InternationalCharacterType
+import com.starmicronics.stario10.starxpandcommand.printer.LineStyle
 import com.starmicronics.stario10.starxpandcommand.printer.QRCodeLevel
 import com.starmicronics.stario10.starxpandcommand.printer.QRCodeParameter
+import com.starmicronics.stario10.starxpandcommand.printer.RuledLineParameter
+import com.starmicronics.stario10.starxpandcommand.printer.TextAlignment
+import com.starmicronics.stario10.starxpandcommand.printer.TextEllipsizeType
+import com.starmicronics.stario10.starxpandcommand.printer.TextParameter
+import com.starmicronics.stario10.starxpandcommand.printer.TextPrintType
+import com.starmicronics.stario10.starxpandcommand.printer.TextWidthParameter
+import com.starmicronics.stario10.starxpandcommand.printer.TextWidthType
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import java.io.IOException
 import kotlin.math.roundToInt
@@ -57,15 +66,18 @@ internal class StarxpandReceiptCommandMapper(
             ReceiptPrintPlanNode.NodeType.Row -> {
                 if (node.columns.isEmpty()) return
                 val child = makeStyledBuilder(node)
-                val rendered = render(node.columns, paperWidthMm)
-                child.actionPrintText(ensureTrailingNewline(rendered))
+                appendRow(node.columns, child, paperWidthMm)
                 builder.add(child)
             }
 
             ReceiptPrintPlanNode.NodeType.Divider -> {
                 val child = makeStyledBuilder(node)
-                val divider = "-".repeat(printableColumns(paperWidthMm))
-                child.actionPrintText("$divider\n")
+                child.actionPrintRuledLine(
+                    RuledLineParameter(paperWidthMm.toDouble())
+                        .setLineStyle(LineStyle.Single)
+                        .setThickness(0.2),
+                )
+                child.actionFeedLine(1)
                 builder.add(child)
             }
 
@@ -104,13 +116,12 @@ internal class StarxpandReceiptCommandMapper(
     private fun makeStyledBuilder(node: ReceiptPrintPlanNode): PrinterBuilder {
         val builder = PrinterBuilder()
         builder.styleAlignment(mapAlignment(node.align))
+        builder.styleFont(FontType.A)
         builder.styleBold(node.bold)
 
         val widthScale = node.widthScale.coerceIn(1, 6)
         val heightScale = node.heightScale.coerceIn(1, 6)
-        if (widthScale > 1 || heightScale > 1) {
-            builder.styleMagnification(MagnificationParameter(widthScale, heightScale))
-        }
+        builder.styleMagnification(MagnificationParameter(widthScale, heightScale))
 
         return builder
     }
@@ -121,6 +132,8 @@ internal class StarxpandReceiptCommandMapper(
     ) {
         val normalized = locale.orEmpty().lowercase()
         builder.styleCharacterSpace(0.0)
+        builder.styleFont(FontType.A)
+        builder.styleMagnification(MagnificationParameter(1, 1))
 
         when {
             normalized.startsWith("ja") -> {
@@ -206,10 +219,27 @@ internal class StarxpandReceiptCommandMapper(
         return null
     }
 
-    private fun render(
+    private fun appendRow(
+        columns: List<ReceiptPrintPlanColumn>,
+        builder: PrinterBuilder,
+        paperWidthMm: Int,
+    ) {
+        val widths = rowColumnWidths(columns, paperWidthMm)
+        columns.zip(widths).forEach { (column, width) ->
+            builder.styleBold(column.bold)
+            builder.actionPrintText(
+                column.text.replace("\n", " "),
+                textParameter(width, column.align),
+            )
+        }
+        builder.styleBold(false)
+        builder.actionPrintText("\n")
+    }
+
+    private fun rowColumnWidths(
         columns: List<ReceiptPrintPlanColumn>,
         paperWidthMm: Int,
-    ): String {
+    ): List<Int> {
         val totalFlex = columns.sumOf { it.flex.coerceAtLeast(1) }.coerceAtLeast(1)
         val totalColumns = printableColumns(paperWidthMm)
         val widths = mutableListOf<Int>()
@@ -227,37 +257,27 @@ internal class StarxpandReceiptCommandMapper(
             }
         }
 
-        return columns.zip(widths).joinToString(separator = "") { (column, width) ->
-            format(column.text, width, column.align)
-        }
+        return widths
     }
 
-    private fun format(
-        text: String,
+    private fun textParameter(
         width: Int,
         align: ReceiptPrintPlanNode.Align,
-    ): String {
-        val normalized = text.replace("\n", " ")
-        val truncated = if (normalized.length > width) {
-            normalized.take(width)
-        } else {
-            normalized
-        }
-        val padding = (width - truncated.length).coerceAtLeast(0)
-
-        return when (align) {
-            ReceiptPrintPlanNode.Align.Left -> truncated + " ".repeat(padding)
-            ReceiptPrintPlanNode.Align.Center -> {
-                val leading = padding / 2
-                val trailing = padding - leading
-                " ".repeat(leading) + truncated + " ".repeat(trailing)
-            }
-            ReceiptPrintPlanNode.Align.Right -> " ".repeat(padding) + truncated
-        }
+    ): TextParameter {
+        val widthParameter = TextWidthParameter()
+            .setWidthType(TextWidthType.Half)
+            .setAlignment(mapTextAlignment(align))
+            .setEllipsizeType(TextEllipsizeType.End)
+            .setPrintType(TextPrintType.Always)
+        return TextParameter().setWidth(width, widthParameter)
     }
 
     private fun printableColumns(paperWidthMm: Int): Int {
-        return (paperWidthMm.toDouble() / 1.5).roundToInt().coerceAtLeast(24)
+        return when (paperWidthMm) {
+            58 -> 32
+            80 -> 48
+            else -> 48
+        }
     }
 
     private fun pixelWidth(paperWidthMm: Int): Int {
@@ -270,6 +290,14 @@ internal class StarxpandReceiptCommandMapper(
             ReceiptPrintPlanNode.Align.Left -> Alignment.Left
             ReceiptPrintPlanNode.Align.Center -> Alignment.Center
             ReceiptPrintPlanNode.Align.Right -> Alignment.Right
+        }
+    }
+
+    private fun mapTextAlignment(align: ReceiptPrintPlanNode.Align): TextAlignment {
+        return when (align) {
+            ReceiptPrintPlanNode.Align.Left -> TextAlignment.Left
+            ReceiptPrintPlanNode.Align.Center -> TextAlignment.Center
+            ReceiptPrintPlanNode.Align.Right -> TextAlignment.Right
         }
     }
 

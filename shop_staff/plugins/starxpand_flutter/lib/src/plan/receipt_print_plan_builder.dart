@@ -1,5 +1,6 @@
 import '../models/receipt_document_payload.dart';
 import 'receipt_print_plan.dart';
+import 'cash_register_closure_print_plan_builder.dart';
 
 class ReceiptPrintPlanBuilder {
   const ReceiptPrintPlanBuilder._();
@@ -11,6 +12,15 @@ class ReceiptPrintPlanBuilder {
     int paperWidthMm = 72,
     bool includeCut = true,
   }) {
+    final closurePlan = CashRegisterClosurePrintPlanBuilder.tryBuild(
+      document,
+      paperWidthMm: paperWidthMm,
+      includeCut: includeCut,
+    );
+    if (closurePlan != null) {
+      return closurePlan;
+    }
+
     final labels = _labelsForLocale(document.transaction.locale);
     final nodes = <ReceiptPrintPlanNode>[];
     final resolvedLogoAssetKey =

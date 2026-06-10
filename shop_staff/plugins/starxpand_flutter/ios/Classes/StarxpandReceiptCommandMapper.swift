@@ -46,14 +46,17 @@ final class StarxpandReceiptCommandMapper {
     case .row:
       guard !node.columns.isEmpty else { return }
       let child = makeStyledBuilder(for: node)
-      let rendered = render(columns: node.columns, paperWidthMm: paperWidthMm)
-      _ = child.actionPrintText(ensureTrailingNewline(rendered))
+      appendRow(columns: node.columns, to: child, paperWidthMm: paperWidthMm)
       _ = builder.add(child)
 
     case .divider:
       let child = makeStyledBuilder(for: node)
-      let divider = String(repeating: "-", count: printableColumns(for: paperWidthMm))
-      _ = child.actionPrintText("\(divider)\n")
+      _ = child.actionPrintRuledLine(
+        StarXpandCommand.Printer.RuledLineParameter(width: Double(paperWidthMm))
+          .setLineStyle(.single)
+          .setThickness(0.2)
+      )
+      _ = child.actionFeedLine(1)
       _ = builder.add(child)
 
     case .spacer:
@@ -88,15 +91,14 @@ final class StarxpandReceiptCommandMapper {
   private func makeStyledBuilder(for node: ReceiptPrintPlanNode) -> StarXpandCommand.PrinterBuilder {
     let builder = StarXpandCommand.PrinterBuilder()
     _ = builder.styleAlignment(mapAlignment(node.align))
+    _ = builder.styleFont(.a)
     _ = builder.styleBold(node.bold)
 
     let widthScale = max(1, min(node.widthScale, 6))
     let heightScale = max(1, min(node.heightScale, 6))
-    if widthScale > 1 || heightScale > 1 {
-      _ = builder.styleMagnification(
-        StarXpandCommand.MagnificationParameter(width: widthScale, height: heightScale)
-      )
-    }
+    _ = builder.styleMagnification(
+      StarXpandCommand.MagnificationParameter(width: widthScale, height: heightScale)
+    )
 
     return builder
   }
@@ -107,6 +109,10 @@ final class StarxpandReceiptCommandMapper {
   ) {
     let normalized = (locale ?? "").lowercased()
     _ = builder.styleCharacterSpace(0)
+    _ = builder.styleFont(.a)
+    _ = builder.styleMagnification(
+      StarXpandCommand.MagnificationParameter(width: 1, height: 1)
+    )
 
     switch normalized {
     case let value where value.hasPrefix("ja"):
@@ -175,7 +181,24 @@ final class StarxpandReceiptCommandMapper {
     return nil
   }
 
-  private func render(columns: [ReceiptPrintPlanColumn], paperWidthMm: Int) -> String {
+  private func appendRow(
+    columns: [ReceiptPrintPlanColumn],
+    to builder: StarXpandCommand.PrinterBuilder,
+    paperWidthMm: Int
+  ) {
+    let widths = rowColumnWidths(columns: columns, paperWidthMm: paperWidthMm)
+    for (column, width) in zip(columns, widths) {
+      _ = builder.styleBold(column.bold)
+      _ = builder.actionPrintText(
+        column.text.replacingOccurrences(of: "\n", with: " "),
+        textParameter(width: width, align: column.align)
+      )
+    }
+    _ = builder.styleBold(false)
+    _ = builder.actionPrintText("\n")
+  }
+
+  private func rowColumnWidths(columns: [ReceiptPrintPlanColumn], paperWidthMm: Int) -> [Int] {
     let totalFlex = max(1, columns.reduce(0) { $0 + max(1, $1.flex) })
     let totalColumns = printableColumns(for: paperWidthMm)
     var widths: [Int] = []
@@ -191,34 +214,30 @@ final class StarxpandReceiptCommandMapper {
       }
     }
 
-    return zip(columns, widths).map { column, width in
-      format(text: column.text, width: width, align: column.align)
-    }.joined()
+    return widths
   }
 
-  private func format(
-    text: String,
+  private func textParameter(
     width: Int,
     align: ReceiptPrintPlanNode.Align
-  ) -> String {
-    let normalized = text.replacingOccurrences(of: "\n", with: " ")
-    let truncated = normalized.count > width ? String(normalized.prefix(width)) : normalized
-    let padding = max(0, width - truncated.count)
-
-    switch align {
-    case .left:
-      return truncated + String(repeating: " ", count: padding)
-    case .center:
-      let leading = padding / 2
-      let trailing = padding - leading
-      return String(repeating: " ", count: leading) + truncated + String(repeating: " ", count: trailing)
-    case .right:
-      return String(repeating: " ", count: padding) + truncated
-    }
+  ) -> StarXpandCommand.Printer.TextParameter {
+    let widthParameter = StarXpandCommand.Printer.TextWidthParameter()
+      .setWidthType(.half)
+      .setAlignment(mapTextAlignment(align))
+      .setEllipsizeType(.end)
+      .setPrintType(.always)
+    return StarXpandCommand.Printer.TextParameter().setWidth(width, widthParameter)
   }
 
   private func printableColumns(for paperWidthMm: Int) -> Int {
-    max(24, Int(round(Double(paperWidthMm) / 1.5)))
+    switch paperWidthMm {
+    case 58:
+      return 32
+    case 80:
+      return 48
+    default:
+      return 48
+    }
   }
 
   private func pixelWidth(for paperWidthMm: Int) -> Int {
@@ -227,6 +246,17 @@ final class StarxpandReceiptCommandMapper {
   }
 
   private func mapAlignment(_ align: ReceiptPrintPlanNode.Align) -> StarXpandCommand.Printer.Alignment {
+    switch align {
+    case .left:
+      return .left
+    case .center:
+      return .center
+    case .right:
+      return .right
+    }
+  }
+
+  private func mapTextAlignment(_ align: ReceiptPrintPlanNode.Align) -> StarXpandCommand.Printer.TextAlignment {
     switch align {
     case .left:
       return .left

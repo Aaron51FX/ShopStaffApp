@@ -409,6 +409,7 @@ class PrinterSettings {
     this.connectionType = PrinterConnectionType.network,
     this.receipt = true,
     this.labelSize = '',
+    this.receiptPaperWidthMm = 80,
     this.continuous = false,
     this.isOn = false,
     this.isDefault = true,
@@ -426,6 +427,7 @@ class PrinterSettings {
   final PrinterConnectionType connectionType;
   final bool receipt;
   final String labelSize;
+  final int receiptPaperWidthMm;
   final bool continuous;
   final bool isOn;
   final bool isDefault;
@@ -453,6 +455,7 @@ class PrinterSettings {
     PrinterConnectionType? connectionType,
     bool? receipt,
     String? labelSize,
+    int? receiptPaperWidthMm,
     bool? continuous,
     bool? isOn,
     bool? isDefault,
@@ -470,6 +473,7 @@ class PrinterSettings {
       connectionType: connectionType ?? this.connectionType,
       receipt: receipt ?? this.receipt,
       labelSize: labelSize ?? this.labelSize,
+      receiptPaperWidthMm: receiptPaperWidthMm ?? this.receiptPaperWidthMm,
       continuous: continuous ?? this.continuous,
       isOn: isOn ?? this.isOn,
       isDefault: isDefault ?? this.isDefault,
@@ -490,6 +494,7 @@ class PrinterSettings {
       'connectionType': connectionType.wireValue,
       'receipt': receipt,
       'labelSize': labelSize,
+      'receiptPaperWidthMm': receiptPaperWidthMm,
       'continuous': continuous,
       'isOn': isOn,
       'isDefault': isDefault,
@@ -520,6 +525,10 @@ class PrinterSettings {
       connectionType: resolvedConnectionType,
       receipt: _readBool(json['receipt']) ?? true,
       labelSize: json['labelSize'] as String? ?? '',
+      receiptPaperWidthMm: _readReceiptPaperWidthMm(
+        json['receiptPaperWidthMm'],
+        json['labelSize'] as String?,
+      ),
       continuous: _readBool(json['continuous']) ?? false,
       isOn: _readBool(json['isOn']) ?? false,
       isDefault: _readBool(json['isDefault']) ?? false,
@@ -564,6 +573,7 @@ class PrinterSettings {
         connectionType: PrinterConnectionType.unknown,
         receipt: true,
         labelSize: '',
+        receiptPaperWidthMm: 80,
         continuous: false,
         isOn: false,
         isDefault: true,
@@ -577,6 +587,7 @@ class PrinterSettings {
         connectionType: PrinterConnectionType.network,
         receipt: true,
         labelSize: '',
+        receiptPaperWidthMm: 80,
         continuous: false,
         isOn: false,
         isDefault: true,
@@ -592,6 +603,7 @@ class PrinterSettings {
         connectionType: PrinterConnectionType.network,
         receipt: false,
         labelSize: '',
+        receiptPaperWidthMm: 80,
         continuous: false,
         isOn: false,
         isDefault: false,
@@ -607,6 +619,7 @@ class PrinterSettings {
         connectionType: PrinterConnectionType.network,
         receipt: true,
         labelSize: '',
+        receiptPaperWidthMm: 80,
         continuous: false,
         isOn: false,
         isDefault: false,
@@ -622,6 +635,7 @@ class PrinterSettings {
         connectionType: PrinterConnectionType.network,
         receipt: true,
         labelSize: '',
+        receiptPaperWidthMm: 80,
         continuous: false,
         isOn: false,
         isDefault: false,
@@ -634,6 +648,22 @@ class PrinterSettings {
   }
 
   static String _profileKey(int type, bool receipt) => '$type|$receipt';
+}
+
+int _readReceiptPaperWidthMm(Object? value, String? legacyLabelSize) {
+  final parsed = _readInt(value);
+  if (parsed == 58 || parsed == 80) {
+    return parsed!;
+  }
+
+  final legacy = (legacyLabelSize ?? '').trim().toLowerCase();
+  if (legacy.contains('58')) {
+    return 58;
+  }
+  if (legacy.contains('80')) {
+    return 80;
+  }
+  return 80;
 }
 
 @immutable

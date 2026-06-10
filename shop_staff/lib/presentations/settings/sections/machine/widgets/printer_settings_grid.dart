@@ -19,6 +19,10 @@ class _PrinterGrid extends StatelessWidget {
   }
 }
 
+int _receiptPaperWidthValue(int value) {
+  return value == 58 ? 58 : 80;
+}
+
 class _PrinterTile extends ConsumerWidget {
   const _PrinterTile({required this.printer});
 
@@ -97,6 +101,13 @@ class _PrinterTile extends ConsumerWidget {
       await updatePrinter(printer.copyWith(labelSize: newValue));
     }
 
+    Future<void> selectPaperWidth(int? width) async {
+      if (width == null || width == printer.receiptPaperWidthMm) {
+        return;
+      }
+      await updatePrinter(printer.copyWith(receiptPaperWidthMm: width));
+    }
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -172,6 +183,39 @@ class _PrinterTile extends ConsumerWidget {
             trailing: const Icon(Icons.edit_outlined, size: 18),
             onTap: editPort,
           ),
+          if (printer.receipt)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 12),
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: t.settingsPrinterPaperWidthTitle,
+                  prefixIcon: Icon(
+                    Icons.receipt_long,
+                    color: theme.colorScheme.primary,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: _receiptPaperWidthValue(printer.receiptPaperWidthMm),
+                    isExpanded: true,
+                    items: [
+                      DropdownMenuItem<int>(
+                        value: 58,
+                        child: Text(t.settingsPrinterPaperWidth58),
+                      ),
+                      DropdownMenuItem<int>(
+                        value: 80,
+                        child: Text(t.settingsPrinterPaperWidth80),
+                      ),
+                    ],
+                    onChanged: (value) => selectPaperWidth(value),
+                  ),
+                ),
+              ),
+            ),
           if (printer.receipt == false)
             Padding(
               padding: const EdgeInsets.only(top: 4, bottom: 12),
