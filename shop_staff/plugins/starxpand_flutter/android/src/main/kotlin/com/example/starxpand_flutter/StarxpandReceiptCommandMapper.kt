@@ -225,15 +225,22 @@ internal class StarxpandReceiptCommandMapper(
         paperWidthMm: Int,
     ) {
         val widths = rowColumnWidths(columns, paperWidthMm)
-        columns.zip(widths).forEach { (column, width) ->
-            builder.styleBold(column.bold)
-            builder.actionPrintText(
-                column.text.replace("\n", " "),
-                textParameter(width, column.align),
-            )
+        val wrappedColumns = columns.zip(widths).map { (column, width) ->
+            wrapColumnText(column.text.replace("\n", " "), width)
+        }
+        val lineCount = wrappedColumns.maxOfOrNull { it.size } ?: 1
+
+        repeat(lineCount) { lineIndex ->
+            columns.zip(widths).forEachIndexed { columnIndex, (column, width) ->
+                builder.styleBold(column.bold)
+                builder.actionPrintText(
+                    wrappedColumns[columnIndex].getOrElse(lineIndex) { "" },
+                    textParameter(width, column.align),
+                )
+            }
+            builder.actionPrintText("\n")
         }
         builder.styleBold(false)
-        builder.actionPrintText("\n")
     }
 
     private fun rowColumnWidths(
@@ -267,9 +274,53 @@ internal class StarxpandReceiptCommandMapper(
         val widthParameter = TextWidthParameter()
             .setWidthType(TextWidthType.Half)
             .setAlignment(mapTextAlignment(align))
-            .setEllipsizeType(TextEllipsizeType.End)
+            .setEllipsizeType(TextEllipsizeType.None)
             .setPrintType(TextPrintType.Always)
         return TextParameter().setWidth(width, widthParameter)
+    }
+
+    private fun wrapColumnText(text: String, width: Int): List<String> {
+        val safeWidth = width.coerceAtLeast(1)
+        if (text.isEmpty()) return listOf("")
+
+        val lines = mutableListOf<String>()
+        val current = StringBuilder()
+        var currentWidth = 0
+        var index = 0
+
+        while (index < text.length) {
+            val codePoint = text.codePointAt(index)
+            val charWidth = printColumnWidth(codePoint)
+            if (current.isNotEmpty() && currentWidth + charWidth > safeWidth) {
+                lines += current.toString()
+                current.clear()
+                currentWidth = 0
+            }
+            current.appendCodePoint(codePoint)
+            currentWidth += charWidth
+            index += Character.charCount(codePoint)
+        }
+
+        if (current.isNotEmpty()) {
+            lines += current.toString()
+        }
+        return if (lines.isEmpty()) listOf("") else lines
+    }
+
+    private fun printColumnWidth(codePoint: Int): Int {
+        if (Character.getType(codePoint) == Character.NON_SPACING_MARK.toInt()) return 0
+        return when {
+            codePoint <= 0x007F -> 1
+            codePoint in 0xFF61..0xFF9F -> 1
+            codePoint in 0x1100..0x11FF -> 2
+            codePoint in 0x2E80..0xA4CF -> 2
+            codePoint in 0xAC00..0xD7AF -> 2
+            codePoint in 0xF900..0xFAFF -> 2
+            codePoint in 0xFE10..0xFE6F -> 2
+            codePoint in 0xFF00..0xFF60 -> 2
+            codePoint in 0x1F300..0x1FAFF -> 2
+            else -> 1
+        }
     }
 
     private fun printableColumns(paperWidthMm: Int): Int {

@@ -187,15 +187,24 @@ final class StarxpandReceiptCommandMapper {
     paperWidthMm: Int
   ) {
     let widths = rowColumnWidths(columns: columns, paperWidthMm: paperWidthMm)
-    for (column, width) in zip(columns, widths) {
-      _ = builder.styleBold(column.bold)
-      _ = builder.actionPrintText(
-        column.text.replacingOccurrences(of: "\n", with: " "),
-        textParameter(width: width, align: column.align)
-      )
+    let wrappedColumns = zip(columns, widths).map { column, width in
+      wrapColumnText(column.text.replacingOccurrences(of: "\n", with: " "), width: width)
+    }
+    let lineCount = wrappedColumns.map(\.count).max() ?? 1
+
+    for lineIndex in 0..<lineCount {
+      for (columnIndex, pair) in zip(columns, widths).enumerated() {
+        let (column, width) = pair
+        let text = lineIndex < wrappedColumns[columnIndex].count ? wrappedColumns[columnIndex][lineIndex] : ""
+        _ = builder.styleBold(column.bold)
+        _ = builder.actionPrintText(
+          text,
+          textParameter(width: width, align: column.align)
+        )
+      }
+      _ = builder.actionPrintText("\n")
     }
     _ = builder.styleBold(false)
-    _ = builder.actionPrintText("\n")
   }
 
   private func rowColumnWidths(columns: [ReceiptPrintPlanColumn], paperWidthMm: Int) -> [Int] {
@@ -224,9 +233,61 @@ final class StarxpandReceiptCommandMapper {
     let widthParameter = StarXpandCommand.Printer.TextWidthParameter()
       .setWidthType(.half)
       .setAlignment(mapTextAlignment(align))
-      .setEllipsizeType(.end)
+      .setEllipsizeType(.none)
       .setPrintType(.always)
     return StarXpandCommand.Printer.TextParameter().setWidth(width, widthParameter)
+  }
+
+  private func wrapColumnText(_ text: String, width: Int) -> [String] {
+    let safeWidth = max(1, width)
+    guard !text.isEmpty else {
+      return [""]
+    }
+
+    var lines: [String] = []
+    var current = ""
+    var currentWidth = 0
+
+    for character in text {
+      let characterWidth = printColumnWidth(character)
+      if !current.isEmpty && currentWidth + characterWidth > safeWidth {
+        lines.append(current)
+        current = ""
+        currentWidth = 0
+      }
+      current.append(character)
+      currentWidth += characterWidth
+    }
+
+    if !current.isEmpty {
+      lines.append(current)
+    }
+    return lines.isEmpty ? [""] : lines
+  }
+
+  private func printColumnWidth(_ character: Character) -> Int {
+    if character.unicodeScalars.allSatisfy({ $0.properties.generalCategory == .nonspacingMark }) {
+      return 0
+    }
+    if character.unicodeScalars.contains(where: { isDoubleWidth($0.value) }) {
+      return 2
+    }
+    return 1
+  }
+
+  private func isDoubleWidth(_ scalar: UInt32) -> Bool {
+    switch scalar {
+    case 0x1100...0x11FF,
+         0x2E80...0xA4CF,
+         0xAC00...0xD7AF,
+         0xF900...0xFAFF,
+         0xFE10...0xFE6F,
+         0xFF00...0xFF60,
+         0x1F300...0x1FAFF:
+      return true
+    default:
+      return false
+    }
   }
 
   private func printableColumns(for paperWidthMm: Int) -> Int {

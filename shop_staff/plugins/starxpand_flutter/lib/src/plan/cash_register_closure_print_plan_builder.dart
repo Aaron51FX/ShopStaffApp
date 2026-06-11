@@ -155,7 +155,7 @@ void _addTitleValueRow(
       ReceiptPrintPlanColumn(
         text: value,
         align: ReceiptPrintPlanAlign.right,
-        flex: 1,
+        flex: 2,
       ),
     ]),
   );
