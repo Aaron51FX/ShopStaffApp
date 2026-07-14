@@ -15,7 +15,7 @@ import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/settings/app_settings_models.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
+import 'package:shop_staff/presentations/peer_link/peer_link.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_selection_page_args.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 

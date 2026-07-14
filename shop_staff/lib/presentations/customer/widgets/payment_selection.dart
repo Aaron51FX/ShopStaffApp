@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multipeer_session/multipeer_session.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
+import 'package:shop_staff/presentations/peer_link/peer_link.dart';
 
 class PaymentSelectionContent extends StatelessWidget {
   const PaymentSelectionContent({super.key, required this.payload});

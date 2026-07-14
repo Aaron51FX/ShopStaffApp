@@ -1,57 +1,17 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:multipeer_session/multipeer_session.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-enum PeerLinkStatus { idle, searching, connected, error }
-
-class PeerLinkState {
-  const PeerLinkState({
-    this.status = PeerLinkStatus.idle,
-    this.peerName,
-    this.lastError,
-    this.lastMessage,
-    this.messageSeq = 0,
-  });
-
-  final PeerLinkStatus status;
-  final String? peerName;
-  final String? lastError;
-  final PeerMessage? lastMessage;
-  final int messageSeq;
-
-  bool get isConnected => status == PeerLinkStatus.connected;
-  bool get isSearching => status == PeerLinkStatus.searching;
-  bool get hasMessage => lastMessage != null;
-
-  PeerLinkState copyWith({
-    PeerLinkStatus? status,
-    String? peerName,
-    String? lastError,
-    PeerMessage? lastMessage,
-    int? messageSeq,
-    bool clearError = false,
-    bool clearMessage = false,
-  }) {
-    return PeerLinkState(
-      status: status ?? this.status,
-      peerName: peerName ?? this.peerName,
-      lastError: clearError ? null : (lastError ?? this.lastError),
-      lastMessage: clearMessage ? null : (lastMessage ?? this.lastMessage),
-      messageSeq: messageSeq ?? this.messageSeq,
-    );
-  }
-}
+import '../state/peer_link_state.dart';
 
 class PeerLinkController extends StateNotifier<PeerLinkState> {
-  PeerLinkController({
-    required this.role,
-    this.serviceName = 'shop-staff',
-  }) : super(const PeerLinkState());
+  PeerLinkController({required this.role, this.serviceName = 'shop-staff'})
+    : super(const PeerLinkState());
 
   final PeerRole role;
   final String serviceName;
@@ -90,10 +50,8 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
 
       if (sdkInt >= 33) {
         permissionsToRequest.add(Permission.nearbyWifiDevices);
-        // Some devices still require coarse location in addition to Nearby.
         permissionsToRequest.add(Permission.locationWhenInUse);
       } else {
-        // Pre-Android 13 typically still needs location for Nearby discovery.
         permissionsToRequest.add(Permission.locationWhenInUse);
       }
 
@@ -108,9 +66,9 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
       };
 
       final denied = <Permission>[];
-      for (final p in required) {
-        final status = results[p] ?? await p.status;
-        if (!status.isGranted) denied.add(p);
+      for (final permission in required) {
+        final status = results[permission] ?? await permission.status;
+        if (!status.isGranted) denied.add(permission);
       }
 
       if (denied.isNotEmpty) {
@@ -122,8 +80,11 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
       }
 
       return true;
-    } catch (e) {
-      state = state.copyWith(status: PeerLinkStatus.error, lastError: '权限检查失败: $e');
+    } catch (error) {
+      state = state.copyWith(
+        status: PeerLinkStatus.error,
+        lastError: '权限检查失败: $error',
+      );
       return false;
     }
   }
@@ -149,10 +110,7 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
         clearError: true,
       );
     } else if (event is PeerDisconnected) {
-      state = state.copyWith(
-        status: PeerLinkStatus.searching,
-        peerName: null,
-      );
+      state = state.copyWith(status: PeerLinkStatus.searching, peerName: null);
     } else if (event is PeerError) {
       debugPrint('Peer error: ${event.message}');
       state = state.copyWith(
@@ -162,7 +120,10 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
     } else if (event is PeerMessageEvent) {
       final msg = event.message;
       if (msg.type == 'reset_display') {
-        state = state.copyWith(clearMessage: true, messageSeq: state.messageSeq + 1);
+        state = state.copyWith(
+          clearMessage: true,
+          messageSeq: state.messageSeq + 1,
+        );
         return;
       }
       state = state.copyWith(
@@ -180,7 +141,10 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
   }
 
   void clearLocalMessage() {
-    state = state.copyWith(clearMessage: true, messageSeq: state.messageSeq + 1);
+    state = state.copyWith(
+      clearMessage: true,
+      messageSeq: state.messageSeq + 1,
+    );
   }
 
   @override
@@ -189,13 +153,3 @@ class PeerLinkController extends StateNotifier<PeerLinkState> {
     super.dispose();
   }
 }
-
-final peerLinkControllerProvider =
-    StateNotifierProvider<PeerLinkController, PeerLinkState>((ref) {
-  return PeerLinkController(role: PeerRole.staff, serviceName: 'shop-staff');
-});
-
-final customerPeerLinkControllerProvider =
-    StateNotifierProvider<PeerLinkController, PeerLinkState>((ref) {
-  return PeerLinkController(role: PeerRole.customer, serviceName: 'shop-staff');
-});

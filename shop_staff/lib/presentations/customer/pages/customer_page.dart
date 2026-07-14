@@ -16,7 +16,7 @@ import 'package:shop_staff/presentations/customer/widgets/unknown_content.dart';
 
 import '../../../core/app_role.dart';
 import '../../../data/providers.dart';
-import '../../entry/viewmodels/peer_link_controller.dart';
+import '../../peer_link/peer_link.dart';
 
 class CustomerPage extends ConsumerStatefulWidget {
   const CustomerPage({super.key});

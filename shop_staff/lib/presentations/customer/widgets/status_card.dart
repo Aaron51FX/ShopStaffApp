@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
+import 'package:shop_staff/presentations/peer_link/peer_link.dart';
 
 class StatusCard extends StatelessWidget {
   const StatusCard({super.key, required this.state});

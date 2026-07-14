@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
-import '../../entry/viewmodels/entry_viewmodels.dart';
+import '../../cash_machine/cash_machine_check.dart';
 
 class CashMachineCheckDialog extends StatelessWidget {
   const CashMachineCheckDialog({
@@ -70,13 +70,13 @@ class CashMachineCheckDialog extends StatelessWidget {
               const SizedBox(height: 12),
               Text(t.cashMachineStepsChecking,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                   )),
             ] else ...[
               Text(
                 t.cashMachineStepsFailure,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
               ),
             ],

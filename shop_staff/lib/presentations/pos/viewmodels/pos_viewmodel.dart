@@ -14,7 +14,7 @@ import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_selection_page_args.dart';
-import 'package:shop_staff/presentations/entry/viewmodels/peer_link_controller.dart';
+import 'package:shop_staff/presentations/peer_link/peer_link.dart';
 import 'pos_state.dart';
 
 import 'pos_effect.dart';

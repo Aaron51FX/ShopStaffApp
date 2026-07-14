@@ -16,7 +16,7 @@ import '../providers/settings_providers.dart';
 import '../state/settings_state.dart';
 import '../../../core/localization/locale_providers.dart';
 import '../../cash_machine/widgets/cash_machine_check_dialog.dart';
-import '../../entry/viewmodels/entry_viewmodels.dart';
+import '../../cash_machine/cash_machine_check.dart';
 import 'package:shop_staff/presentations/cash_register_closure/pages/cash_register_closure_route_args.dart';
 
 part '../sections/business_info/business_info_section.dart';
