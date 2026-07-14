@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 class CategoryGridContent extends StatelessWidget {
@@ -8,7 +7,8 @@ class CategoryGridContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = (payload['categories'] as List?)
+    final items =
+        (payload['categories'] as List?)
             ?.whereType<Map>()
             .map((e) => e.cast<String, dynamic>())
             .toList() ??
@@ -18,7 +18,11 @@ class CategoryGridContent extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
-          BoxShadow(color: Color(0x33000000), blurRadius: 24, offset: Offset(0, 18)),
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 24,
+            offset: Offset(0, 18),
+          ),
         ],
       ),
       padding: const EdgeInsets.all(18),
@@ -57,7 +61,11 @@ class _CategoryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
         boxShadow: const [
-          BoxShadow(color: Color(0x22000000), blurRadius: 10, offset: Offset(0, 6)),
+          BoxShadow(
+            color: Color(0x22000000),
+            blurRadius: 10,
+            offset: Offset(0, 6),
+          ),
         ],
       ),
       child: Column(
@@ -92,16 +100,12 @@ class _CategoryCard extends StatelessWidget {
       child: Image.network(
         url,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _placeholder(icon: Icons.broken_image_outlined),
+        errorBuilder: (_, __, ___) =>
+            _placeholder(icon: Icons.broken_image_outlined),
       ),
     );
   }
 
-  Widget _placeholder({IconData icon = Icons.image_outlined}) => Container(
-        // decoration: BoxDecoration(
-        //   color: Colors.grey.shade100,
-        //   borderRadius: BorderRadius.circular(12),
-        // ),
-        child: Icon(icon, size: 32, color: Colors.grey.shade400),
-      );
+  Widget _placeholder({IconData icon = Icons.image_outlined}) =>
+      Icon(icon, size: 32, color: Colors.grey.shade400);
 }

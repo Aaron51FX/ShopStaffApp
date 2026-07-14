@@ -1,9 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
-class UnknownContent extends StatelessWidget {
-  const UnknownContent({super.key, required this.type});
+class UnknownMessageContent extends StatelessWidget {
+  const UnknownMessageContent({super.key, required this.type});
   final String type;
   @override
   Widget build(BuildContext context) {

@@ -1,50 +1,41 @@
-
-
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:multipeer_session/multipeer_session.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/peer_link/peer_link.dart';
+
+typedef PaymentOptionSelected =
+    Future<void> Function(Map<String, dynamic> option);
 
 class PaymentSelectionContent extends StatelessWidget {
-  const PaymentSelectionContent({super.key, required this.payload});
+  const PaymentSelectionContent({
+    required this.payload,
+    required this.onSelected,
+    super.key,
+  });
 
   final Map<String, dynamic> payload;
+  final PaymentOptionSelected onSelected;
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final orderNumber = (payload['orderNumber'] as num?)?.toInt() ?? 0;
     final total = (payload['total'] as num?)?.toDouble() ?? 0;
-    final options = (payload['options'] as List?)
+    final options =
+        (payload['options'] as List?)
             ?.whereType<Map>()
             .map((e) => e.cast<String, dynamic>())
             .toList() ??
         const [];
-
-    final controller = ProviderScope.containerOf(context, listen: false)
-        .read(customerPeerLinkControllerProvider.notifier);
-
-    void sendChoice(Map<String, dynamic> opt) {
-      controller.clearLocalMessage();
-      controller.sendMessage(
-        PeerMessage(
-          type: 'payment_choice',
-          payload: {
-            'group': opt['group'],
-            'code': opt['code'],
-            'label': opt['label'],
-          },
-        ),
-      );
-    }
 
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
-          BoxShadow(color: Color(0x33000000), blurRadius: 20, offset: Offset(0, 14)),
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 20,
+            offset: Offset(0, 14),
+          ),
         ],
       ),
       padding: const EdgeInsets.all(18),
@@ -53,9 +44,22 @@ class PaymentSelectionContent extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(t.customerOrderNumberTitle(orderNumber), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(
+                t.customerOrderNumberTitle(orderNumber),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               const Spacer(),
-              Text(t.customerTotalDueWithAmount(total.toStringAsFixed(2)), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFFEF4444))),
+              Text(
+                t.customerTotalDueWithAmount(total.toStringAsFixed(2)),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFEF4444),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -83,22 +87,34 @@ class PaymentSelectionContent extends StatelessWidget {
                 return Opacity(
                   opacity: enabled ? 1 : 0.35,
                   child: InkWell(
-                    onTap: enabled ? () => sendChoice(opt) : null,
+                    onTap: enabled ? () => onSelected(opt) : null,
                     borderRadius: BorderRadius.circular(16),
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
+                        border: Border.all(
+                          color: Colors.black.withValues(alpha: 0.06),
+                        ),
                         boxShadow: const [
-                          BoxShadow(color: Color(0x22000000), blurRadius: 12, offset: Offset(0, 8)),
+                          BoxShadow(
+                            color: Color(0x22000000),
+                            blurRadius: 12,
+                            offset: Offset(0, 8),
+                          ),
                         ],
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(icon, size: 36, color: enabled ? const Color(0xFF0EA5E9) : Colors.grey),
+                          Icon(
+                            icon,
+                            size: 36,
+                            color: enabled
+                                ? const Color(0xFF0EA5E9)
+                                : Colors.grey,
+                          ),
                           const SizedBox(height: 12),
                           Text(
                             label,
@@ -110,8 +126,15 @@ class PaymentSelectionContent extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            enabled ? t.customerPaymentChoiceTapToSelect : t.customerPaymentChoiceUnavailable,
-                            style: TextStyle(fontSize: 12, color: enabled ? Colors.grey.shade600 : Colors.grey.shade500),
+                            enabled
+                                ? t.customerPaymentChoiceTapToSelect
+                                : t.customerPaymentChoiceUnavailable,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: enabled
+                                  ? Colors.grey.shade600
+                                  : Colors.grey.shade500,
+                            ),
                           ),
                         ],
                       ),

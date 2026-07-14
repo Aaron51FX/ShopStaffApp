@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
@@ -17,7 +15,8 @@ class CartContent extends StatelessWidget {
     final subtotal = (payload['subtotal'] as num?)?.toDouble() ?? 0;
     final discount = (payload['discount'] as num?)?.toDouble() ?? 0;
     final total = (payload['total'] as num?)?.toDouble() ?? 0;
-    final items = (payload['items'] as List?)
+    final items =
+        (payload['items'] as List?)
             ?.whereType<Map>()
             .map((e) => e.cast<String, dynamic>())
             .toList() ??
@@ -28,7 +27,11 @@ class CartContent extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
-          BoxShadow(color: Color(0x33000000), blurRadius: 20, offset: Offset(0, 14)),
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 20,
+            offset: Offset(0, 14),
+          ),
         ],
       ),
       padding: const EdgeInsets.all(18),
@@ -37,19 +40,34 @@ class CartContent extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(t.customerOrderNumberTitle(orderNumber), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              Text(
+                t.customerOrderNumberTitle(orderNumber),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               const SizedBox(width: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: orderMode == 'take_out' ? const Color(0xFFFFEDD5) : const Color(0xFFE0F2FE),
+                  color: orderMode == 'take_out'
+                      ? const Color(0xFFFFEDD5)
+                      : const Color(0xFFE0F2FE),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  orderMode == 'take_out' ? t.posOrderModeTakeout : t.posOrderModeDineIn,
+                  orderMode == 'take_out'
+                      ? t.posOrderModeTakeout
+                      : t.posOrderModeDineIn,
                   style: TextStyle(
                     fontSize: 18,
-                    color: orderMode == 'take_out' ? const Color(0xFFF97316) : const Color(0xFF0284C7),
+                    color: orderMode == 'take_out'
+                        ? const Color(0xFFF97316)
+                        : const Color(0xFF0284C7),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -67,9 +85,12 @@ class CartContent extends StatelessWidget {
                       final item = items[index];
                       final name = (item['name'] ?? '') as String? ?? '';
                       final qty = (item['quantity'] as num?)?.toInt() ?? 0;
-                      final unitPrice = (item['unitPrice'] as num?)?.toDouble() ?? 0;
-                      final lineTotal = (item['lineTotal'] as num?)?.toDouble() ?? 0;
-                      final opts = (item['options'] as List?)
+                      final unitPrice =
+                          (item['unitPrice'] as num?)?.toDouble() ?? 0;
+                      final lineTotal =
+                          (item['lineTotal'] as num?)?.toDouble() ?? 0;
+                      final opts =
+                          (item['options'] as List?)
                               ?.whereType<Map>()
                               .map((e) => e.cast<String, dynamic>())
                               .toList() ??
@@ -77,16 +98,23 @@ class CartContent extends StatelessWidget {
                       final optionText = opts.isEmpty
                           ? ''
                           : opts
-                              .map((o) {
-                                final g = (o['groupName'] ?? '') as String? ?? '';
-                                final n = (o['optionName'] ?? '') as String? ?? '';
-                                final q = (o['quantity'] as num?)?.toInt() ?? 0;
-                                final extra = (o['extraPrice'] as num?)?.toDouble() ?? 0;
-                                final extraLabel = extra == 0 ? '' : '+¥${extra.toStringAsFixed(0)}';
-                                final qtyLabel = q > 1 ? ' x$q' : '';
-                                return '$g: $n$qtyLabel $extraLabel'.trim();
-                              })
-                              .join(' · ');
+                                .map((o) {
+                                  final g =
+                                      (o['groupName'] ?? '') as String? ?? '';
+                                  final n =
+                                      (o['optionName'] ?? '') as String? ?? '';
+                                  final q =
+                                      (o['quantity'] as num?)?.toInt() ?? 0;
+                                  final extra =
+                                      (o['extraPrice'] as num?)?.toDouble() ??
+                                      0;
+                                  final extraLabel = extra == 0
+                                      ? ''
+                                      : '+¥${extra.toStringAsFixed(0)}';
+                                  final qtyLabel = q > 1 ? ' x$q' : '';
+                                  return '$g: $n$qtyLabel $extraLabel'.trim();
+                                })
+                                .join(' · ');
 
                       return Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,15 +123,33 @@ class CartContent extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+                                Text(
+                                  name,
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                                 if (optionText.isNotEmpty)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 6.0),
-                                    child: Text(optionText, style: const TextStyle(color: AppColors.stone500, fontSize: 16)),
+                                    child: Text(
+                                      optionText,
+                                      style: const TextStyle(
+                                        color: AppColors.stone500,
+                                        fontSize: 16,
+                                      ),
+                                    ),
                                   ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 6.0),
-                                  child: Text('${t.commonUnitPriceLabel} ¥${unitPrice.toStringAsFixed(2)}', style: const TextStyle(color: AppColors.amberPrimary, fontSize: 16)),
+                                  child: Text(
+                                    '${t.commonUnitPriceLabel} ¥${unitPrice.toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      color: AppColors.amberPrimary,
+                                      fontSize: 16,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -111,11 +157,22 @@ class CartContent extends StatelessWidget {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('x$qty', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
+                              Text(
+                                'x$qty',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 20,
+                                ),
+                              ),
                               const SizedBox(height: 6),
                               Text(
                                 '¥${lineTotal.toStringAsFixed(2)}',
-                                style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.amberPrimary),
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 18,
+                                  color: AppColors.amberPrimary,
+                                ),
                               ),
                             ],
                           ),
@@ -126,9 +183,17 @@ class CartContent extends StatelessWidget {
           ),
           const Divider(height: 20),
           _SummaryLine(label: t.posSubtotalLabel, value: subtotal),
-          _SummaryLine(label: t.posDiscountLabel, value: -discount, muted: true),
+          _SummaryLine(
+            label: t.posDiscountLabel,
+            value: -discount,
+            muted: true,
+          ),
           const SizedBox(height: 6),
-          _SummaryLine(label: t.posTotalDueLabel, value: total, emphasized: true),
+          _SummaryLine(
+            label: t.posTotalDueLabel,
+            value: total,
+            emphasized: true,
+          ),
         ],
       ),
     );
@@ -140,7 +205,12 @@ class _SummaryLine extends StatelessWidget {
   final double value;
   final bool emphasized;
   final bool muted;
-  const _SummaryLine({required this.label, required this.value, this.emphasized = false, this.muted = false});
+  const _SummaryLine({
+    required this.label,
+    required this.value,
+    this.emphasized = false,
+    this.muted = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +225,9 @@ class _SummaryLine extends StatelessWidget {
         const Spacer(),
         Text(
           '¥${value.toStringAsFixed(2)}',
-          style: style.copyWith(color: emphasized ? const Color(0xFFEF4444) : style.color),
+          style: style.copyWith(
+            color: emphasized ? const Color(0xFFEF4444) : style.color,
+          ),
         ),
       ],
     );

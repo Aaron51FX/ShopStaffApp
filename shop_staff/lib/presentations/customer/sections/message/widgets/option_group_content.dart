@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
@@ -15,7 +14,8 @@ class OptionGroupContent extends StatelessWidget {
     final multiple = payload['multiple'] as bool? ?? false;
     final minSelect = (payload['minSelect'] as num?)?.toInt();
     final maxSelect = (payload['maxSelect'] as num?)?.toInt();
-    final options = (payload['options'] as List?)
+    final options =
+        (payload['options'] as List?)
             ?.whereType<Map>()
             .map((e) => e.cast<String, dynamic>())
             .toList() ??
@@ -79,14 +79,22 @@ class OptionGroupContent extends StatelessWidget {
                   children: [
                     Text(
                       groupName,
-                      style: const TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 0.3),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 6),
                     Text(
                       subtitle,
-                      style: TextStyle(color: Colors.white.withOpacity(0.7), fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -105,7 +113,9 @@ class OptionGroupContent extends StatelessWidget {
                         final name = (opt['optionName'] ?? '') as String? ?? '';
                         final selected = opt['selected'] as bool? ?? false;
                         final qty = (opt['quantity'] as num?)?.toInt() ?? 0;
-                        final extra = ((opt['extraPrice'] as num?)?.toDouble() ?? 0) * qty;
+                        final extra =
+                            ((opt['extraPrice'] as num?)?.toDouble() ?? 0) *
+                            qty;
                         final hasQty = qty > 0;
 
                         final gradient = selected
@@ -115,17 +125,23 @@ class OptionGroupContent extends StatelessWidget {
                                 end: Alignment.bottomRight,
                               )
                             : LinearGradient(
-                                colors: [Colors.white.withOpacity(0.82), Colors.white.withOpacity(0.66)],
+                                colors: [
+                                  Colors.white.withValues(alpha: 0.82),
+                                  Colors.white.withValues(alpha: 0.66),
+                                ],
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                               );
 
                         final borderColor = selected
-                            ? Colors.white.withOpacity(0.42)
-                            : Colors.black.withOpacity(0.06);
+                            ? Colors.white.withValues(alpha: 0.42)
+                            : Colors.black.withValues(alpha: 0.06);
 
                         return ConstrainedBox(
-                          constraints: const BoxConstraints(minWidth: 180, maxWidth: 240),
+                          constraints: const BoxConstraints(
+                            minWidth: 180,
+                            maxWidth: 240,
+                          ),
                           child: Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
@@ -140,7 +156,9 @@ class OptionGroupContent extends StatelessWidget {
                                 Row(
                                   children: [
                                     Icon(
-                                      selected ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+                                      selected
+                                          ? Icons.check_circle_rounded
+                                          : Icons.radio_button_unchecked,
                                       color: selected ? Colors.white : accent,
                                       size: 18,
                                     ),
@@ -151,7 +169,9 @@ class OptionGroupContent extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 15,
                                           fontWeight: FontWeight.w800,
-                                          color: selected ? Colors.white : Colors.black87,
+                                          color: selected
+                                              ? Colors.white
+                                              : Colors.black87,
                                         ),
                                       ),
                                     ),
@@ -161,9 +181,18 @@ class OptionGroupContent extends StatelessWidget {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: selected ? Colors.white.withOpacity(0.18) : Colors.black.withOpacity(0.04),
+                                        color: selected
+                                            ? Colors.white.withValues(
+                                                alpha: 0.18,
+                                              )
+                                            : Colors.black.withValues(
+                                                alpha: 0.04,
+                                              ),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: Text(
@@ -171,7 +200,9 @@ class OptionGroupContent extends StatelessWidget {
                                             ? t.optionGroupSelected
                                             : t.optionGroupNotSelected,
                                         style: TextStyle(
-                                          color: selected ? Colors.white : Colors.black54,
+                                          color: selected
+                                              ? Colors.white
+                                              : Colors.black54,
                                           fontWeight: FontWeight.w700,
                                           fontSize: 12,
                                         ),
@@ -180,15 +211,28 @@ class OptionGroupContent extends StatelessWidget {
                                     const SizedBox(width: 10),
                                     if (hasQty)
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
                                         decoration: BoxDecoration(
-                                          color: selected ? Colors.white.withOpacity(0.18) : Colors.black.withOpacity(0.04),
-                                          borderRadius: BorderRadius.circular(16),
+                                          color: selected
+                                              ? Colors.white.withValues(
+                                                  alpha: 0.18,
+                                                )
+                                              : Colors.black.withValues(
+                                                  alpha: 0.04,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                         ),
                                         child: Text(
                                           'x$qty',
                                           style: TextStyle(
-                                            color: selected ? Colors.white : Colors.black87,
+                                            color: selected
+                                                ? Colors.white
+                                                : Colors.black87,
                                             fontWeight: FontWeight.w700,
                                             fontSize: 12,
                                           ),
@@ -199,7 +243,9 @@ class OptionGroupContent extends StatelessWidget {
                                       Text(
                                         '+¥${extra.toStringAsFixed(0)}',
                                         style: TextStyle(
-                                          color: selected ? Colors.white : accent,
+                                          color: selected
+                                              ? Colors.white
+                                              : accent,
                                           fontWeight: FontWeight.w800,
                                           fontSize: 13,
                                         ),
