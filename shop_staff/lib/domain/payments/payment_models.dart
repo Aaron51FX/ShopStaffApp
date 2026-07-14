@@ -33,6 +33,8 @@ enum PaymentStatusType {
   pending,
   waitingForUser,
   processing,
+  indeterminate,
+  reconciling,
   success,
   failure,
   cancelled,
@@ -45,6 +47,9 @@ abstract class PaymentMessageKeys {
   static const String statusPending = 'payment_status_pending';
   static const String statusWaitingUser = 'payment_status_waiting_user';
   static const String statusProcessing = 'payment_status_processing';
+  static const String statusIndeterminate = 'payment_status_indeterminate';
+  static const String statusReconciling = 'payment_status_reconciling';
+  static const String resultIndeterminate = 'payment_result_indeterminate';
   static const String statusSuccess = 'payment_status_success';
   static const String statusFailure = 'payment_status_failure';
   static const String statusCancelled = 'payment_status_cancelled';
@@ -105,6 +110,9 @@ abstract class PaymentMessageKeys {
   static const String posTerminalDone = 'payment_pos_terminal_done';
   static const String posTerminalCancelled = 'payment_pos_terminal_cancelled';
   static const String posTimeout = 'payment_pos_timeout';
+  static const String posResultIndeterminate =
+      'payment_pos_result_indeterminate';
+  static const String posReconciling = 'payment_pos_reconciling';
   static const String posReportResult = 'payment_pos_report_result';
   static const String posPaymentSuccess = 'payment_pos_payment_success';
   static const String posResultHandleFailed =
@@ -151,6 +159,7 @@ enum PaymentPhase {
   sending,
   waitingUser,
   waitingTerminalResult,
+  reconciling,
   confirming,
 }
 
@@ -214,6 +223,8 @@ class PaymentStatus {
     this.errorType,
     this.retryable,
     this.phase,
+    this.certainty,
+    this.recovery,
   });
 
   final PaymentStatusType type;
@@ -224,6 +235,8 @@ class PaymentStatus {
   final PaymentErrorType? errorType;
   final bool? retryable;
   final PaymentPhase? phase;
+  final PaymentOutcomeCertainty? certainty;
+  final PaymentRecovery? recovery;
 
   bool get isTerminal =>
       type == PaymentStatusType.success ||
@@ -311,6 +324,37 @@ class PaymentResult {
     );
   }
 
+  factory PaymentResult.indeterminate({
+    String? message,
+    String? messageKey,
+    Map<String, dynamic>? messageArgs,
+    String? errorCode,
+    Map<String, dynamic>? payload,
+    PaymentErrorType errorType = PaymentErrorType.unknown,
+    PaymentRecovery recovery = PaymentRecovery.reconcileResult,
+  }) {
+    return PaymentResult(
+      status: PaymentStatusType.indeterminate,
+      success: false,
+      message: message,
+      messageKey: messageKey,
+      messageArgs: messageArgs,
+      errorCode: errorCode,
+      payload: payload,
+      errorType: errorType,
+      retryable: false,
+      failure: PaymentFailure(
+        code: errorCode,
+        type: errorType,
+        messageKey: messageKey,
+        recovery: recovery,
+        certainty: PaymentOutcomeCertainty.indeterminate,
+        retryable: false,
+        details: payload,
+      ),
+    );
+  }
+
   factory PaymentResult.cancelled({
     String? message,
     String? messageKey,
@@ -381,12 +425,14 @@ class PaymentFlowRun {
     required this.result,
     required this.cancel,
     this.finalize,
+    this.reconcile,
   });
 
   final Stream<PaymentStatus> statuses;
   final Future<PaymentResult> result;
   final Future<void> Function() cancel;
   final Future<void> Function()? finalize;
+  final Future<void> Function()? reconcile;
 }
 
 /// Base contract that every payment flow must implement.

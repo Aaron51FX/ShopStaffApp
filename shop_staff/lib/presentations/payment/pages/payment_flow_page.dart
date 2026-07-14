@@ -304,6 +304,8 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
                 state: state,
                 args: args,
                 onRetry: () => ref.read(provider.notifier).retryPayment(),
+                onReconcile: () =>
+                    ref.read(provider.notifier).reconcilePayment(),
                 onOpenSettings: () => context.go('/settings'),
                 onNetworkHelp: () {
                   final t = AppLocalizations.of(context);
@@ -402,7 +404,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
     }
   }
 
-  CashAmountSnapshot? _extractCashAmount(PaymentFlowState state) {
+  CashAmountSnapshot? _extractCashAmount(PaymentSessionState state) {
     final receiptAmount = state.pendingReceipt?['acceptedAmount'];
     if (receiptAmount is num) {
       return CashAmountSnapshot(amount: receiptAmount, isFinal: false);

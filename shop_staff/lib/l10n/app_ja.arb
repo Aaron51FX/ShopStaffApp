@@ -416,6 +416,9 @@
   "paymentStatusPending": "待機中",
   "paymentStatusWaitingUser": "お客様の操作待ち",
   "paymentStatusProcessing": "処理中",
+  "paymentStatusIndeterminate": "決済結果が未確定です",
+  "paymentStatusReconciling": "決済結果を確認中",
+  "paymentResultIndeterminate": "最終的な決済結果を確認できていません。結果確認が完了するまで再決済しないでください。",
   "paymentStatusSuccess": "支払い成功",
   "paymentStatusFailure": "支払い失敗",
   "paymentStatusCancelled": "支払いキャンセル",
@@ -529,6 +532,7 @@
     }
   },
   "paymentActionConfirming": "確認中…",
+  "paymentActionReconcile": "決済結果を確認",
   "paymentCashDrawerCloseReminderTitle": "ドロアを閉じてください",
   "paymentCashDrawerCloseReminderMessage": "現金会計の確認後は、ドロアを閉じると取引が自動で完了します。",
   "paymentActionCancel": "支払い取消",
@@ -562,6 +566,8 @@
     }
   },
   "paymentPosTimeout": "POS接続がタイムアウトしました",
+  "paymentPosResultIndeterminate": "POS端末の最終結果を確認できていません。結果確認が完了するまで再決済しないでください。",
+  "paymentPosReconciling": "POS端末の最終結果を待っています…",
   "paymentPosReportResult": "決済結果を送信中",
   "paymentPosPaymentSuccess": "支払い成功",
   "paymentPosResultHandleFailed": "POS決済結果の処理に失敗しました：{detail}",

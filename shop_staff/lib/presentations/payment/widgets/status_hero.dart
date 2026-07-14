@@ -10,13 +10,15 @@ class StatusHero extends StatelessWidget {
     required this.state,
     required this.args,
     this.onRetry,
+    this.onReconcile,
     this.onOpenSettings,
     this.onNetworkHelp,
   });
 
-  final PaymentFlowState state;
+  final PaymentSessionState state;
   final PaymentFlowPageArgs args;
   final VoidCallback? onRetry;
+  final VoidCallback? onReconcile;
   final VoidCallback? onOpenSettings;
   final VoidCallback? onNetworkHelp;
 
@@ -44,11 +46,10 @@ class StatusHero extends StatelessWidget {
     final color = hasError
         ? Colors.redAccent
         : _colorForStatus(theme, current?.type, effectiveResult);
-    final showRetry = _shouldShowRetry(state, retryable) && onRetry != null;
-    final showConfigAction =
-        effectiveErrorType == PaymentErrorType.config && onOpenSettings != null;
-    final showNetworkAction =
-        effectiveErrorType == PaymentErrorType.network && onNetworkHelp != null;
+    final showRetry = state.canRetry && retryable && onRetry != null;
+    final showReconcile = state.canReconcile && onReconcile != null;
+    final showConfigAction = state.canOpenSettings && onOpenSettings != null;
+    final showNetworkAction = state.canCheckNetwork && onNetworkHelp != null;
     final errorHint = _errorHintForType(
       t,
       effectiveErrorType,
@@ -101,7 +102,10 @@ class StatusHero extends StatelessWidget {
               ],
             ),
           ),
-          if (showRetry || showConfigAction || showNetworkAction) ...[
+          if (showRetry ||
+              showReconcile ||
+              showConfigAction ||
+              showNetworkAction) ...[
             const SizedBox(width: 12),
             Column(
               mainAxisSize: MainAxisSize.min,
@@ -112,6 +116,15 @@ class StatusHero extends StatelessWidget {
                     icon: const Icon(Icons.refresh_rounded, size: 20),
                     label: Text(
                       _retryLabelForType(t, effectiveErrorType),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                if (showReconcile)
+                  TextButton.icon(
+                    onPressed: onReconcile,
+                    icon: const Icon(Icons.manage_search_rounded, size: 20),
+                    label: Text(
+                      t.paymentActionReconcile,
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),
@@ -157,6 +170,10 @@ class StatusHero extends StatelessWidget {
         return Icons.hourglass_bottom_rounded;
       case PaymentStatusType.processing:
         return Icons.sync_rounded;
+      case PaymentStatusType.indeterminate:
+        return Icons.help_rounded;
+      case PaymentStatusType.reconciling:
+        return Icons.manage_search_rounded;
       case PaymentStatusType.pending:
       case PaymentStatusType.initialized:
       default:
@@ -177,6 +194,10 @@ class StatusHero extends StatelessWidget {
         return Colors.redAccent;
       case PaymentStatusType.cancelled:
         return Colors.orange;
+      case PaymentStatusType.indeterminate:
+        return Colors.deepOrange;
+      case PaymentStatusType.reconciling:
+        return Colors.blueGrey;
       default:
         return theme.colorScheme.primary;
     }
@@ -227,21 +248,7 @@ class StatusHero extends StatelessWidget {
     }
   }
 
-  static bool _shouldShowRetry(PaymentFlowState state, bool retryable) {
-    if (state.isCancelling) return false;
-    if (state.error != null) return retryable;
-    final result = state.result?.status;
-    if (result == PaymentStatusType.failure ||
-        result == PaymentStatusType.cancelled) {
-      return retryable;
-    }
-    final currentType = state.currentStatus?.type;
-    return (currentType == PaymentStatusType.failure ||
-            currentType == PaymentStatusType.cancelled) &&
-        retryable;
-  }
-
-  static PaymentErrorType? _effectiveErrorType(PaymentFlowState state) {
+  static PaymentErrorType? _effectiveErrorType(PaymentSessionState state) {
     final explicit = state.result?.errorType ?? state.currentStatus?.errorType;
     if (explicit != null) return explicit;
     final token = _errorContextToken(state);
@@ -249,7 +256,7 @@ class StatusHero extends StatelessWidget {
     return _inferErrorTypeByToken(token);
   }
 
-  static bool _effectiveRetryable(PaymentFlowState state) {
+  static bool _effectiveRetryable(PaymentSessionState state) {
     return state.result?.retryable ?? state.currentStatus?.retryable ?? true;
   }
 
@@ -291,7 +298,7 @@ class StatusHero extends StatelessWidget {
     }
   }
 
-  static String? _errorContextToken(PaymentFlowState state) {
+  static String? _errorContextToken(PaymentSessionState state) {
     final candidates = <String?>[
       state.result?.errorCode,
       state.result?.payload?['errorCode']?.toString(),
@@ -453,6 +460,15 @@ class StatusHero extends StatelessWidget {
       case PaymentMessageKeys.statusProcessing:
         base = t.paymentStatusProcessing;
         break;
+      case PaymentMessageKeys.statusIndeterminate:
+        base = t.paymentStatusIndeterminate;
+        break;
+      case PaymentMessageKeys.statusReconciling:
+        base = t.paymentStatusReconciling;
+        break;
+      case PaymentMessageKeys.resultIndeterminate:
+        base = t.paymentResultIndeterminate;
+        break;
       case PaymentMessageKeys.statusSuccess:
         base = t.paymentStatusSuccess;
         break;
@@ -545,6 +561,12 @@ class StatusHero extends StatelessWidget {
         break;
       case PaymentMessageKeys.posTimeout:
         base = t.paymentPosTimeout;
+        break;
+      case PaymentMessageKeys.posResultIndeterminate:
+        base = t.paymentPosResultIndeterminate;
+        break;
+      case PaymentMessageKeys.posReconciling:
+        base = t.paymentPosReconciling;
         break;
       case PaymentMessageKeys.posReportResult:
         base = t.paymentPosReportResult;

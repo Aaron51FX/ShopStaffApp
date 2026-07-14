@@ -39,6 +39,10 @@ extension PaymentPhasePolicy on PaymentPhase {
         canCancel: false,
         timeoutOutcome: PaymentTimeoutOutcome.indeterminate,
       ),
+      PaymentPhase.reconciling => const PaymentStagePolicy(
+        canCancel: false,
+        timeoutOutcome: PaymentTimeoutOutcome.indeterminate,
+      ),
       PaymentPhase.confirming => const PaymentStagePolicy(
         canCancel: false,
         timeoutOutcome: PaymentTimeoutOutcome.indeterminate,

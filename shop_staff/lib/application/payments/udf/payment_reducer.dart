@@ -86,7 +86,12 @@ class PaymentReducer {
           effects.add(PaymentEffectToast(message: event.result.message ?? '支付失败', isError: true));
           break;
         case PaymentStatusType.cancelled:
-        default:
+        case PaymentStatusType.indeterminate:
+        case PaymentStatusType.reconciling:
+        case PaymentStatusType.initialized:
+        case PaymentStatusType.pending:
+        case PaymentStatusType.waitingForUser:
+        case PaymentStatusType.processing:
           break;
       }
       return PaymentReduceResult(state: next, effects: effects);
@@ -112,7 +117,14 @@ class PaymentReducer {
     return PaymentStatus(
       type: status.type,
       message: status.message,
+      messageKey: status.messageKey,
+      messageArgs: status.messageArgs,
       details: clonedDetails,
+      errorType: status.errorType,
+      retryable: status.retryable,
+      phase: status.phase,
+      certainty: status.certainty,
+      recovery: status.recovery,
     );
   }
 }

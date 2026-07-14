@@ -917,6 +917,7 @@ class LegacyPosSocketManager {
         return PaymentErrorType.network;
       case PaymentPhase.waitingUser:
       case PaymentPhase.waitingTerminalResult:
+      case PaymentPhase.reconciling:
       case PaymentPhase.confirming:
       case PaymentPhase.initializing:
         return PaymentErrorType.device;

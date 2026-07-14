@@ -1047,6 +1047,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentStatusProcessing => '处理中';
 
   @override
+  String get paymentStatusIndeterminate => '交易结果未知';
+
+  @override
+  String get paymentStatusReconciling => '正在核对交易结果';
+
+  @override
+  String get paymentResultIndeterminate => '尚未确认最终交易结果。核对完成前请勿重新发起支付。';
+
+  @override
   String get paymentStatusSuccess => '支付成功';
 
   @override
@@ -1282,6 +1291,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentActionConfirming => '正在确认…';
 
   @override
+  String get paymentActionReconcile => '核对交易结果';
+
+  @override
   String get paymentCashDrawerCloseReminderTitle => '请关闭钱箱';
 
   @override
@@ -1338,6 +1350,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get paymentPosTimeout => 'POS连接超时';
+
+  @override
+  String get paymentPosResultIndeterminate => '尚未确认POS终端的最终交易结果。核对完成前请勿重新发起支付。';
+
+  @override
+  String get paymentPosReconciling => '正在等待POS终端返回最终交易结果…';
 
   @override
   String get paymentPosReportResult => '上报支付结果';

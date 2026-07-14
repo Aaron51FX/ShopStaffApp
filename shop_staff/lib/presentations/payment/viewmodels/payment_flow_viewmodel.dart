@@ -54,14 +54,15 @@ class PaymentFlowDrawerCloseReminderEffect extends PaymentFlowEffect {
 }
 
 final paymentFlowViewModelProvider = StateNotifierProvider.autoDispose
-    .family<PaymentFlowViewModel, PaymentFlowState, PaymentFlowPageArgs>(
+    .family<PaymentFlowViewModel, PaymentSessionState, PaymentFlowPageArgs>(
       (ref, args) => PaymentFlowViewModel(ref, args),
     );
 
-class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
-  PaymentFlowViewModel(this._ref, this._args)
-    : _logger = Logger('PaymentFlowViewModel'),
-      super(const PaymentFlowState()) {
+class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
+  PaymentFlowViewModel(this._ref, PaymentFlowPageArgs args)
+    : _args = args,
+      _logger = Logger('PaymentFlowViewModel'),
+      super(PaymentSessionState(channelGroup: args.channelGroup)) {
     _start();
   }
 
@@ -145,7 +146,10 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
           pendingReceipt = null;
         }
       }
-      if (status.isTerminal || status.type == PaymentStatusType.failure) {
+      if (status.isTerminal ||
+          status.type == PaymentStatusType.failure ||
+          status.type == PaymentStatusType.indeterminate ||
+          status.type == PaymentStatusType.reconciling) {
         confirmationReady = false;
         pendingReceipt = null;
       }
@@ -191,7 +195,24 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
               );
               break;
             case PaymentStatusType.cancelled:
-            default:
+              break;
+            case PaymentStatusType.indeterminate:
+              _emit(
+                PaymentFlowToastEffect(
+                  message: result.message,
+                  messageKey:
+                      result.messageKey ??
+                      PaymentMessageKeys.resultIndeterminate,
+                  messageArgs: result.messageArgs,
+                  isError: true,
+                ),
+              );
+              break;
+            case PaymentStatusType.reconciling:
+            case PaymentStatusType.initialized:
+            case PaymentStatusType.pending:
+            case PaymentStatusType.waitingForUser:
+            case PaymentStatusType.processing:
               break;
           }
         })
@@ -220,7 +241,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   }
 
   Future<void> retryPayment() async {
-    if (_isRestarting || state.isCancelling) return;
+    if (_isRestarting || !state.canRetry) return;
     _isRestarting = true;
     final previousSessionId = state.sessionId;
     try {
@@ -228,7 +249,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
         releaseQrScanner: true,
         cancelSession: false,
       );
-      state = const PaymentFlowState();
+      state = PaymentSessionState(channelGroup: _args.channelGroup);
       final run = await _useCase.retry(
         args: _args,
         previousSessionId: previousSessionId,
@@ -240,7 +261,26 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   }
 
   void cancelPayment() {
+    if (!state.canCancel) return;
     _emit(const PaymentFlowRequestCancelConfirmEffect(destructive: true));
+  }
+
+  Future<void> reconcilePayment() async {
+    if (!state.canReconcile) return;
+    final id = state.sessionId;
+    if (id == null) return;
+    try {
+      await _useCase.reconcile(id);
+    } catch (error, stack) {
+      _logger.warning('Reconcile payment failed', error, stack);
+      _emit(
+        PaymentFlowToastEffect(
+          messageKey: PaymentMessageKeys.resultIndeterminate,
+          messageArgs: {'detail': error.toString()},
+          isError: true,
+        ),
+      );
+    }
   }
 
   Future<void> confirmCancelPayment() async {
@@ -315,13 +355,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
   }
 
   Future<void> confirmManualPayment() async {
-    if (!state.requiresManualCompletion ||
-        !state.confirmationReady ||
-        state.isConfirming ||
-        state.isCancelling ||
-        state.isFinished) {
-      return;
-    }
+    if (!state.canConfirmManual) return;
     final id = state.sessionId;
     if (id == null) return;
     state = state.copyWith(isConfirming: true);
@@ -345,7 +379,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
 
   Future<void> _cancelPayment() async {
     final id = state.sessionId;
-    if (id == null || state.isCancelling || state.isFinished) return;
+    if (id == null || !state.canCancel) return;
     state = state.copyWith(
       isCancelling: true,
       cancelDialog: CancelDialogState.loading(null),
@@ -470,13 +504,15 @@ class PaymentFlowViewModel extends StateNotifier<PaymentFlowState> {
       errorType: status.errorType,
       retryable: status.retryable,
       phase: status.phase,
+      certainty: status.certainty,
+      recovery: status.recovery,
     );
   }
 
   Future<void> _teardownActiveSession({
     bool releaseQrScanner = false,
     bool cancelSession = true,
-    PaymentFlowState? snapshot,
+    PaymentSessionState? snapshot,
   }) async {
     await _statusSubscription?.cancel();
     _statusSubscription = null;

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
-import 'package:shop_staff/domain/payments/payment_stage_policy.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_state.dart';
@@ -15,7 +14,7 @@ class BottomActionBar extends StatelessWidget {
     required this.confirm,
   });
 
-  final PaymentFlowState state;
+  final PaymentSessionState state;
   final PaymentFlowPageArgs args;
   final VoidCallback cancel;
   final VoidCallback confirm;
@@ -25,7 +24,6 @@ class BottomActionBar extends StatelessWidget {
     final padding = MediaQuery.of(context).padding;
     final isCash = args.channelGroup == PaymentChannels.cash;
     final t = AppLocalizations.of(context);
-    final canCancel = _canCancel(state, args);
     if (state.canExit) {
       final isSuccess = state.result?.status == PaymentStatusType.success;
       final label = isSuccess
@@ -42,9 +40,7 @@ class BottomActionBar extends StatelessWidget {
     }
 
     if (isCash &&
-        state.requiresManualCompletion &&
-        state.confirmationReady &&
-        !state.isFinished) {
+        state.canConfirmManual) {
       final receipt = state.pendingReceipt;
       final amount = receipt?['acceptedAmount'];
       final formattedAmount = amount is num ? amount.toInt() : null;
@@ -70,7 +66,7 @@ class BottomActionBar extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 12, 24, 12 + padding.bottom),
       child: ElevatedButton.icon(
-        onPressed: (state.isCancelling || !canCancel) ? null : cancel,
+        onPressed: state.canCancel ? cancel : null,
         icon: state.isCancelling
             ? const SizedBox(
                 width: 18,
@@ -88,37 +84,4 @@ class BottomActionBar extends StatelessWidget {
     );
   }
 
-  static bool _canCancel(PaymentFlowState state, PaymentFlowPageArgs args) {
-    if (state.isCancelling) return false;
-    if (args.channelGroup != PaymentChannels.card &&
-        args.channelGroup != PaymentChannels.qr &&
-        args.channelGroup != PaymentChannels.cash) {
-      return true;
-    }
-    if (!state.hasStarted) return true;
-    if (state.error != null) return true;
-    final result = state.result?.status;
-    if (result == PaymentStatusType.failure ||
-        result == PaymentStatusType.cancelled) {
-      return true;
-    }
-    final current = state.currentStatus?.type;
-    if (current == PaymentStatusType.failure ||
-        current == PaymentStatusType.cancelled) {
-      return true;
-    }
-    if (current == PaymentStatusType.initialized) return true;
-
-    final phase = state.currentStatus?.phase;
-    if (phase != null) {
-      return phase.policy.canCancel;
-    }
-
-    if (args.channelGroup == PaymentChannels.cash) {
-      return current == PaymentStatusType.waitingForUser;
-    }
-
-    // Fallback for POS: allow cancel only when waiting for user action.
-    return current == PaymentStatusType.waitingForUser;
-  }
 }

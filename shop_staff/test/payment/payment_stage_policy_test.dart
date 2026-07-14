@@ -12,6 +12,7 @@ void main() {
       expect(PaymentPhase.sending.policy.canCancel, isFalse);
       expect(PaymentPhase.waitingTerminalResult.policy.canCancel, isFalse);
       expect(PaymentPhase.confirming.policy.canCancel, isFalse);
+      expect(PaymentPhase.reconciling.policy.canCancel, isFalse);
     });
 
     test('post-dispatch timeouts are indeterminate', () {
@@ -25,6 +26,10 @@ void main() {
       );
       expect(
         PaymentPhase.confirming.policy.timeoutOutcome,
+        PaymentTimeoutOutcome.indeterminate,
+      );
+      expect(
+        PaymentPhase.reconciling.policy.timeoutOutcome,
         PaymentTimeoutOutcome.indeterminate,
       );
     });

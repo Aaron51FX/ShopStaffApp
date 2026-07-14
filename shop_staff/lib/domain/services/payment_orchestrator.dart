@@ -9,9 +9,11 @@ class PaymentSessionHandle {
     required this.result,
     required Future<void> Function() cancel,
     Future<void> Function()? finalize,
+    Future<void> Function()? reconcile,
     this.requiresManualCompletion = false,
   }) : _cancel = cancel,
-       _finalize = finalize;
+       _finalize = finalize,
+       _reconcile = reconcile;
 
   final String sessionId;
   final PaymentStatus initialStatus;
@@ -20,6 +22,7 @@ class PaymentSessionHandle {
   final bool requiresManualCompletion;
   final Future<void> Function() _cancel;
   final Future<void> Function()? _finalize;
+  final Future<void> Function()? _reconcile;
 
   Future<void> cancel() => _cancel();
 
@@ -27,6 +30,14 @@ class PaymentSessionHandle {
     final action = _finalize;
     if (action == null) {
       throw StateError('PAYMENT_FINALIZE_NOT_REQUIRED');
+    }
+    return action();
+  }
+
+  Future<void> reconcile() {
+    final action = _reconcile;
+    if (action == null) {
+      throw StateError('PAYMENT_RECONCILE_NOT_AVAILABLE');
     }
     return action();
   }
@@ -49,4 +60,7 @@ abstract class PaymentOrchestrator {
 
   /// Finalize a session that requires an explicit confirmation step.
   Future<void> finalize(String sessionId);
+
+  /// Continue observing or query an indeterminate payment result.
+  Future<void> reconcile(String sessionId);
 }

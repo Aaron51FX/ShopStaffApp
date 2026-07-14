@@ -8,7 +8,7 @@ import 'package:shop_staff/presentations/payment/widgets/status_hero.dart';
 class StatusTimeline extends StatelessWidget {
   const StatusTimeline({super.key, required this.state});
 
-  final PaymentFlowState state;
+  final PaymentSessionState state;
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +50,10 @@ class StatusTimeline extends StatelessWidget {
         return t.paymentStatusWaitingUser;
       case PaymentStatusType.processing:
         return t.paymentStatusProcessing;
+      case PaymentStatusType.indeterminate:
+        return t.paymentStatusIndeterminate;
+      case PaymentStatusType.reconciling:
+        return t.paymentStatusReconciling;
       case PaymentStatusType.success:
         return t.paymentStatusSuccess;
       case PaymentStatusType.failure:

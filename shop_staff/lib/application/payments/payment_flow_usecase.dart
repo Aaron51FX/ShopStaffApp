@@ -10,6 +10,7 @@ import 'usecases/cancel_payment_usecase.dart';
 import 'usecases/confirm_manual_payment_usecase.dart';
 import 'usecases/observe_payment_status_usecase.dart';
 import 'usecases/prepare_payment_channel_config_usecase.dart';
+import 'usecases/reconcile_payment_usecase.dart';
 import 'usecases/retry_payment_usecase.dart';
 import 'usecases/start_payment_usecase.dart';
 
@@ -38,6 +39,7 @@ class PaymentFlowUseCase {
         _cancel = CancelPaymentUseCase(orchestrator: orchestrator),
         _confirmManual = ConfirmManualPaymentUseCase(orchestrator: orchestrator),
         _observe = ObservePaymentStatusUseCase(orchestrator: orchestrator),
+        _reconcile = ReconcilePaymentUseCase(orchestrator: orchestrator),
         _retry = RetryPaymentUseCase(
           cancelPayment: CancelPaymentUseCase(orchestrator: orchestrator),
           startPayment: StartPaymentUseCase(
@@ -55,6 +57,7 @@ class PaymentFlowUseCase {
   final CancelPaymentUseCase _cancel;
   final ConfirmManualPaymentUseCase _confirmManual;
   final ObservePaymentStatusUseCase _observe;
+  final ReconcilePaymentUseCase _reconcile;
   final RetryPaymentUseCase _retry;
   final Logger _logger;
 
@@ -68,6 +71,8 @@ class PaymentFlowUseCase {
   Future<void> cancel(String sessionId) => _cancel(sessionId);
 
   Future<void> finalize(String sessionId) => _confirmManual(sessionId);
+
+  Future<void> reconcile(String sessionId) => _reconcile(sessionId);
 
   Future<PaymentFlowStartResult> retry({
     required PaymentFlowPageArgs args,

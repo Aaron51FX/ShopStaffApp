@@ -1057,6 +1057,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentStatusProcessing => '処理中';
 
   @override
+  String get paymentStatusIndeterminate => '決済結果が未確定です';
+
+  @override
+  String get paymentStatusReconciling => '決済結果を確認中';
+
+  @override
+  String get paymentResultIndeterminate =>
+      '最終的な決済結果を確認できていません。結果確認が完了するまで再決済しないでください。';
+
+  @override
   String get paymentStatusSuccess => '支払い成功';
 
   @override
@@ -1296,6 +1306,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentActionConfirming => '確認中…';
 
   @override
+  String get paymentActionReconcile => '決済結果を確認';
+
+  @override
   String get paymentCashDrawerCloseReminderTitle => 'ドロアを閉じてください';
 
   @override
@@ -1353,6 +1366,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get paymentPosTimeout => 'POS接続がタイムアウトしました';
+
+  @override
+  String get paymentPosResultIndeterminate =>
+      'POS端末の最終結果を確認できていません。結果確認が完了するまで再決済しないでください。';
+
+  @override
+  String get paymentPosReconciling => 'POS端末の最終結果を待っています…';
 
   @override
   String get paymentPosReportResult => '決済結果を送信中';

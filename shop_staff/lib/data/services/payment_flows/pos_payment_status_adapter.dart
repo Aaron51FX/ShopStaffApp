@@ -85,6 +85,8 @@ class PosPaymentStatusAdapter {
       case PaymentStatusType.pending:
       case PaymentStatusType.waitingForUser:
       case PaymentStatusType.processing:
+      case PaymentStatusType.indeterminate:
+      case PaymentStatusType.reconciling:
         return null;
     }
   }

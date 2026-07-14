@@ -84,7 +84,8 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
           if (!entry.completer.isCompleted) {
             entry.completer.complete(result);
           }
-          if (entry.lastStatus?.isTerminal != true) {
+          if (entry.lastStatus?.isTerminal != true &&
+              entry.lastStatus?.type != result.status) {
             controller.add(_statusFromResult(result));
           }
         })
@@ -111,6 +112,7 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
         });
 
     entry.finalize = run.finalize;
+    entry.reconcile = run.reconcile;
 
     return PaymentSessionHandle(
       sessionId: sessionId,
@@ -119,6 +121,7 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
       result: entry.completer.future,
       cancel: () => cancel(sessionId),
       finalize: run.finalize == null ? null : () => finalize(sessionId),
+      reconcile: run.reconcile == null ? null : () => reconcile(sessionId),
       requiresManualCompletion: run.finalize != null,
     );
   }
@@ -186,6 +189,19 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
     }
   }
 
+  @override
+  Future<void> reconcile(String sessionId) async {
+    final entry = _sessions[sessionId];
+    if (entry == null) {
+      throw StateError('POS_SESSION_MISSING');
+    }
+    final reconcile = entry.reconcile;
+    if (reconcile == null) {
+      throw StateError('PAYMENT_RECONCILE_NOT_AVAILABLE');
+    }
+    await reconcile();
+  }
+
   String _generateSessionId() {
     final timestamp = DateTime.now().microsecondsSinceEpoch;
     final randomPart = _random.nextInt(1 << 32);
@@ -213,7 +229,6 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
           retryable: result.retryable,
         );
       case PaymentStatusType.failure:
-      default:
         return PaymentStatus(
           type: PaymentStatusType.failure,
           message: result.message,
@@ -222,6 +237,32 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
           details: result.payload,
           errorType: result.errorType,
           retryable: result.retryable,
+          certainty: result.failure?.certainty,
+          recovery: result.failure?.recovery,
+        );
+      case PaymentStatusType.indeterminate:
+        return PaymentStatus(
+          type: PaymentStatusType.indeterminate,
+          message: result.message,
+          messageKey: result.messageKey,
+          messageArgs: result.messageArgs,
+          details: result.payload,
+          errorType: result.errorType,
+          retryable: false,
+          certainty: PaymentOutcomeCertainty.indeterminate,
+          recovery: result.failure?.recovery,
+        );
+      case PaymentStatusType.reconciling:
+      case PaymentStatusType.initialized:
+      case PaymentStatusType.pending:
+      case PaymentStatusType.waitingForUser:
+      case PaymentStatusType.processing:
+        return PaymentStatus(
+          type: result.status,
+          message: result.message,
+          messageKey: result.messageKey,
+          messageArgs: result.messageArgs,
+          details: result.payload,
         );
     }
   }
@@ -236,4 +277,5 @@ class _PaymentSessionEntry {
   StreamSubscription<PaymentStatus>? subscription;
   PaymentStatus? lastStatus;
   Future<void> Function()? finalize;
+  Future<void> Function()? reconcile;
 }

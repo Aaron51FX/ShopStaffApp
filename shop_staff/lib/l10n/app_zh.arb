@@ -416,6 +416,9 @@
   "paymentStatusPending": "待处理",
   "paymentStatusWaitingUser": "等待顾客操作",
   "paymentStatusProcessing": "处理中",
+  "paymentStatusIndeterminate": "交易结果未知",
+  "paymentStatusReconciling": "正在核对交易结果",
+  "paymentResultIndeterminate": "尚未确认最终交易结果。核对完成前请勿重新发起支付。",
   "paymentStatusSuccess": "支付成功",
   "paymentStatusFailure": "支付失败",
   "paymentStatusCancelled": "支付已取消",
@@ -529,6 +532,7 @@
     }
   },
   "paymentActionConfirming": "正在确认…",
+  "paymentActionReconcile": "核对交易结果",
   "paymentCashDrawerCloseReminderTitle": "请关闭钱箱",
   "paymentCashDrawerCloseReminderMessage": "现金支付确认后，需将钱箱关闭，交易才会自动完成。",
   "paymentActionCancel": "取消支付",
@@ -562,6 +566,8 @@
     }
   },
   "paymentPosTimeout": "POS连接超时",
+  "paymentPosResultIndeterminate": "尚未确认POS终端的最终交易结果。核对完成前请勿重新发起支付。",
+  "paymentPosReconciling": "正在等待POS终端返回最终交易结果…",
   "paymentPosReportResult": "上报支付结果",
   "paymentPosPaymentSuccess": "支付成功",
   "paymentPosResultHandleFailed": "POS支付结果处理失败：{detail}",

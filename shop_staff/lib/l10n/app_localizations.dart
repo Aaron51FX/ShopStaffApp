@@ -2110,6 +2110,24 @@ abstract class AppLocalizations {
   /// **'Processing'**
   String get paymentStatusProcessing;
 
+  /// No description provided for @paymentStatusIndeterminate.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment result is unknown'**
+  String get paymentStatusIndeterminate;
+
+  /// No description provided for @paymentStatusReconciling.
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying payment result'**
+  String get paymentStatusReconciling;
+
+  /// No description provided for @paymentResultIndeterminate.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment result could not be confirmed. Do not retry until the transaction has been verified.'**
+  String get paymentResultIndeterminate;
+
   /// No description provided for @paymentStatusSuccess.
   ///
   /// In en, this message translates to:
@@ -2548,6 +2566,12 @@ abstract class AppLocalizations {
   /// **'Confirming…'**
   String get paymentActionConfirming;
 
+  /// No description provided for @paymentActionReconcile.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify result'**
+  String get paymentActionReconcile;
+
   /// No description provided for @paymentCashDrawerCloseReminderTitle.
   ///
   /// In en, this message translates to:
@@ -2649,6 +2673,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'POS connection timed out'**
   String get paymentPosTimeout;
+
+  /// No description provided for @paymentPosResultIndeterminate.
+  ///
+  /// In en, this message translates to:
+  /// **'The terminal result is not confirmed. Do not retry payment until the result has been verified.'**
+  String get paymentPosResultIndeterminate;
+
+  /// No description provided for @paymentPosReconciling.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the terminal\'s final result…'**
+  String get paymentPosReconciling;
 
   /// No description provided for @paymentPosReportResult.
   ///

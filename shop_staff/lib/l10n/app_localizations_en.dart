@@ -1099,6 +1099,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentStatusProcessing => 'Processing';
 
   @override
+  String get paymentStatusIndeterminate => 'Payment result is unknown';
+
+  @override
+  String get paymentStatusReconciling => 'Verifying payment result';
+
+  @override
+  String get paymentResultIndeterminate =>
+      'The payment result could not be confirmed. Do not retry until the transaction has been verified.';
+
+  @override
   String get paymentStatusSuccess => 'Payment successful';
 
   @override
@@ -1348,6 +1358,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentActionConfirming => 'Confirming…';
 
   @override
+  String get paymentActionReconcile => 'Verify result';
+
+  @override
   String get paymentCashDrawerCloseReminderTitle => 'Close the cash drawer';
 
   @override
@@ -1407,6 +1420,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentPosTimeout => 'POS connection timed out';
+
+  @override
+  String get paymentPosResultIndeterminate =>
+      'The terminal result is not confirmed. Do not retry payment until the result has been verified.';
+
+  @override
+  String get paymentPosReconciling =>
+      'Waiting for the terminal\'s final result…';
 
   @override
   String get paymentPosReportResult => 'Reporting payment result';

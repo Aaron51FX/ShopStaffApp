@@ -7,7 +7,7 @@ import 'package:shop_staff/l10n/app_localizations.dart';
 class CashAmountCard extends StatelessWidget {
   const CashAmountCard({super.key, required this.state, required this.expectedTotal});
 
-  final PaymentFlowState state;
+  final PaymentSessionState state;
   final num expectedTotal;
 
   @override
