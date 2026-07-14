@@ -7,7 +7,7 @@ import 'package:shop_staff/application/order/usecases/order_reprint_usecase.dart
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
+import 'package:shop_staff/presentations/pos/order/providers/pos_order_providers.dart';
 import 'package:shop_staff/presentations/order/viewmodels/local_orders_viewmodel.dart';
 
 class LocalOrdersPage extends ConsumerWidget {
@@ -390,6 +390,7 @@ Future<void> _printReceipt(
 ) async {
   final useCase = ref.read(orderReprintUseCaseProvider);
   final result = await useCase.reprintReceipt(order);
+  if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(content: Text(result.message)),
   );
@@ -401,8 +402,7 @@ void _reorder(
   LocalOrderRecord order,
 ) {
   // Populate POS cart and navigate back to POS page.
-  final posVm = ref.read(posViewModelProvider.notifier);
-  posVm.loadFromLocalOrder(order);
+  ref.read(posOrderControllerProvider.notifier).loadFromLocalOrder(order);
   context.push('/pos');
 }
 
@@ -413,6 +413,7 @@ Future<void> _printKitchenTickets(
 ) async {
   final useCase = ref.read(orderReprintUseCaseProvider);
   final result = await useCase.reprintKitchenTickets(order);
+  if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(content: Text(result.message)),
   );

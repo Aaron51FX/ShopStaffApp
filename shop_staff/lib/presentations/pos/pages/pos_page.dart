@@ -7,7 +7,9 @@ import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
+import 'package:shop_staff/presentations/pos/customer_display/providers/pos_customer_display_providers.dart';
+import 'package:shop_staff/presentations/pos/order/providers/pos_order_providers.dart';
+import 'package:shop_staff/presentations/pos/providers/pos_providers.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_effect.dart';
 import '../widgets/cart_panel.dart';
 import '../widgets/discount_input_dialog.dart';
@@ -42,7 +44,7 @@ class _PosPageState extends ConsumerState<PosPage> {
   Future<void> _handleEffect(PosEffect effect) async {
     if (!mounted) return;
     final t = AppLocalizations.of(context);
-    final vm = ref.read(posViewModelProvider.notifier);
+    final controller = ref.read(posControllerProvider);
 
     if (effect is PosToastEffect) {
       final message = _resolveToastMessage(t, effect);
@@ -76,7 +78,7 @@ class _PosPageState extends ConsumerState<PosPage> {
             destructive: true,
           );
       if (ok) {
-        vm.confirmClearCart();
+        controller.confirmClearCart();
       }
       return;
     }
@@ -86,7 +88,7 @@ class _PosPageState extends ConsumerState<PosPage> {
           .read(dialogControllerProvider.notifier)
           .confirm(title: t.posSuspendTitle, message: t.posSuspendMessage);
       if (ok) {
-        vm.confirmSuspendCurrentOrder();
+        await controller.confirmSuspendOrder();
       }
       return;
     }
@@ -120,7 +122,10 @@ class _PosPageState extends ConsumerState<PosPage> {
 
   @override
   Widget build(BuildContext context) {
-    final vm = ref.read(posViewModelProvider.notifier);
+    final controller = ref.read(posControllerProvider);
+    final orderController = ref.read(posOrderControllerProvider.notifier);
+    final customerDisplay = ref.read(posCustomerDisplayControllerProvider);
+    final customerDisplayEnabled = ref.watch(posCustomerDisplayEnabledProvider);
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.stone100,
@@ -134,7 +139,7 @@ class _PosPageState extends ConsumerState<PosPage> {
             ProductGrid(
               onTapProduct: (p) async {
                 if (!p.isCustomizable) {
-                  vm.addProduct(p);
+                  orderController.addProduct(p);
                   return;
                 }
                 await showProductOptionDialog(
@@ -142,26 +147,27 @@ class _PosPageState extends ConsumerState<PosPage> {
                   ref: ref,
                   product: p,
                   existing: null,
-                  peerLinkEnabled: vm.peerLinkEnabled(),
+                  peerLinkEnabled: customerDisplayEnabled,
                   buildSelectedOptions: (selected) =>
-                      vm.buildSelectedOptions(p, selected),
+                      controller.buildSelectedOptions(p, selected),
                   validateMissingGroups: (selected) =>
-                      vm.validateMissingOptionGroups(p, selected),
-                  onConfirmed: (options) => vm.addProduct(p, options: options),
-                  onSendAll: vm.peerLinkEnabled()
-                      ? (options) => vm.pushSelectedOptionsToCustomer(
+                      controller.validateMissingOptionGroups(p, selected),
+                  onConfirmed: (options) =>
+                      orderController.addProduct(p, options: options),
+                  onSendAll: customerDisplayEnabled
+                      ? (options) => customerDisplay.sendOptions(
                           product: p,
                           options: options,
                         )
                       : null,
-                  onSendGroup: vm.peerLinkEnabled()
-                      ? (group, selections) => vm.pushOptionGroupToCustomer(
+                  onSendGroup: customerDisplayEnabled
+                      ? (group, selections) => customerDisplay.sendOptionGroup(
                           product: p,
                           group: group,
                           selected: selections,
                         )
                       : null,
-                  initialSelected: vm.buildInitialOptionSelection(
+                  initialSelected: controller.buildInitialOptionSelection(
                     p,
                     existing: null,
                   ),
@@ -177,48 +183,48 @@ class _PosPageState extends ConsumerState<PosPage> {
                   ref: ref,
                   product: p,
                   existing: item,
-                  peerLinkEnabled: vm.peerLinkEnabled(),
+                  peerLinkEnabled: customerDisplayEnabled,
                   buildSelectedOptions: (selected) =>
-                      vm.buildSelectedOptions(p, selected),
+                      controller.buildSelectedOptions(p, selected),
                   validateMissingGroups: (selected) =>
-                      vm.validateMissingOptionGroups(p, selected),
-                  onConfirmed: (options) => vm.updateCartItemOptions(
+                      controller.validateMissingOptionGroups(p, selected),
+                  onConfirmed: (options) => orderController.updateItemOptions(
                     oldId: item.id,
                     product: p,
-                    newOptions: options,
+                    options: options,
                   ),
-                  onSendAll: vm.peerLinkEnabled()
-                      ? (options) => vm.pushSelectedOptionsToCustomer(
+                  onSendAll: customerDisplayEnabled
+                      ? (options) => customerDisplay.sendOptions(
                           product: p,
                           options: options,
                         )
                       : null,
-                  onSendGroup: vm.peerLinkEnabled()
-                      ? (group, selections) => vm.pushOptionGroupToCustomer(
+                  onSendGroup: customerDisplayEnabled
+                      ? (group, selections) => customerDisplay.sendOptionGroup(
                           product: p,
                           group: group,
                           selected: selections,
                         )
                       : null,
-                  initialSelected: vm.buildInitialOptionSelection(
+                  initialSelected: controller.buildInitialOptionSelection(
                     p,
                     existing: item,
                   ),
                 );
               },
-              onCheckout: vm.checkout,
-              onSuspend: vm.suspendCurrentOrder,
-              onClear: vm.clearCart,
+              onCheckout: controller.checkout,
+              onSuspend: controller.requestSuspendOrder,
+              onClear: controller.requestClearCart,
               onDiscount: () async {
                 final discount = ref.read(
-                  posViewModelProvider.select((s) => s.discount),
+                  posOrderControllerProvider.select((state) => state.discount),
                 );
                 final value = await showDiscountInputDialog(
                   context,
                   initialValue: discount,
                 );
                 if (value != null) {
-                  vm.applyDiscount(value);
+                  orderController.applyDiscount(value);
                 }
               },
             ),

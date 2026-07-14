@@ -1354,6 +1354,12 @@ abstract class AppLocalizations {
   /// **'Search products...'**
   String get posSearchProductHint;
 
+  /// No description provided for @posFavoritesCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get posFavoritesCategory;
+
   /// No description provided for @discountInputTitle.
   ///
   /// In en, this message translates to:

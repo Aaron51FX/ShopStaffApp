@@ -660,6 +660,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get posSearchProductHint => '商品を検索 ...';
 
   @override
+  String get posFavoritesCategory => 'お気に入り';
+
+  @override
   String get discountInputTitle => '割引金額を入力';
 
   @override

@@ -1,6 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 
-import 'pos_viewmodel.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 abstract class PosEffect {
   const PosEffect();
@@ -47,7 +47,25 @@ class PosRequestSuspendConfirmEffect extends PosEffect {
   const PosRequestSuspendConfirmEffect();
 }
 
+class PosEffectController {
+  final StreamController<PosEffect> _controller =
+      StreamController<PosEffect>.broadcast();
+
+  Stream<PosEffect> get stream => _controller.stream;
+
+  void emit(PosEffect effect) {
+    if (!_controller.isClosed) _controller.add(effect);
+  }
+
+  void dispose() => _controller.close();
+}
+
+final posEffectControllerProvider = Provider<PosEffectController>((ref) {
+  final controller = PosEffectController();
+  ref.onDispose(controller.dispose);
+  return controller;
+});
+
 final posEffectsProvider = StreamProvider.autoDispose<PosEffect>((ref) {
-  final vm = ref.watch(posViewModelProvider.notifier);
-  return vm.effects;
+  return ref.watch(posEffectControllerProvider).stream;
 });

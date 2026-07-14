@@ -249,6 +249,7 @@
   "posClearCustomerDisplayTooltip": "清除顾客端展示",
   "posBroadcastCategoriesTooltip": "推送分类到顾客端",
   "posSearchProductHint": "搜索商品 ...",
+  "posFavoritesCategory": "收藏",
   "discountInputTitle": "输入折扣金额",
   "discountConfirm": "确定",
   "discountKeyClear": "清空",

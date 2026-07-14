@@ -19,7 +19,6 @@ import 'package:shop_staff/presentations/payment/widgets/cash_amount_card.dart';
 import 'package:shop_staff/presentations/payment/widgets/order_summary.dart';
 import 'package:shop_staff/presentations/payment/widgets/qr_scan_dialog.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_hero.dart';
-import 'package:shop_staff/presentations/payment/widgets/status_time_line.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../viewmodels/payment_flow_viewmodel.dart';
@@ -272,16 +271,6 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
           appBar: AppBar(
             automaticallyImplyLeading: false,
             title: Text(_titleForGroup(context, args)),
-            actions: [
-              if (state.canExit)
-                TextButton(
-                  onPressed: () => context.go('/pos'),
-                  child: Text(
-                    AppLocalizations.of(context).paymentActionReturnPos,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-            ],
           ),
           body: Padding(
             padding: const EdgeInsets.all(24),
@@ -294,34 +283,39 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
                   CashAmountCard(state: state, expectedTotal: args.order.total),
                   const SizedBox(height: 16),
                 ],
-                StatusHero(
-                  state: state,
-                  args: args,
-                  onRetry: () => ref.read(provider.notifier).retryPayment(),
-                  onReconcile: () =>
-                      ref.read(provider.notifier).reconcilePayment(),
-                  onOpenSettings: () => context.go('/settings'),
-                  onNetworkHelp: () {
-                    final t = AppLocalizations.of(context);
-                    ref
-                        .read(dialogControllerProvider.notifier)
-                        .show<void>(
-                          DialogRequest<void>(
-                            title: t.commonNetworkLabel,
-                            message: t.paymentNetworkHelpMessage,
-                            actions: [
-                              DialogAction(
-                                label: t.posOptionMaxReachedOk,
-                                value: null,
-                                isPrimary: true,
-                              ),
-                            ],
-                          ),
-                        );
-                  },
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: StatusHero(
+                        state: state,
+                        args: args,
+                        onRetry: () =>
+                            ref.read(provider.notifier).retryPayment(),
+                        onReconcile: () =>
+                            ref.read(provider.notifier).reconcilePayment(),
+                        onOpenSettings: () => context.go('/settings'),
+                        onNetworkHelp: () {
+                          final t = AppLocalizations.of(context);
+                          ref
+                              .read(dialogControllerProvider.notifier)
+                              .show<void>(
+                                DialogRequest<void>(
+                                  title: t.commonNetworkLabel,
+                                  message: t.paymentNetworkHelpMessage,
+                                  actions: [
+                                    DialogAction(
+                                      label: t.posOptionMaxReachedOk,
+                                      value: null,
+                                      isPrimary: true,
+                                    ),
+                                  ],
+                                ),
+                              );
+                        },
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 24),
-                Expanded(child: StatusTimeline(state: state)),
               ],
             ),
           ),

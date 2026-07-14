@@ -693,6 +693,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get posSearchProductHint => 'Search products...';
 
   @override
+  String get posFavoritesCategory => 'Favorites';
+
+  @override
   String get discountInputTitle => 'Enter discount amount';
 
   @override

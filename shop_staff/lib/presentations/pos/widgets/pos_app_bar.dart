@@ -3,14 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
+import 'package:shop_staff/presentations/pos/catalog/providers/pos_catalog_providers.dart';
+import 'package:shop_staff/presentations/pos/customer_display/providers/pos_customer_display_providers.dart';
 
 class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
   const PosAppBar({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
-    final vm = ref.read(posViewModelProvider.notifier);
+    final catalog = ref.watch(posCatalogControllerProvider);
+    final customerDisplay = ref.read(posCustomerDisplayControllerProvider);
     final settings = ref.watch(appSettingsSnapshotProvider);
     final peerLinkEnabled = settings?.basic.peerLinkEnabled ?? true;
     return AppBar(
@@ -39,13 +41,18 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
             if (peerLinkEnabled) ...[
               IconButton(
                 tooltip: t.posClearCustomerDisplayTooltip,
-                onPressed: vm.clearCustomerDisplay,
+                onPressed: customerDisplay.clear,
                 icon: const Icon(Icons.close_fullscreen_rounded),
               ),
               IconButton(
                 tooltip: t.posBroadcastCategoriesTooltip,
-                onPressed: () => vm.broadcastCategories(),
-                icon: const Icon(Icons.send_rounded, size: 20, color: AppColors.amberPrimary),
+                onPressed: () =>
+                    customerDisplay.sendCategories(catalog.categories),
+                icon: const Icon(
+                  Icons.send_rounded,
+                  size: 20,
+                  color: AppColors.amberPrimary,
+                ),
               ),
             ],
           ],
@@ -58,31 +65,12 @@ class PosAppBar extends ConsumerWidget implements PreferredSizeWidget {
   Size get preferredSize => const Size.fromHeight(64);
 }
 
-class _LogoAvatar extends StatelessWidget {
-  const _LogoAvatar();
-  @override
-  Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: 22,
-      backgroundColor: AppColors.amberPrimary,
-      child: const Text(
-        'C',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-}
-
 class _SearchBar extends ConsumerWidget {
   const _SearchBar();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context);
-    final vm = ref.read(posViewModelProvider.notifier);
+    final controller = ref.read(posCatalogControllerProvider.notifier);
     return TextField(
       decoration: InputDecoration(
         hintText: t.posSearchProductHint,
@@ -107,7 +95,7 @@ class _SearchBar extends ConsumerWidget {
           borderSide: const BorderSide(color: AppColors.amberPrimary, width: 2),
         ),
       ),
-      onChanged: vm.search,
+      onChanged: controller.search,
     );
   }
 }

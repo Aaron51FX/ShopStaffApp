@@ -249,6 +249,7 @@
   "posClearCustomerDisplayTooltip": "Clear customer display",
   "posBroadcastCategoriesTooltip": "Broadcast categories",
   "posSearchProductHint": "Search products...",
+  "posFavoritesCategory": "Favorites",
   "discountInputTitle": "Enter discount amount",
   "discountConfirm": "Confirm",
   "discountKeyClear": "Clear",

@@ -55,101 +55,119 @@ class StatusHero extends StatelessWidget {
       effectiveErrorType,
       _errorContextToken(state),
     );
+    final effectiveStatus = effectiveResult ?? current?.type;
+    final isBusy =
+        !hasError &&
+        effectiveResult == null &&
+        switch (effectiveStatus) {
+          PaymentStatusType.initialized ||
+          PaymentStatusType.pending ||
+          PaymentStatusType.processing ||
+          PaymentStatusType.reconciling => true,
+          _ => false,
+        };
+    final hint = hasError
+        ? errorHint
+        : effectiveResult == null
+        ? _instructionFor(t, args.channelGroup)
+        : null;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(icon, color: color, size: 32),
-                    const SizedBox(width: 12),
-                    Flexible(
-                      child: Text(
-                        message,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: color,
-                        ),
-                      ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 720),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 32),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withValues(alpha: 0.22)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 72,
+              height: 72,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (isBusy)
+                    CircularProgressIndicator(
+                      color: color,
+                      strokeWidth: 3,
+                      backgroundColor: color.withValues(alpha: 0.12),
                     ),
-                  ],
+                  Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, color: color, size: 32),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (hint != null && hint.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(
+                hint,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  height: 1.4,
                 ),
-                const SizedBox(height: 12),
-                if (!hasError)
-                  Text(
-                    _instructionFor(t, args.channelGroup),
-                    style: const TextStyle(color: Colors.black54),
-                  ),
-                if (hasError && errorHint != null)
-                  Text(
-                    errorHint,
-                    style: const TextStyle(color: Colors.black54),
-                  ),
-              ],
-            ),
-          ),
-          if (showRetry ||
-              showReconcile ||
-              showConfigAction ||
-              showNetworkAction) ...[
-            const SizedBox(width: 12),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (showRetry)
-                  TextButton.icon(
-                    onPressed: onRetry,
-                    icon: const Icon(Icons.refresh_rounded, size: 20),
-                    label: Text(
-                      _retryLabelForType(t, effectiveErrorType),
-                      style: const TextStyle(fontSize: 16),
+              ),
+            ],
+            if (showRetry ||
+                showReconcile ||
+                showConfigAction ||
+                showNetworkAction) ...[
+              const SizedBox(height: 24),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                runSpacing: 10,
+                children: [
+                  if (showRetry)
+                    FilledButton.tonalIcon(
+                      onPressed: onRetry,
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: Text(_retryLabelForType(t, effectiveErrorType)),
                     ),
-                  ),
-                if (showReconcile)
-                  TextButton.icon(
-                    onPressed: onReconcile,
-                    icon: const Icon(Icons.manage_search_rounded, size: 20),
-                    label: Text(
-                      t.paymentActionReconcile,
-                      style: const TextStyle(fontSize: 16),
+                  if (showReconcile)
+                    FilledButton.icon(
+                      onPressed: onReconcile,
+                      icon: const Icon(Icons.manage_search_rounded),
+                      label: Text(t.paymentActionReconcile),
                     ),
-                  ),
-                if (showConfigAction)
-                  TextButton.icon(
-                    onPressed: onOpenSettings,
-                    icon: const Icon(Icons.settings_rounded, size: 20),
-                    label: Text(
-                      t.settingsTitle,
-                      style: const TextStyle(fontSize: 16),
+                  if (showConfigAction)
+                    FilledButton.tonalIcon(
+                      onPressed: onOpenSettings,
+                      icon: const Icon(Icons.settings_rounded),
+                      label: Text(t.settingsTitle),
                     ),
-                  ),
-                if (showNetworkAction)
-                  TextButton.icon(
-                    onPressed: onNetworkHelp,
-                    icon: const Icon(Icons.wifi_tethering_rounded, size: 20),
-                    label: Text(
-                      t.paymentRetryNetwork,
-                      style: const TextStyle(fontSize: 16),
+                  if (showNetworkAction)
+                    FilledButton.tonalIcon(
+                      onPressed: onNetworkHelp,
+                      icon: const Icon(Icons.wifi_tethering_rounded),
+                      label: Text(t.paymentRetryNetwork),
                     ),
-                  ),
-              ],
-            ),
+                ],
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

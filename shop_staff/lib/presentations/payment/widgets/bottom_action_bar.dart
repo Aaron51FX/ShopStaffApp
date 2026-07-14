@@ -39,8 +39,7 @@ class BottomActionBar extends StatelessWidget {
       );
     }
 
-    if (isCash &&
-        state.canConfirmManual) {
+    if (isCash && state.canConfirmManual) {
       final receipt = state.pendingReceipt;
       final amount = receipt?['acceptedAmount'];
       final formattedAmount = amount is num ? amount.toInt() : null;
@@ -63,10 +62,12 @@ class BottomActionBar extends StatelessWidget {
       );
     }
 
+    if (!state.canCancel) return const SizedBox.shrink();
+
     return Padding(
       padding: EdgeInsets.fromLTRB(24, 12, 24, 12 + padding.bottom),
       child: ElevatedButton.icon(
-        onPressed: state.canCancel ? cancel : null,
+        onPressed: cancel,
         icon: state.isCancelling
             ? const SizedBox(
                 width: 18,
@@ -83,5 +84,4 @@ class BottomActionBar extends StatelessWidget {
       ),
     );
   }
-
 }

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
+import 'package:shop_staff/presentations/pos/order/providers/pos_order_providers.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/domain/entities/suspended_order.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
@@ -22,7 +22,7 @@ class _SuspendedOrdersPageState extends ConsumerState<SuspendedOrdersPage> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(posViewModelProvider);
+    final state = ref.watch(posOrderControllerProvider);
     final orders = [...state.suspended]
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final filtered = _query.trim().isEmpty
@@ -32,7 +32,7 @@ class _SuspendedOrdersPageState extends ConsumerState<SuspendedOrdersPage> {
 
     return Scaffold(
       appBar: AppBar(
-      title: Text(t.suspendedOrdersTitle),
+        title: Text(t.suspendedOrdersTitle),
         backgroundColor: AppColors.amberPrimary,
         foregroundColor: Colors.white,
         leading:
@@ -91,7 +91,7 @@ class _SuspendedOrdersPageState extends ConsumerState<SuspendedOrdersPage> {
   }
 
   void _resume(String id) {
-    ref.read(posViewModelProvider.notifier).resumeSuspended(id);
+    ref.read(posOrderControllerProvider.notifier).resumeSuspended(id);
     ref.read(appRouterProvider).push('/pos');
   }
 }
@@ -104,7 +104,10 @@ class _OrderTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final formatter = intl.DateFormat(t.suspendedOrdersDatePattern, t.localeName);
+    final formatter = intl.DateFormat(
+      t.suspendedOrdersDatePattern,
+      t.localeName,
+    );
     final when = formatter.format(order.createdAt.toLocal());
     final itemCount = order.items.fold<int>(
       0,

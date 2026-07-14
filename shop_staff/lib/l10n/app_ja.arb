@@ -249,6 +249,7 @@
   "posClearCustomerDisplayTooltip": "顧客端表示をクリア",
   "posBroadcastCategoriesTooltip": "カテゴリを顧客端に送信",
   "posSearchProductHint": "商品を検索 ...",
+  "posFavoritesCategory": "お気に入り",
   "discountInputTitle": "割引金額を入力",
   "discountConfirm": "確定",
   "discountKeyClear": "クリア",

@@ -8,7 +8,8 @@ import '../../../data/providers.dart';
 import '../../cash_machine/cash_machine_check.dart';
 import '../../cash_machine/widgets/cash_machine_check_dialog.dart';
 import '../../peer_link/peer_link.dart';
-import '../../pos/viewmodels/pos_viewmodel.dart';
+import '../../pos/catalog/providers/pos_catalog_providers.dart';
+import '../../pos/order/providers/pos_order_providers.dart';
 import '../dialogs/peer_link_dialogs.dart';
 import '../providers/entry_providers.dart';
 import '../widgets/entry_option_grid.dart';
@@ -153,7 +154,8 @@ class _EntryPageState extends ConsumerState<EntryPage> {
 
 void _startOrder(WidgetRef ref, String mode) {
   ref.read(orderModeSelectionProvider.notifier).state = mode;
-  ref.invalidate(posViewModelProvider);
+  ref.invalidate(posOrderControllerProvider);
+  ref.invalidate(posCatalogControllerProvider);
   ref.read(appRouterProvider).push('/pos');
 }
 

@@ -653,6 +653,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get posSearchProductHint => '搜索商品 ...';
 
   @override
+  String get posFavoritesCategory => '收藏';
+
+  @override
   String get discountInputTitle => '输入折扣金额';
 
   @override

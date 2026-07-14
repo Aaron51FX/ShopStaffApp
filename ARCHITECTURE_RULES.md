@@ -77,6 +77,23 @@
 - Printing input models belong under `lib/application/printing/models/`, not inside payment or print-dialog widgets.
 - Transaction-unknown states must never advance to printing. Only a confirmed successful payment may produce a print request.
 
+## POS Feature Boundaries
+
+- POS must not use one controller for catalog loading, cart editing, suspended orders, customer display, checkout navigation, and page effects.
+- Catalog state belongs under `presentations/pos/catalog/` and owns categories, products, search, favorites, loading, and catalog errors.
+- Editable order state belongs under `presentations/pos/order/` and owns cart items, totals, discounts, order mode, suspended orders, and checkout completion cleanup.
+- Customer-display commands belong under `presentations/pos/customer_display/`; they may read immutable catalog/order snapshots but must not mutate either state.
+- `PosController` is a thin page-intent coordinator. It may validate route prerequisites, create `CheckoutDraft`, and emit presentation effects, but must not absorb catalog, order, or transport state.
+- POS widgets should watch the smallest owning provider directly instead of selecting fields through a compatibility facade.
+
+## Payment Presentation
+
+- The payment page presents operator-relevant state, not the internal transport event log.
+- Its primary content should be limited to order context, the current actionable status, cash amount when applicable, recovery actions, and the currently valid bottom action.
+- Connecting, requesting, sending, and reconciliation details remain in the payment state machine and logs; they should not become a permanent timeline in the production UI.
+- Do not display a disabled cancel button during deterministic non-cancellable work. Show cancellation only when `PaymentSessionState.canCancel` is true.
+- Failure and indeterminate states must keep their typed recovery actions visible even though low-level status history is hidden.
+
 ## Settings Controller Implementation Roadmap
 
 - Treat the top-level settings controller as a shell controller, not as the owner of every settings subflow.
