@@ -64,6 +64,19 @@
 - Keep global mutable app state providers minimal and explicit. If a controller mirrors a global provider, document why the duplication exists and guard against update loops.
 - Provider files should wire dependencies and expose derived state. Controller files should contain user intents and state transitions. State files should contain immutable state models only.
 
+## Checkout Coordination
+
+- Menu/POS, payment, and printing are independent features. They must not call each other's controllers or ViewModels directly.
+- Cross-feature checkout sequencing belongs to `lib/application/checkout/` and is owned by `CheckoutCoordinator`.
+- The coordinator may transfer immutable outputs between features and enforce macro ordering: menu draft -> order submission -> payment -> local completion -> print request.
+- Menu/POS owns cart editing and only hands an immutable `CheckoutDraft` to the coordinator. It must not construct payment sessions or print jobs.
+- Payment owns terminal/network transaction state and only reports a terminal `PaymentResult` to the coordinator. It must not open print dialogs or clear menu state.
+- Printing owns print execution, retry, skip, and printer-specific progress. It accepts an application-level `PrintJobRequest` and must not mutate payment or menu state.
+- Presentation pages may observe checkout state for navigation or display, but cross-feature persistence and sequencing decisions must remain in the coordinator.
+- Checkout route models belong under `lib/application/checkout/models/`; presentation route aliases may be kept temporarily during migration.
+- Printing input models belong under `lib/application/printing/models/`, not inside payment or print-dialog widgets.
+- Transaction-unknown states must never advance to printing. Only a confirmed successful payment may produce a print request.
+
 ## Settings Controller Implementation Roadmap
 
 - Treat the top-level settings controller as a shell controller, not as the owner of every settings subflow.

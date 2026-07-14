@@ -3,21 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:multipeer_session/multipeer_session.dart';
-import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
-import 'package:shop_staff/application/pos/usecases/build_payment_flow_args_usecase.dart';
-import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
+import 'package:shop_staff/application/checkout/checkout_providers.dart';
 import 'package:shop_staff/application/pos/usecases/prepare_payment_selection_usecase.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/providers.dart';
-import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/settings/app_settings_models.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/peer_link/peer_link.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_selection_page_args.dart';
-import 'package:shop_staff/presentations/pos/viewmodels/pos_viewmodel.dart';
 
 class PaymentSelectionPage extends ConsumerStatefulWidget {
   const PaymentSelectionPage({super.key, required this.args});
@@ -34,12 +30,13 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
   late int _lastPeerMessageSeq;
   bool _submitting = false;
   PaymentSelectionOption? _selectedOption;
-  OrderSubmissionResult? _submittedOrder;
-  double? _submittedTotal;
 
   @override
   void initState() {
     super.initState();
+    if (ref.read(checkoutCoordinatorProvider).draft == null) {
+      ref.read(checkoutCoordinatorProvider.notifier).begin(widget.args);
+    }
     _lastPeerMessageSeq = ref.read(peerLinkControllerProvider).messageSeq;
     _peerSub = ref.listenManual<PeerLinkState>(peerLinkControllerProvider, (
       previous,
@@ -121,39 +118,19 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
   Future<void> _startPayment(PaymentSelectionOption option) async {
     if (_submitting) return;
     final t = AppLocalizations.of(context);
-    final snapshot = ref.read(appSettingsSnapshotProvider);
-    final basic = snapshot?.basic ?? const BasicSettings();
-    final paymentMode = basic.paymentModes.resolveForGroup(
-      option.group,
-      cashMachine: basic.cashMachine,
-    );
-
     setState(() => _submitting = true);
     try {
-      final submittedOrder = await _ensureSubmittedOrder(
-        paymentMode: paymentMode,
-      );
-      final localOrders = ref.read(localOrdersUseCasesProvider);
-      await localOrders.updatePaymentMode(submittedOrder.orderId, paymentMode);
-      await localOrders.updatePayMethod(submittedOrder.orderId, option.label);
-
-      final args = ref
-          .read(buildPaymentFlowArgsUseCaseProvider)
-          .execute(
-            order: submittedOrder,
-            shop: widget.args.shop,
-            machineCode: widget.args.machineCode,
+      final args = await ref
+          .read(checkoutCoordinatorProvider.notifier)
+          .preparePayment(
             group: option.group,
             code: option.code,
-            paymentMode: paymentMode,
             label: option.label,
-            items: widget.args.items,
-            language: widget.args.language,
-            takeout: widget.args.takeout,
-            basic: basic,
-            posInfo: snapshot?.posTerminal,
           );
       if (!mounted) return;
+      if (ref.read(checkoutCoordinatorProvider).warning != null) {
+        SimpleToast.errorGlobal(t.posToastLocalOrderSaveFailed);
+      }
       context.pushReplacement('/payment', extra: args);
     } catch (error) {
       if (!mounted) return;
@@ -162,79 +139,6 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
       if (mounted) {
         setState(() => _submitting = false);
       }
-    }
-  }
-
-  Future<OrderSubmissionResult> _ensureSubmittedOrder({
-    required PaymentFlowMode paymentMode,
-  }) async {
-    final existing = _submittedOrder;
-    if (existing != null) {
-      return existing;
-    }
-
-    final output = await _submitOrder();
-    final submittedOrder = output.order;
-    await _saveLocalOrderRecord(
-      order: submittedOrder,
-      total: output.total,
-      paymentMode: paymentMode,
-    );
-    _submittedOrder = submittedOrder;
-    _submittedTotal = output.total;
-    ref
-        .read(posViewModelProvider.notifier)
-        .completeCheckoutSubmission(
-          order: submittedOrder,
-          orderNumber: widget.args.orderNumber,
-        );
-    return submittedOrder;
-  }
-
-  Future<SubmitOrderOutput> _submitOrder() {
-    return ref
-        .read(submitOrderUseCaseProvider)
-        .execute(
-          SubmitOrderInput(
-            items: widget.args.items,
-            machineCode: widget.args.machineCode,
-            language: widget.args.language,
-            takeout: widget.args.takeout,
-            discount: widget.args.discount,
-            shopCode: widget.args.shop.shopCode,
-          ),
-        );
-  }
-
-  Future<void> _saveLocalOrderRecord({
-    required OrderSubmissionResult order,
-    required double total,
-    required PaymentFlowMode paymentMode,
-  }) async {
-    try {
-      await ref
-          .read(localOrdersUseCasesProvider)
-          .save(
-            LocalOrderRecord(
-              orderId: order.orderId,
-              createdAt: DateTime.now(),
-              isPaid: false,
-              paymentMode: paymentMode,
-              items: widget.args.items,
-              machineCode: widget.args.machineCode,
-              language: widget.args.language,
-              takeout: widget.args.takeout,
-              discount: widget.args.discount,
-              clientTotal: total,
-              orderResult: order,
-            ),
-          );
-    } catch (error) {
-      debugPrint('Failed to save local order record: $error');
-      if (!mounted) return;
-      SimpleToast.errorGlobal(
-        AppLocalizations.of(context).posToastLocalOrderSaveFailed,
-      );
     }
   }
 
@@ -257,7 +161,9 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
     final t = AppLocalizations.of(context);
     final options = _options();
     final formatter = NumberFormat.currency(locale: 'ja_JP', symbol: '¥');
-    final submittedOrder = _submittedOrder;
+    final checkout = ref.watch(checkoutCoordinatorProvider);
+    final submittedOrder = checkout.order;
+    final submittedTotal = checkout.submittedTotal;
     final summary = _PaymentSummaryData.fromArgs(
       widget.args,
       order: submittedOrder,
@@ -301,7 +207,7 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
                           summary: summary,
                           formatter: formatter,
                           submittedOrder: submittedOrder,
-                          submittedTotal: _submittedTotal,
+                          submittedTotal: submittedTotal,
                         ),
                       ),
                       const SizedBox(width: 20),
@@ -312,7 +218,7 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
                           basic: basic,
                           formatter: formatter,
                           submittedOrder: submittedOrder,
-                          submittedTotal: _submittedTotal,
+                          submittedTotal: submittedTotal,
                           busy: _submitting,
                           selectedOption: _selectedOption,
                           onSelect: _selectOption,
@@ -329,7 +235,7 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
                         summary: summary,
                         formatter: formatter,
                         submittedOrder: submittedOrder,
-                        submittedTotal: _submittedTotal,
+                        submittedTotal: submittedTotal,
                       ),
                       const SizedBox(height: 16),
                       Expanded(
@@ -339,7 +245,7 @@ class _PaymentSelectionPageState extends ConsumerState<PaymentSelectionPage> {
                           basic: basic,
                           formatter: formatter,
                           submittedOrder: submittedOrder,
-                          submittedTotal: _submittedTotal,
+                          submittedTotal: submittedTotal,
                           busy: _submitting,
                           selectedOption: _selectedOption,
                           onSelect: _selectOption,

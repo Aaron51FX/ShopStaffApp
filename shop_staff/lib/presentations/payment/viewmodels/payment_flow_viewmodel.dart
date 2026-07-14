@@ -6,8 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/services/cash_machine_service.dart';
+import 'package:shop_staff/application/checkout/checkout_coordinator.dart';
+import 'package:shop_staff/application/checkout/checkout_providers.dart';
 import 'package:shop_staff/application/payments/payment_flow_usecase.dart';
-import 'package:shop_staff/application/checkout/usecases/complete_checkout_payment_usecase.dart';
 import 'package:shop_staff/application/payments/usecases/start_payment_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/cancel_dialog_state.dart';
@@ -43,10 +44,6 @@ class PaymentFlowRequestCancelConfirmEffect extends PaymentFlowEffect {
   final String? title;
   final String? message;
   final bool destructive;
-}
-
-class PaymentFlowStartPrintEffect extends PaymentFlowEffect {
-  const PaymentFlowStartPrintEffect();
 }
 
 class PaymentFlowDrawerCloseReminderEffect extends PaymentFlowEffect {
@@ -89,11 +86,12 @@ class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
   PaymentFlowUseCase get _useCase => _ref.read(paymentFlowUseCaseProvider);
   LocalOrdersUseCases get _localOrdersUseCases =>
       _ref.read(localOrdersUseCasesProvider);
-  CompleteCheckoutPaymentUseCase get _completeCheckoutPayment =>
-      _ref.read(completeCheckoutPaymentUseCaseProvider);
+  CheckoutCoordinator get _checkoutCoordinator =>
+      _ref.read(checkoutCoordinatorProvider.notifier);
 
   Future<void> _start() async {
     try {
+      _checkoutCoordinator.paymentStarted(_args);
       final run = _useCase.start(_args);
       _bindRun(run);
     } catch (e, stack) {
@@ -172,7 +170,16 @@ class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
           state = state.copyWith(result: result);
           switch (result.status) {
             case PaymentStatusType.success:
-              await _markOrderPaid();
+              final localOrderUpdated = await _checkoutCoordinator
+                  .paymentCompleted(result);
+              if (!localOrderUpdated) {
+                _emit(
+                  const PaymentFlowToastEffect(
+                    messageKey: PaymentMessageKeys.orderCompletionFailed,
+                    isError: true,
+                  ),
+                );
+              }
               _emit(
                 PaymentFlowToastEffect(
                   message: result.message,
@@ -181,9 +188,9 @@ class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
                   messageArgs: result.messageArgs,
                 ),
               );
-              _emit(const PaymentFlowStartPrintEffect());
               break;
             case PaymentStatusType.failure:
+              await _checkoutCoordinator.paymentCompleted(result);
               _emit(
                 PaymentFlowToastEffect(
                   message: result.message,
@@ -195,8 +202,10 @@ class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
               );
               break;
             case PaymentStatusType.cancelled:
+              await _checkoutCoordinator.paymentCompleted(result);
               break;
             case PaymentStatusType.indeterminate:
+              await _checkoutCoordinator.paymentCompleted(result);
               _emit(
                 PaymentFlowToastEffect(
                   message: result.message,
@@ -219,25 +228,6 @@ class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
         .catchError((error, stack) {
           _handleError(error, stack is StackTrace ? stack : StackTrace.current);
         });
-  }
-
-  Future<void> _markOrderPaid() async {
-    try {
-      await _completeCheckoutPayment.execute(_args.order.orderId);
-    } catch (error, stack) {
-      _logger.warning(
-        'Payment succeeded but local order completion failed',
-        error,
-        stack,
-      );
-      _emit(
-        PaymentFlowToastEffect(
-          messageKey: PaymentMessageKeys.orderCompletionFailed,
-          messageArgs: {'detail': error.toString()},
-          isError: true,
-        ),
-      );
-    }
   }
 
   Future<void> retryPayment() async {

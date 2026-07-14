@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:shop_staff/presentations/payment/widgets/print_status_dialog.dart';
+import 'package:shop_staff/presentations/printing/widgets/print_status_dialog.dart';
 import 'print_job_models.dart';
 import 'print_job_viewmodel.dart';
 
@@ -14,6 +13,7 @@ Future<void> showPrintStatusDialog({
   final provider = printJobViewModelProvider(request);
   final notifier = ref.read(provider.notifier);
   await notifier.start();
+  if (!context.mounted) return;
 
   return showDialog<void>(
     context: context,

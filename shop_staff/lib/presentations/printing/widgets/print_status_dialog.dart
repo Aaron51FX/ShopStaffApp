@@ -35,7 +35,10 @@ class PrintStatusDialog extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   t.paymentPrintDialogTitle,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ],
             ),
@@ -68,15 +71,23 @@ class PrintStatusDialog extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(onPressed: onSkip, child: Text(t.paymentPrintDialogSkip)),
+                TextButton(
+                  onPressed: onSkip,
+                  child: Text(t.paymentPrintDialogSkip),
+                ),
                 const SizedBox(width: 8),
                 if (hasFailure)
-                  FilledButton.tonal(onPressed: onRetry, child: Text(t.paymentRetryDefault)),
+                  FilledButton.tonal(
+                    onPressed: onRetry,
+                    child: Text(t.paymentRetryDefault),
+                  ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: onClose,
                   child: Text(
-                    state.completed ? t.paymentPrintDialogComplete : t.paymentPrintDialogContinueBackground,
+                    state.completed
+                        ? t.paymentPrintDialogComplete
+                        : t.paymentPrintDialogContinueBackground,
                   ),
                 ),
               ],
@@ -99,16 +110,20 @@ class _JobRow extends StatelessWidget {
     Color? color;
     switch (job.status) {
       case PrintJobStatus.success:
-        icon = Icons.check_circle; color = Colors.green;
+        icon = Icons.check_circle;
+        color = Colors.green;
         break;
       case PrintJobStatus.failure:
-        icon = Icons.error_outline; color = Colors.orange;
+        icon = Icons.error_outline;
+        color = Colors.orange;
         break;
       case PrintJobStatus.running:
-        icon = Icons.autorenew; color = Colors.blueGrey;
+        icon = Icons.autorenew;
+        color = Colors.blueGrey;
         break;
       default:
-        icon = Icons.pending; color = Colors.grey;
+        icon = Icons.pending;
+        color = Colors.grey;
     }
 
     return Padding(
@@ -117,9 +132,14 @@ class _JobRow extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 8),
-          Expanded(child: Text(job.name, maxLines: 1, overflow: TextOverflow.ellipsis)),
+          Expanded(
+            child: Text(job.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
           if (job.error != null)
-            Text(job.error!, style: const TextStyle(fontSize: 12, color: Colors.red)),
+            Text(
+              job.error!,
+              style: const TextStyle(fontSize: 12, color: Colors.red),
+            ),
         ],
       ),
     );

@@ -5,11 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/core/toast/simple_toast.dart';
-import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/data/providers.dart';
+import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/data/services/payment_channel_support.dart';
-import 'package:shop_staff/presentations/printing/show_print_dialog.dart';
-import 'package:shop_staff/presentations/printing/print_job_models.dart';
+import 'package:shop_staff/presentations/checkout/widgets/checkout_print_listener.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/cancel_dialog_state.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/cash_amount_snapshot.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
@@ -21,7 +20,6 @@ import 'package:shop_staff/presentations/payment/widgets/order_summary.dart';
 import 'package:shop_staff/presentations/payment/widgets/qr_scan_dialog.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_hero.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_time_line.dart';
-import 'package:shop_staff/domain/settings/app_settings_models.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 
 import '../viewmodels/payment_flow_viewmodel.dart';
@@ -44,7 +42,6 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
   ProviderSubscription<QrScanUiState>? _qrScanSubscription;
   ValueNotifier<QrScanUiState>? _qrDialogNotifier;
   bool _isQrDialogVisible = false;
-  bool _printing = false;
 
   @override
   void initState() {
@@ -81,10 +78,6 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         if (ok) {
           await ref.read(provider.notifier).confirmCancelPayment();
         }
-        return;
-      }
-      if (effect is PaymentFlowStartPrintEffect) {
-        await _startPrintFlow();
         return;
       }
       if (effect is PaymentFlowDrawerCloseReminderEffect) {
@@ -272,70 +265,72 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         ? _extractCashAmount(state)
         : null;
 
-    return PopScope(
-      canPop: state.canExit,
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text(_titleForGroup(context, args)),
-          actions: [
-            if (state.canExit)
-              TextButton(
-                onPressed: () => context.go('/pos'),
-                child: Text(
-                  AppLocalizations.of(context).paymentActionReturnPos,
-                  style: const TextStyle(color: Colors.white),
+    return CheckoutPrintListener(
+      child: PopScope(
+        canPop: state.canExit,
+        child: Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: Text(_titleForGroup(context, args)),
+            actions: [
+              if (state.canExit)
+                TextButton(
+                  onPressed: () => context.go('/pos'),
+                  child: Text(
+                    AppLocalizations.of(context).paymentActionReturnPos,
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ),
-              ),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              OrderSummary(args: args),
-              const SizedBox(height: 16),
-              if (amountInfo != null) ...[
-                CashAmountCard(state: state, expectedTotal: args.order.total),
-                const SizedBox(height: 16),
-              ],
-              StatusHero(
-                state: state,
-                args: args,
-                onRetry: () => ref.read(provider.notifier).retryPayment(),
-                onReconcile: () =>
-                    ref.read(provider.notifier).reconcilePayment(),
-                onOpenSettings: () => context.go('/settings'),
-                onNetworkHelp: () {
-                  final t = AppLocalizations.of(context);
-                  ref
-                      .read(dialogControllerProvider.notifier)
-                      .show<void>(
-                        DialogRequest<void>(
-                          title: t.commonNetworkLabel,
-                          message: t.paymentNetworkHelpMessage,
-                          actions: [
-                            DialogAction(
-                              label: t.posOptionMaxReachedOk,
-                              value: null,
-                              isPrimary: true,
-                            ),
-                          ],
-                        ),
-                      );
-                },
-              ),
-              const SizedBox(height: 24),
-              Expanded(child: StatusTimeline(state: state)),
             ],
           ),
-        ),
-        bottomNavigationBar: BottomActionBar(
-          state: state,
-          args: args,
-          cancel: () => ref.read(provider.notifier).cancelPayment(),
-          confirm: () => ref.read(provider.notifier).confirmManualPayment(),
+          body: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                OrderSummary(args: args),
+                const SizedBox(height: 16),
+                if (amountInfo != null) ...[
+                  CashAmountCard(state: state, expectedTotal: args.order.total),
+                  const SizedBox(height: 16),
+                ],
+                StatusHero(
+                  state: state,
+                  args: args,
+                  onRetry: () => ref.read(provider.notifier).retryPayment(),
+                  onReconcile: () =>
+                      ref.read(provider.notifier).reconcilePayment(),
+                  onOpenSettings: () => context.go('/settings'),
+                  onNetworkHelp: () {
+                    final t = AppLocalizations.of(context);
+                    ref
+                        .read(dialogControllerProvider.notifier)
+                        .show<void>(
+                          DialogRequest<void>(
+                            title: t.commonNetworkLabel,
+                            message: t.paymentNetworkHelpMessage,
+                            actions: [
+                              DialogAction(
+                                label: t.posOptionMaxReachedOk,
+                                value: null,
+                                isPrimary: true,
+                              ),
+                            ],
+                          ),
+                        );
+                  },
+                ),
+                const SizedBox(height: 24),
+                Expanded(child: StatusTimeline(state: state)),
+              ],
+            ),
+          ),
+          bottomNavigationBar: BottomActionBar(
+            state: state,
+            args: args,
+            cancel: () => ref.read(provider.notifier).cancelPayment(),
+            confirm: () => ref.read(provider.notifier).confirmManualPayment(),
+          ),
         ),
       ),
     );
@@ -353,54 +348,6 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         return '${t.paymentGroupQrTitle}${name != null ? ' - $name' : ''}';
       default:
         return t.paymentSelectionTitle;
-    }
-  }
-
-  Future<void> _startPrintFlow() async {
-    if (_printing) return;
-    _printing = true;
-    final machineCode =
-        widget.args.metadata?['machineCode'] as String? ??
-        ref.read(machineCodeProvider) ??
-        '';
-    final printers =
-        ref.read(appSettingsSnapshotProvider)?.printers ??
-        const <PrinterSettings>[];
-
-    String printType = '';
-    final labelPrinter = printers.firstWhere(
-      (printer) => printer.type == 10 && !printer.receipt,
-      orElse: () => PrinterSettings(
-        name: '',
-        printIp: '',
-        receipt: false,
-        labelSize: '',
-        type: 0,
-        isOn: false,
-      ),
-    );
-
-    if (labelPrinter.isOn) {
-      printType = 'Label';
-    }
-
-    final request = PrintJobRequest(
-      machineCode: machineCode,
-      printers: printers,
-      orderId: widget.args.order.orderId,
-      payAmount: widget.args.order.total.toString(),
-      printType: printType,
-    );
-
-    try {
-      await showPrintStatusDialog(
-        context: context,
-        ref: ref,
-        request: request,
-        onCompleted: () => context.go('/entry'),
-      );
-    } finally {
-      _printing = false;
     }
   }
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:multipeer_session/multipeer_session.dart';
+import 'package:shop_staff/application/checkout/checkout_providers.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_categories_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_category_products_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/suspended_orders_usecases.dart';
@@ -49,6 +50,13 @@ final posViewModelProvider = StateNotifierProvider<PosViewModel, PosState>((
 
   ref.listen<PeerLinkState>(peerLinkControllerProvider, (prev, next) {
     vm.handlePeerMessage(next, prev);
+  });
+  ref.listen(checkoutCoordinatorProvider, (previous, next) {
+    final order = next.order;
+    final draft = next.draft;
+    if (order == null || draft == null) return;
+    if (previous?.order?.orderId == order.orderId) return;
+    vm.completeCheckoutSubmission(order: order, orderNumber: draft.orderNumber);
   });
   return vm;
 });
@@ -616,20 +624,19 @@ class PosViewModel extends StateNotifier<PosState> {
     final takeout = state.orderMode == 'take_out';
     final itemsSnapshot = List<CartItem>.from(state.cart);
 
+    final checkoutDraft = PaymentSelectionPageArgs(
+      shop: shop,
+      machineCode: machineCode,
+      language: language,
+      takeout: takeout,
+      items: itemsSnapshot,
+      orderNumber: state.orderNumber + 1,
+      subtotal: state.subtotal,
+      discount: state.discount,
+    );
+    _ref.read(checkoutCoordinatorProvider.notifier).begin(checkoutDraft);
     _emit(
-      PosNavigateEffect(
-        location: '/payment-selection',
-        extra: PaymentSelectionPageArgs(
-          shop: shop,
-          machineCode: machineCode,
-          language: language,
-          takeout: takeout,
-          items: itemsSnapshot,
-          orderNumber: state.orderNumber + 1,
-          subtotal: state.subtotal,
-          discount: state.discount,
-        ),
-      ),
+      PosNavigateEffect(location: '/payment-selection', extra: checkoutDraft),
     );
   }
 

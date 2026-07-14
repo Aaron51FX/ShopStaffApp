@@ -1,28 +1,11 @@
-import 'package:shop_staff/domain/settings/app_settings_models.dart';
-import 'package:shop_staff/data/models/print_info.dart';
-
-class PrintJobRequest {
-  const PrintJobRequest({
-    required this.machineCode,
-    required this.printers,
-    this.orderId,
-    this.payAmount,
-    this.printType,
-    this.document,
-  });
-
-  final String machineCode;
-  final List<PrinterSettings> printers;
-  final String? orderId;
-  final String? payAmount;
-  final String? printType;
-  final PrintInfoDocument? document;
-
-  bool get hasDocument => document != null;
-}
+export 'package:shop_staff/application/printing/models/print_job_request.dart';
 
 class PrintJobStateItem {
-  const PrintJobStateItem({required this.name, this.status = PrintJobStatus.pending, this.error});
+  const PrintJobStateItem({
+    required this.name,
+    this.status = PrintJobStatus.pending,
+    this.error,
+  });
 
   final String name;
   final PrintJobStatus status;
