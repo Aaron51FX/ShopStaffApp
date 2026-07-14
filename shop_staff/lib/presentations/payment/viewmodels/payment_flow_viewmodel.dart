@@ -51,17 +51,20 @@ class PaymentFlowDrawerCloseReminderEffect extends PaymentFlowEffect {
 }
 
 final paymentFlowViewModelProvider = StateNotifierProvider.autoDispose
-    .family<PaymentFlowViewModel, PaymentSessionState, PaymentFlowPageArgs>(
-      (ref, args) => PaymentFlowViewModel(ref, args),
-    );
+    .family<PaymentFlowViewModel, PaymentSessionState, PaymentFlowPageArgs>((
+      ref,
+      args,
+    ) {
+      final viewModel = PaymentFlowViewModel(ref, args);
+      scheduleMicrotask(() => unawaited(viewModel.start()));
+      return viewModel;
+    });
 
 class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
   PaymentFlowViewModel(this._ref, PaymentFlowPageArgs args)
     : _args = args,
       _logger = Logger('PaymentFlowViewModel'),
-      super(PaymentSessionState(channelGroup: args.channelGroup)) {
-    _start();
-  }
+      super(PaymentSessionState(channelGroup: args.channelGroup));
 
   final Ref _ref;
   final PaymentFlowPageArgs _args;
@@ -71,6 +74,8 @@ class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
   Future<PaymentResult>? _resultFuture;
   bool _isRestarting = false;
   bool _isForceExiting = false;
+  bool _startRequested = false;
+  bool _disposed = false;
   final StreamController<PaymentFlowEffect> _effects =
       StreamController<PaymentFlowEffect>.broadcast();
 
@@ -89,7 +94,9 @@ class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
   CheckoutCoordinator get _checkoutCoordinator =>
       _ref.read(checkoutCoordinatorProvider.notifier);
 
-  Future<void> _start() async {
+  Future<void> start() async {
+    if (_startRequested || _disposed) return;
+    _startRequested = true;
     try {
       _checkoutCoordinator.paymentStarted(_args);
       final run = _useCase.start(_args);
@@ -532,6 +539,7 @@ class PaymentFlowViewModel extends StateNotifier<PaymentSessionState> {
 
   @override
   void dispose() {
+    _disposed = true;
     final snapshot = state;
     unawaited(
       _teardownActiveSession(releaseQrScanner: true, snapshot: snapshot),
