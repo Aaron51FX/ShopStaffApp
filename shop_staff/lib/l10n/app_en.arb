@@ -420,6 +420,7 @@
   "paymentStatusFailure": "Payment failed",
   "paymentStatusCancelled": "Payment cancelled",
   "paymentStatusNoUpdates": "No status updates",
+  "paymentOrderCompletionFailed": "Payment succeeded, but the local order status could not be updated. Please verify the order record.",
   "paymentCardInitTerminal": "Initializing card terminal",
   "paymentCardSuccess": "Card payment successful",
   "paymentCardFailure": "Card payment failed",

@@ -567,6 +567,9 @@ class StatusHero extends StatelessWidget {
       case PaymentMessageKeys.paymentForceExitRecorded:
         base = t.paymentForceExitRecorded;
         break;
+      case PaymentMessageKeys.orderCompletionFailed:
+        base = t.paymentOrderCompletionFailed;
+        break;
       case PaymentMessageKeys.cashPrepare:
         base = t.paymentCashPrepare;
         break;

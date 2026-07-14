@@ -114,6 +114,7 @@ abstract class PaymentMessageKeys {
   static const String posCancelFailed = 'payment_pos_cancel_failed';
   static const String posOperatorCancelled = 'payment_pos_operator_cancelled';
   static const String paymentForceExitRecorded = 'payment_force_exit_recorded';
+  static const String orderCompletionFailed = 'payment_order_completion_failed';
 
   // External error codes to be mapped into localized messages.
   static const String errorPosIpMissing = 'payment_error_pos_ip_missing';
@@ -163,6 +164,45 @@ enum PaymentErrorType {
   unknown,
 }
 
+/// Whether the payment outcome is known after a failure.
+///
+/// An indeterminate outcome must be reconciled before another payment attempt
+/// is allowed, because the external terminal or backend may have accepted it.
+enum PaymentOutcomeCertainty { known, indeterminate }
+
+/// Recovery action recommended by the payment layer.
+enum PaymentRecovery {
+  retryCurrentStep,
+  restartPayment,
+  openSettings,
+  checkNetwork,
+  reconcileResult,
+  waitTerminal,
+  contactSupervisor,
+  forceExit,
+}
+
+/// Typed failure information carried by terminal payment results.
+class PaymentFailure {
+  const PaymentFailure({
+    required this.type,
+    required this.recovery,
+    required this.certainty,
+    required this.retryable,
+    this.code,
+    this.messageKey,
+    this.details,
+  });
+
+  final String? code;
+  final PaymentErrorType type;
+  final String? messageKey;
+  final PaymentRecovery recovery;
+  final PaymentOutcomeCertainty certainty;
+  final bool retryable;
+  final Map<String, dynamic>? details;
+}
+
 /// Immutable descriptor of a payment status update.
 class PaymentStatus {
   const PaymentStatus({
@@ -203,6 +243,7 @@ class PaymentResult {
     this.payload,
     this.errorType,
     this.retryable,
+    this.failure,
   });
 
   final PaymentStatusType status;
@@ -214,6 +255,7 @@ class PaymentResult {
   final Map<String, dynamic>? payload;
   final PaymentErrorType? errorType;
   final bool? retryable;
+  final PaymentFailure? failure;
 
   factory PaymentResult.success({
     String? message,
@@ -239,7 +281,14 @@ class PaymentResult {
     Map<String, dynamic>? payload,
     PaymentErrorType errorType = PaymentErrorType.unknown,
     bool retryable = true,
+    PaymentRecovery? recovery,
+    PaymentOutcomeCertainty certainty = PaymentOutcomeCertainty.known,
   }) {
+    final resolvedRecovery =
+        recovery ??
+        (certainty == PaymentOutcomeCertainty.indeterminate
+            ? PaymentRecovery.reconcileResult
+            : PaymentRecovery.retryCurrentStep);
     return PaymentResult(
       status: PaymentStatusType.failure,
       success: false,
@@ -250,6 +299,15 @@ class PaymentResult {
       payload: payload,
       errorType: errorType,
       retryable: retryable,
+      failure: PaymentFailure(
+        code: errorCode,
+        type: errorType,
+        messageKey: messageKey,
+        recovery: resolvedRecovery,
+        certainty: certainty,
+        retryable: retryable,
+        details: payload,
+      ),
     );
   }
 

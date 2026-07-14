@@ -1111,6 +1111,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentStatusNoUpdates => 'No status updates';
 
   @override
+  String get paymentOrderCompletionFailed =>
+      'Payment succeeded, but the local order status could not be updated. Please verify the order record.';
+
+  @override
   String get paymentCardInitTerminal => 'Initializing card terminal';
 
   @override

@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
+import 'package:shop_staff/application/payments/runtime/payment_watchdog.dart';
+import 'package:shop_staff/core/async/buffered_broadcast_controller.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/services/pos_payment_service.dart';
 
@@ -45,18 +47,17 @@ class QrPaymentFlow implements PaymentFlow {
 
   @override
   PaymentFlowRun start(PaymentContext context) {
-    final controller = StreamController<PaymentStatus>.broadcast();
+    final controller = BufferedBroadcastController<PaymentStatus>();
     final completer = Completer<PaymentResult>();
     var isFinished = false;
     String? activeSessionId;
     StreamSubscription<PosPaymentStatus>? sessionSubscription;
-    Timer? stageTimer;
+    final watchdog = PaymentWatchdog();
 
     Future<void> finish(PaymentResult result) async {
       if (isFinished) return;
       isFinished = true;
-      stageTimer?.cancel();
-      stageTimer = null;
+      watchdog.cancel();
       if (!completer.isCompleted) {
         completer.complete(result);
       }
@@ -65,8 +66,7 @@ class QrPaymentFlow implements PaymentFlow {
     }
 
     void clearStageTimer() {
-      stageTimer?.cancel();
-      stageTimer = null;
+      watchdog.cancel();
     }
 
     Future<void> failWithTimeout({
@@ -74,6 +74,8 @@ class QrPaymentFlow implements PaymentFlow {
       required String messageKey,
       required PaymentErrorType errorType,
       Map<String, dynamic>? payload,
+      PaymentOutcomeCertainty certainty = PaymentOutcomeCertainty.known,
+      PaymentRecovery recovery = PaymentRecovery.retryCurrentStep,
     }) async {
       if (isFinished) return;
       _logger.warning('QR payment stage timed out: $stage');
@@ -95,6 +97,8 @@ class QrPaymentFlow implements PaymentFlow {
           payload: {'stage': stage, if (payload != null) ...payload},
           errorType: errorType,
           retryable: true,
+          recovery: recovery,
+          certainty: certainty,
         ),
       );
     }
@@ -102,30 +106,38 @@ class QrPaymentFlow implements PaymentFlow {
     void armPosStageTimeout({
       required Duration timeout,
       required String stage,
+      required PaymentPhase phase,
     }) {
       clearStageTimer();
-      stageTimer = Timer(timeout, () {
-        if (isFinished) return;
-        unawaited(() async {
-          final sessionId = activeSessionId;
-          if (sessionId != null) {
-            try {
-              await _posPaymentService.cancel(sessionId);
-            } catch (error, stack) {
-              _logger.warning(
-                'Failed to cancel POS session after timeout',
-                error,
-                stack,
-              );
+      watchdog.arm(
+        phase: phase,
+        operation: stage,
+        timeout: timeout,
+        onTimeout: (timeoutEvent) {
+          if (isFinished) return;
+          unawaited(() async {
+            final sessionId = activeSessionId;
+            if (sessionId != null) {
+              try {
+                await _posPaymentService.cancel(sessionId);
+              } catch (error, stack) {
+                _logger.warning(
+                  'Failed to cancel POS session after timeout',
+                  error,
+                  stack,
+                );
+              }
             }
-          }
-          await failWithTimeout(
-            stage: stage,
-            messageKey: PaymentMessageKeys.posTimeout,
-            errorType: PaymentErrorType.device,
-          );
-        }());
-      });
+            await failWithTimeout(
+              stage: stage,
+              messageKey: PaymentMessageKeys.posTimeout,
+              errorType: PaymentErrorType.device,
+              certainty: timeoutEvent.certainty,
+              recovery: timeoutEvent.recovery,
+            );
+          }());
+        },
+      );
     }
 
     Future<void> run() async {
@@ -197,7 +209,11 @@ class QrPaymentFlow implements PaymentFlow {
             cardData,
           );
           _ensurePosConfig(sessionRequest.customPayload);
-          armPosStageTimeout(timeout: _posStartTimeout, stage: 'pos_start');
+          armPosStageTimeout(
+            timeout: _posStartTimeout,
+            stage: 'pos_start',
+            phase: PaymentPhase.connecting,
+          );
           final session = await _posPaymentService.startPayment(sessionRequest);
           activeSessionId = session.sessionId;
           sessionSubscription = _posPaymentService
@@ -216,6 +232,7 @@ class QrPaymentFlow implements PaymentFlow {
                     armPosStageTimeout(
                       timeout: _posStatusInactivityTimeout,
                       stage: 'pos_waiting',
+                      phase: mapped.phase ?? PaymentPhase.waitingTerminalResult,
                     );
                   }
                 },
@@ -318,10 +335,17 @@ class QrPaymentFlow implements PaymentFlow {
               errorType: PaymentErrorType.device,
             );
           } else {
+            final isBackendRequest = stage == 'qr_backend_request';
             await failWithTimeout(
               stage: stage,
               messageKey: PaymentMessageKeys.qrFailure,
               errorType: PaymentErrorType.network,
+              certainty: isBackendRequest
+                  ? PaymentOutcomeCertainty.indeterminate
+                  : PaymentOutcomeCertainty.known,
+              recovery: isBackendRequest
+                  ? PaymentRecovery.reconcileResult
+                  : PaymentRecovery.restartPayment,
             );
           }
           return;

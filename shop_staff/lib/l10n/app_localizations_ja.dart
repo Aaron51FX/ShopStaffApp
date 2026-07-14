@@ -1069,6 +1069,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentStatusNoUpdates => 'ステータス更新なし';
 
   @override
+  String get paymentOrderCompletionFailed =>
+      '支払いは完了しましたが、ローカル注文状態を更新できませんでした。注文記録を確認してください。';
+
+  @override
   String get paymentCardInitTerminal => 'カード端末を初期化中';
 
   @override

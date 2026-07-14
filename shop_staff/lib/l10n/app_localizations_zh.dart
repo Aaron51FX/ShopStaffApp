@@ -1059,6 +1059,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentStatusNoUpdates => '暂无状态更新';
 
   @override
+  String get paymentOrderCompletionFailed => '支付已成功，但本地订单状态更新失败，请核对订单记录。';
+
+  @override
   String get paymentCardInitTerminal => '初始化信用卡终端';
 
   @override

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
+import 'package:shop_staff/core/async/buffered_broadcast_controller.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 
 import '../payment_backend_gateway.dart';
@@ -17,7 +18,7 @@ class BookkeepingPaymentFlow implements PaymentFlow {
 
   @override
   PaymentFlowRun start(PaymentContext context) {
-    final controller = StreamController<PaymentStatus>.broadcast();
+    final controller = BufferedBroadcastController<PaymentStatus>();
     final completer = Completer<PaymentResult>();
     var isFinished = false;
 

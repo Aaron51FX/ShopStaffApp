@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:logging/logging.dart';
+import 'package:shop_staff/core/async/buffered_broadcast_controller.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/services/payment_orchestrator.dart';
 
@@ -18,7 +19,7 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
   final Random _random = Random();
 
   @override
-  PaymentSession start(PaymentContext context) {
+  PaymentSessionHandle start(PaymentContext context) {
     final key =
         context.mode == PaymentFlowMode.bookkeeping &&
             context.channel.group != PaymentChannels.cash
@@ -31,7 +32,7 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
 
     final run = flow.start(context);
     final sessionId = _generateSessionId();
-    final controller = StreamController<PaymentStatus>.broadcast();
+    final controller = BufferedBroadcastController<PaymentStatus>();
     final entry = _PaymentSessionEntry(run: run, controller: controller);
     _sessions[sessionId] = entry;
 
@@ -43,7 +44,6 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
       },
       phase: PaymentPhase.initializing,
     );
-    controller.add(initialStatus);
     entry.lastStatus = initialStatus;
 
     entry.subscription = run.statuses.listen(
@@ -112,9 +112,13 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
 
     entry.finalize = run.finalize;
 
-    return PaymentSession(
+    return PaymentSessionHandle(
       sessionId: sessionId,
       initialStatus: initialStatus,
+      statuses: controller.stream,
+      result: entry.completer.future,
+      cancel: () => cancel(sessionId),
+      finalize: run.finalize == null ? null : () => finalize(sessionId),
       requiresManualCompletion: run.finalize != null,
     );
   }
@@ -227,7 +231,7 @@ class _PaymentSessionEntry {
   _PaymentSessionEntry({required this.run, required this.controller});
 
   final PaymentFlowRun run;
-  final StreamController<PaymentStatus> controller;
+  final BufferedBroadcastController<PaymentStatus> controller;
   final Completer<PaymentResult> completer = Completer<PaymentResult>();
   StreamSubscription<PaymentStatus>? subscription;
   PaymentStatus? lastStatus;

@@ -420,6 +420,7 @@
   "paymentStatusFailure": "支付失败",
   "paymentStatusCancelled": "支付已取消",
   "paymentStatusNoUpdates": "暂无状态更新",
+  "paymentOrderCompletionFailed": "支付已成功，但本地订单状态更新失败，请核对订单记录。",
   "paymentCardInitTerminal": "初始化信用卡终端",
   "paymentCardSuccess": "信用卡支付成功",
   "paymentCardFailure": "信用卡支付失败",

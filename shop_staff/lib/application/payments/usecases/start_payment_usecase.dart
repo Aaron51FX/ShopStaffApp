@@ -12,7 +12,7 @@ class PaymentFlowStartResult {
     required this.result,
   });
 
-  final PaymentSession session;
+  final PaymentSessionHandle session;
   final Stream<PaymentStatus> statuses;
   final Future<PaymentResult> result;
 }
@@ -51,8 +51,8 @@ class StartPaymentUseCase {
     final session = _orchestrator.start(context);
     return PaymentFlowStartResult(
       session: session,
-      statuses: _orchestrator.watch(session.sessionId),
-      result: _orchestrator.result(session.sessionId),
+      statuses: session.statuses,
+      result: session.result,
     );
   }
 }

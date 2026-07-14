@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/domain/payments/payment_stage_policy.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_state.dart';
@@ -110,20 +111,7 @@ class BottomActionBar extends StatelessWidget {
 
     final phase = state.currentStatus?.phase;
     if (phase != null) {
-      switch (phase) {
-        case PaymentPhase.initializing:
-          return true;
-        case PaymentPhase.connecting:
-        case PaymentPhase.requesting:
-        case PaymentPhase.sending:
-          return false;
-        case PaymentPhase.waitingUser:
-          return true;
-        case PaymentPhase.waitingTerminalResult:
-          return false;
-        case PaymentPhase.confirming:
-          return false;
-      }
+      return phase.policy.canCancel;
     }
 
     if (args.channelGroup == PaymentChannels.cash) {

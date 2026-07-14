@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
+import 'package:shop_staff/application/payments/runtime/payment_watchdog.dart';
+import 'package:shop_staff/core/async/buffered_broadcast_controller.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/services/cash_machine_service.dart';
 
@@ -27,7 +29,7 @@ class CashPaymentFlow implements PaymentFlow {
 
   @override
   PaymentFlowRun start(PaymentContext context) {
-    final controller = StreamController<PaymentStatus>.broadcast();
+    final controller = BufferedBroadcastController<PaymentStatus>();
     final completer = Completer<PaymentResult>();
     var isFinished = false;
     StreamSubscription<CashMachineEvent>? eventSubscription;
@@ -35,18 +37,19 @@ class CashPaymentFlow implements PaymentFlow {
     CashMachineReceipt? pendingReceipt;
     var confirmRequested = false;
     var awaitingManualConfirm = false;
-    Timer? stageTimer;
+    final watchdog = PaymentWatchdog();
+    var currentPhase = PaymentPhase.initializing;
 
     void emitStatus(PaymentStatus status) {
       if (isFinished || controller.isClosed) return;
+      currentPhase = status.phase ?? currentPhase;
       controller.add(status);
     }
 
     Future<void> finish(PaymentResult result) async {
       if (isFinished) return;
       isFinished = true;
-      stageTimer?.cancel();
-      stageTimer = null;
+      watchdog.cancel();
       await eventSubscription?.cancel();
       eventSubscription = null;
       if (!completer.isCompleted) {
@@ -56,14 +59,15 @@ class CashPaymentFlow implements PaymentFlow {
     }
 
     void clearStageTimer() {
-      stageTimer?.cancel();
-      stageTimer = null;
+      watchdog.cancel();
     }
 
     Future<void> failWithTimeout({
       required String stage,
       required String messageKey,
       required PaymentErrorType errorType,
+      PaymentOutcomeCertainty certainty = PaymentOutcomeCertainty.known,
+      PaymentRecovery recovery = PaymentRecovery.retryCurrentStep,
     }) async {
       if (isFinished) return;
       _logger.warning('Cash payment stage timed out: $stage');
@@ -87,6 +91,8 @@ class CashPaymentFlow implements PaymentFlow {
           payload: {'stage': stage},
           errorType: errorType,
           retryable: true,
+          recovery: recovery,
+          certainty: certainty,
         ),
       );
     }
@@ -97,29 +103,37 @@ class CashPaymentFlow implements PaymentFlow {
       required String messageKey,
       required PaymentErrorType errorType,
       bool cancelMachine = false,
+      PaymentPhase? phase,
     }) {
       clearStageTimer();
-      stageTimer = Timer(timeout, () {
-        if (isFinished) return;
-        unawaited(() async {
-          if (cancelMachine) {
-            try {
-              await _cashMachine.cancelPayment();
-            } catch (error, stack) {
-              _logger.warning(
-                'Cancel cash machine after timeout failed',
-                error,
-                stack,
-              );
+      watchdog.arm(
+        phase: phase ?? currentPhase,
+        operation: stage,
+        timeout: timeout,
+        onTimeout: (timeoutEvent) {
+          if (isFinished) return;
+          unawaited(() async {
+            if (cancelMachine) {
+              try {
+                await _cashMachine.cancelPayment();
+              } catch (error, stack) {
+                _logger.warning(
+                  'Cancel cash machine after timeout failed',
+                  error,
+                  stack,
+                );
+              }
             }
-          }
-          await failWithTimeout(
-            stage: stage,
-            messageKey: messageKey,
-            errorType: errorType,
-          );
-        }());
-      });
+            await failWithTimeout(
+              stage: stage,
+              messageKey: messageKey,
+              errorType: errorType,
+              certainty: timeoutEvent.certainty,
+              recovery: timeoutEvent.recovery,
+            );
+          }());
+        },
+      );
     }
 
     void failFromStatus(PaymentStatus status) {
@@ -153,6 +167,7 @@ class CashPaymentFlow implements PaymentFlow {
           messageKey: PaymentMessageKeys.cashFailure,
           errorType: PaymentErrorType.device,
           cancelMachine: true,
+          phase: PaymentPhase.initializing,
         );
         eventSubscription = _cashMachine.events.listen(
           (event) {
@@ -204,6 +219,7 @@ class CashPaymentFlow implements PaymentFlow {
           messageKey: PaymentMessageKeys.cashFailure,
           errorType: PaymentErrorType.userCancelled,
           cancelMachine: true,
+          phase: PaymentPhase.waitingUser,
         );
 
         emitStatus(
@@ -268,6 +284,7 @@ class CashPaymentFlow implements PaymentFlow {
           messageKey: PaymentMessageKeys.cashConfirmFailed,
           errorType: PaymentErrorType.backend,
           cancelMachine: true,
+          phase: PaymentPhase.confirming,
         );
         emitStatus(
           const PaymentStatus(

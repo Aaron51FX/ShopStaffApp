@@ -2134,6 +2134,12 @@ abstract class AppLocalizations {
   /// **'No status updates'**
   String get paymentStatusNoUpdates;
 
+  /// No description provided for @paymentOrderCompletionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment succeeded, but the local order status could not be updated. Please verify the order record.'**
+  String get paymentOrderCompletionFailed;
+
   /// No description provided for @paymentCardInitTerminal.
   ///
   /// In en, this message translates to:
