@@ -1540,6 +1540,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get paymentErrorRuntime =>
+      'The payment process ended unexpectedly. Check the transaction status before trying again.';
+
+  @override
   String get routeArgsMissing => 'Missing page parameters';
 
   @override

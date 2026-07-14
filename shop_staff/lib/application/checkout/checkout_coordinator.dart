@@ -63,7 +63,7 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
     try {
       final order = await _ensureOrderSubmitted(draft, paymentMode);
       await _localOrders.updatePaymentMode(order.orderId, paymentMode);
-      await _localOrders.updatePayMethod(order.orderId, label);
+      await _localOrders.updatePayMethod(order.orderId, code);
 
       final request = _buildPaymentRequest.execute(
         order: order,

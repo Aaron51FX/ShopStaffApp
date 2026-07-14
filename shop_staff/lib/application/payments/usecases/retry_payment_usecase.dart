@@ -1,5 +1,5 @@
 import 'package:logging/logging.dart';
-import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
+import 'package:shop_staff/application/checkout/models/checkout_payment_request.dart';
 
 import 'cancel_payment_usecase.dart';
 import 'start_payment_usecase.dart';
@@ -9,16 +9,16 @@ class RetryPaymentUseCase {
     required CancelPaymentUseCase cancelPayment,
     required StartPaymentUseCase startPayment,
     Logger? logger,
-  })  : _cancelPayment = cancelPayment,
-        _startPayment = startPayment,
-        _logger = logger ?? Logger('RetryPaymentUseCase');
+  }) : _cancelPayment = cancelPayment,
+       _startPayment = startPayment,
+       _logger = logger ?? Logger('RetryPaymentUseCase');
 
   final CancelPaymentUseCase _cancelPayment;
   final StartPaymentUseCase _startPayment;
   final Logger _logger;
 
   Future<PaymentFlowStartResult> call({
-    required PaymentFlowPageArgs args,
+    required CheckoutPaymentRequest args,
     String? previousSessionId,
   }) async {
     if (previousSessionId != null && previousSessionId.isNotEmpty) {

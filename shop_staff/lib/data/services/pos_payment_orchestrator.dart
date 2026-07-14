@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:logging/logging.dart';
 import 'package:shop_staff/core/async/buffered_broadcast_controller.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/domain/payments/payment_stage_policy.dart';
 import 'package:shop_staff/domain/services/payment_orchestrator.dart';
 
 class PosPaymentOrchestrator implements PaymentOrchestrator {
@@ -27,7 +28,7 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
         : context.channel.group;
     final flow = _flows[key];
     if (flow == null) {
-      throw UnsupportedError('当前不支持的支付方式: ${context.channel.group}');
+      throw StateError('PAYMENT_CHANNEL_UNSUPPORTED');
     }
 
     final run = flow.start(context);
@@ -53,29 +54,10 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
       },
       onError: (error, stack) {
         _logger.warning('支付状态流异常: $error', error, stack);
-        if (!entry.completer.isCompleted) {
-          entry.completer.complete(
-            PaymentResult.failure(message: error.toString()),
-          );
-        }
-        controller.add(
-          PaymentStatus(
-            type: PaymentStatusType.failure,
-            message: error.toString(),
-          ),
-        );
+        _handleUnexpectedStatusFailure(entry);
       },
       onDone: () {
-        if (!entry.completer.isCompleted) {
-          // Fallback: mark as failure if the run completed without result.
-          entry.completer.complete(
-            PaymentResult.failure(
-              messageKey: PaymentMessageKeys.flowEnded,
-              errorType: PaymentErrorType.unknown,
-              retryable: true,
-            ),
-          );
-        }
+        scheduleMicrotask(() => _handleUnexpectedStatusFailure(entry));
       },
     );
 
@@ -92,16 +74,10 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
         .catchError((error, stack) {
           _logger.severe('支付流程执行失败', error, stack);
           if (!entry.completer.isCompleted) {
-            entry.completer.complete(
-              PaymentResult.failure(message: error.toString()),
-            );
+            final result = _unexpectedTerminalResult(entry.lastStatus);
+            entry.completer.complete(result);
+            controller.add(_statusFromResult(result));
           }
-          controller.add(
-            PaymentStatus(
-              type: PaymentStatusType.failure,
-              message: error.toString(),
-            ),
-          );
         })
         .whenComplete(() async {
           await entry.subscription?.cancel();
@@ -206,6 +182,56 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
     final timestamp = DateTime.now().microsecondsSinceEpoch;
     final randomPart = _random.nextInt(1 << 32);
     return '$timestamp-$randomPart';
+  }
+
+  void _handleUnexpectedStatusFailure(_PaymentSessionEntry entry) {
+    if (entry.completer.isCompleted || entry.controller.isClosed) return;
+    if (_hasUncertainOutcome(entry.lastStatus)) {
+      final status = const PaymentStatus(
+        type: PaymentStatusType.indeterminate,
+        messageKey: PaymentMessageKeys.errorRuntime,
+        errorType: PaymentErrorType.unknown,
+        retryable: false,
+        certainty: PaymentOutcomeCertainty.indeterminate,
+        recovery: PaymentRecovery.contactSupervisor,
+      );
+      entry.lastStatus = status;
+      entry.controller.add(status);
+      return;
+    }
+    final result = PaymentResult.failure(
+      messageKey: PaymentMessageKeys.errorRuntime,
+      errorType: PaymentErrorType.unknown,
+      retryable: true,
+      recovery: PaymentRecovery.restartPayment,
+      certainty: PaymentOutcomeCertainty.known,
+    );
+    entry.completer.complete(result);
+    entry.controller.add(_statusFromResult(result));
+  }
+
+  PaymentResult _unexpectedTerminalResult(PaymentStatus? lastStatus) {
+    if (_hasUncertainOutcome(lastStatus)) {
+      return PaymentResult.indeterminate(
+        messageKey: PaymentMessageKeys.errorRuntime,
+        errorType: PaymentErrorType.unknown,
+        recovery: PaymentRecovery.contactSupervisor,
+      );
+    }
+    return PaymentResult.failure(
+      messageKey: PaymentMessageKeys.errorRuntime,
+      errorType: PaymentErrorType.unknown,
+      retryable: true,
+      recovery: PaymentRecovery.restartPayment,
+      certainty: PaymentOutcomeCertainty.known,
+    );
+  }
+
+  bool _hasUncertainOutcome(PaymentStatus? status) {
+    if (status?.certainty == PaymentOutcomeCertainty.indeterminate) return true;
+    final phase = status?.phase;
+    return phase != null &&
+        phase.policy.timeoutOutcome == PaymentTimeoutOutcome.indeterminate;
   }
 
   PaymentStatus _statusFromResult(PaymentResult result) {

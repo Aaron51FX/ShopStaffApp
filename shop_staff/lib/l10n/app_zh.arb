@@ -614,6 +614,7 @@
     }
   },
   "paymentErrorUnknown": "发生未知错误：{detail}",
+  "paymentErrorRuntime": "支付流程意外结束，请确认交易状态后再重试。",
   "@paymentErrorUnknown": {
     "placeholders": {
       "detail": {}

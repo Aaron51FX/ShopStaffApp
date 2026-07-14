@@ -1459,6 +1459,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get paymentErrorRuntime => '支付流程意外结束，请确认交易状态后再重试。';
+
+  @override
   String get routeArgsMissing => '缺少页面参数';
 
   @override

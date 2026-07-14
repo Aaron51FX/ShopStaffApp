@@ -1,5 +1,7 @@
-export 'start_payment_usecase.dart' show PaymentFlowStartResult, StartPaymentUseCase;
-export 'prepare_payment_channel_config_usecase.dart' show PreparePaymentChannelConfigUseCase;
+export 'start_payment_usecase.dart'
+    show PaymentFlowStartResult, StartPaymentUseCase;
+export 'prepare_payment_channel_config_usecase.dart'
+    show PreparePaymentChannelConfigUseCase;
 
 import 'start_payment_usecase.dart';
 

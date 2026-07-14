@@ -99,6 +99,7 @@ abstract class PaymentMessageKeys {
   static const String cashAmountFinal = 'payment_cash_amount_final';
 
   static const String errorUnknown = 'payment_error_unknown';
+  static const String errorRuntime = 'payment_error_runtime';
   static const String sessionMissing = 'payment_session_missing';
   static const String flowEnded = 'payment_flow_ended';
   static const String posFetchingPayData = 'payment_pos_fetching_data';

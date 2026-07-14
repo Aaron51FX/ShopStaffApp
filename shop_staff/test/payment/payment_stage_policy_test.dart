@@ -5,7 +5,7 @@ import 'package:shop_staff/domain/payments/payment_stage_policy.dart';
 void main() {
   group('PaymentPhasePolicy', () {
     test('only operator-waiting phases allow cancellation', () {
-      expect(PaymentPhase.initializing.policy.canCancel, isTrue);
+      expect(PaymentPhase.initializing.policy.canCancel, isFalse);
       expect(PaymentPhase.waitingUser.policy.canCancel, isTrue);
       expect(PaymentPhase.connecting.policy.canCancel, isFalse);
       expect(PaymentPhase.requesting.policy.canCancel, isFalse);

@@ -614,6 +614,7 @@
     }
   },
   "paymentErrorUnknown": "Unknown error: {detail}",
+  "paymentErrorRuntime": "The payment process ended unexpectedly. Check the transaction status before trying again.",
   "@paymentErrorUnknown": {
     "placeholders": {
       "detail": {}

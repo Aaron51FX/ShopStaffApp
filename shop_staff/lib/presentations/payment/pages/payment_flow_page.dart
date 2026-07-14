@@ -20,8 +20,8 @@ import 'package:shop_staff/presentations/payment/widgets/order_summary.dart';
 import 'package:shop_staff/presentations/payment/widgets/qr_scan_dialog.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_hero.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
-
-import '../viewmodels/payment_flow_viewmodel.dart';
+import 'package:shop_staff/presentations/payment/controllers/payment_flow_effect.dart';
+import 'package:shop_staff/presentations/payment/providers/payment_providers.dart';
 
 class PaymentFlowPage extends ConsumerStatefulWidget {
   const PaymentFlowPage({super.key, required this.args});
@@ -33,7 +33,7 @@ class PaymentFlowPage extends ConsumerStatefulWidget {
 }
 
 class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
-  late final provider = paymentFlowViewModelProvider(widget.args);
+  late final provider = paymentSessionControllerProvider(widget.args);
   ProviderSubscription<CancelDialogState>? _cancelSubscription;
   StreamSubscription<PaymentFlowEffect>? _effectSubscription;
   ValueNotifier<CancelDialogState>? _cancelDialogNotifier;
@@ -350,9 +350,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
     if (receiptAmount is num) {
       return CashAmountSnapshot(amount: receiptAmount, isFinal: false);
     }
-    //for (final status in state.timeline.reversed) {
     final details = state.currentStatus?.details ?? {};
-    //if (details == null) continue;
     if (details['stage'] == 'amount') {
       final amount = details['amount'];
       if (amount is num) {
@@ -360,7 +358,6 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
         return CashAmountSnapshot(amount: amount, isFinal: isFinal);
       }
     }
-    //}
     return null;
   }
 }

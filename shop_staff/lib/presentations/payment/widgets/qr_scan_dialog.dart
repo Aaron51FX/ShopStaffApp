@@ -1,9 +1,13 @@
-
 import 'package:flutter/material.dart';
 import 'package:shop_staff/data/services/payment_channel_support.dart';
 
 class QrScanDialog extends StatefulWidget {
-  const QrScanDialog({required this.state, required this.onSubmitted, required this.onCancel});
+  const QrScanDialog({
+    super.key,
+    required this.state,
+    required this.onSubmitted,
+    required this.onCancel,
+  });
 
   final QrScanUiState state;
   final ValueChanged<String> onSubmitted;
@@ -37,7 +41,8 @@ class _QrScanDialogState extends State<QrScanDialog> {
   @override
   void didUpdateWidget(covariant QrScanDialog oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.state.status == QrScanDialogStatus.waiting && oldWidget.state.status != QrScanDialogStatus.waiting) {
+    if (widget.state.status == QrScanDialogStatus.waiting &&
+        oldWidget.state.status != QrScanDialogStatus.waiting) {
       _controller.clear();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _focusNode.requestFocus();
@@ -58,7 +63,8 @@ class _QrScanDialogState extends State<QrScanDialog> {
   @override
   Widget build(BuildContext context) {
     final isError = widget.state.status == QrScanDialogStatus.error;
-    final message = widget.state.message ?? (isError ? '扫码失败，请重试' : '请使用扫码枪对准提示区域');
+    final message =
+        widget.state.message ?? (isError ? '扫码失败，请重试' : '请使用扫码枪对准提示区域');
     return AlertDialog(
       title: const Text('扫码支付'),
       content: Column(
@@ -67,7 +73,9 @@ class _QrScanDialogState extends State<QrScanDialog> {
         children: [
           Text(
             message,
-            style: TextStyle(color: isError ? Colors.redAccent : Colors.black87),
+            style: TextStyle(
+              color: isError ? Colors.redAccent : Colors.black87,
+            ),
           ),
           const SizedBox(height: 16),
           TextField(
@@ -88,10 +96,7 @@ class _QrScanDialogState extends State<QrScanDialog> {
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: widget.onCancel,
-          child: const Text('取消'),
-        ),
+        TextButton(onPressed: widget.onCancel, child: const Text('取消')),
       ],
     );
   }

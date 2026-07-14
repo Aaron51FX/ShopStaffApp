@@ -1,4 +1,3 @@
-
 enum CancelDialogStatus { hidden, loading, success, failure }
 
 class CancelDialogState {
@@ -10,9 +9,11 @@ class CancelDialogState {
 
   bool get isVisible => status != CancelDialogStatus.hidden;
   bool get isTerminal =>
-      status == CancelDialogStatus.success || status == CancelDialogStatus.failure;
+      status == CancelDialogStatus.success ||
+      status == CancelDialogStatus.failure;
 
-  const CancelDialogState.hidden() : this._(CancelDialogStatus.hidden, null, false);
+  const CancelDialogState.hidden()
+    : this._(CancelDialogStatus.hidden, null, false);
 
   factory CancelDialogState.loading(String? message) {
     return CancelDialogState._(CancelDialogStatus.loading, message, false);
@@ -22,7 +23,14 @@ class CancelDialogState {
     return CancelDialogState._(CancelDialogStatus.success, message, false);
   }
 
-  factory CancelDialogState.failure(String? message, {bool requiresRecovery = false}) {
-    return CancelDialogState._(CancelDialogStatus.failure, message, requiresRecovery);
+  factory CancelDialogState.failure(
+    String? message, {
+    bool requiresRecovery = false,
+  }) {
+    return CancelDialogState._(
+      CancelDialogStatus.failure,
+      message,
+      requiresRecovery,
+    );
   }
 }

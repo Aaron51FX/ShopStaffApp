@@ -2,7 +2,7 @@ import 'package:shop_staff/domain/services/payment_orchestrator.dart';
 
 class CancelPaymentUseCase {
   CancelPaymentUseCase({required PaymentOrchestrator orchestrator})
-      : _orchestrator = orchestrator;
+    : _orchestrator = orchestrator;
 
   final PaymentOrchestrator _orchestrator;
 

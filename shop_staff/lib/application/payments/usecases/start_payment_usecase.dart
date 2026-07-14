@@ -1,7 +1,7 @@
 import 'package:logging/logging.dart';
+import 'package:shop_staff/application/checkout/models/checkout_payment_request.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/services/payment_orchestrator.dart';
-import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 
 import 'prepare_payment_channel_config_usecase.dart';
 
@@ -31,7 +31,7 @@ class StartPaymentUseCase {
   final PreparePaymentChannelConfigUseCase _prepareConfig;
   final Logger _logger;
 
-  PaymentFlowStartResult call(PaymentFlowPageArgs args) {
+  PaymentFlowStartResult call(CheckoutPaymentRequest args) {
     final config = _prepareConfig(args);
 
     final channel = PaymentChannel(

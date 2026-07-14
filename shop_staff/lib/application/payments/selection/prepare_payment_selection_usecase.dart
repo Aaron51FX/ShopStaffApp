@@ -1,10 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:shop_staff/data/models/shop_info_models.dart';
-
-final preparePaymentSelectionUseCaseProvider = Provider<PreparePaymentSelectionUseCase>((ref) {
-  return const PreparePaymentSelectionUseCase();
-});
 
 class PaymentSelectionOption {
   const PaymentSelectionOption({
@@ -20,11 +14,11 @@ class PaymentSelectionOption {
   final bool enabled;
 
   Map<String, dynamic> toJson() => {
-        'group': group,
-        'code': code,
-        'label': label,
-        'enabled': enabled,
-      };
+    'group': group,
+    'code': code,
+    'label': label,
+    'enabled': enabled,
+  };
 }
 
 class PreparePaymentSelectionOutput {
@@ -32,11 +26,14 @@ class PreparePaymentSelectionOutput {
 
   final List<PaymentSelectionOption> options;
 
-  Map<String, dynamic> toPayload({required int orderNumber, required double total}) => {
-        'orderNumber': orderNumber,
-        'total': total,
-        'options': options.map((e) => e.toJson()).toList(),
-      };
+  Map<String, dynamic> toPayload({
+    required int orderNumber,
+    required double total,
+  }) => {
+    'orderNumber': orderNumber,
+    'total': total,
+    'options': options.map((e) => e.toJson()).toList(),
+  };
 }
 
 class PreparePaymentSelectionUseCase {
@@ -48,7 +45,9 @@ class PreparePaymentSelectionUseCase {
       if (v == null) return false;
       if (v is bool) return v;
       if (v is num) return v != 0;
-      if (v is String) return v.toLowerCase() == 'true' || v == '1' || v.toLowerCase() == 'y';
+      if (v is String) {
+        return v.toLowerCase() == 'true' || v == '1' || v.toLowerCase() == 'y';
+      }
       return false;
     }
 
@@ -77,9 +76,24 @@ class PreparePaymentSelectionUseCase {
 
     return PreparePaymentSelectionOutput(
       options: [
-        const PaymentSelectionOption(group: 'cash', code: 'cash', label: '现金', enabled: true),
-        PaymentSelectionOption(group: 'qr', code: 'qr', label: '二维码', enabled: hasQr),
-        PaymentSelectionOption(group: 'card', code: 'card', label: '信用卡', enabled: hasCard),
+        const PaymentSelectionOption(
+          group: 'cash',
+          code: 'cash',
+          label: 'cash',
+          enabled: true,
+        ),
+        PaymentSelectionOption(
+          group: 'qr',
+          code: 'qr',
+          label: 'qr',
+          enabled: hasQr,
+        ),
+        PaymentSelectionOption(
+          group: 'card',
+          code: 'card',
+          label: 'card',
+          enabled: hasCard,
+        ),
       ],
     );
   }

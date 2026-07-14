@@ -614,6 +614,7 @@
     }
   },
   "paymentErrorUnknown": "不明なエラー：{detail}",
+  "paymentErrorRuntime": "決済処理が予期せず終了しました。再試行する前に取引状態を確認してください。",
   "@paymentErrorUnknown": {
     "placeholders": {
       "detail": {}

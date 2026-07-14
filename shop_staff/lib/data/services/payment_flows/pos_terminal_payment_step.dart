@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:shop_staff/application/payments/runtime/payment_watchdog.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/payments/payment_stage_policy.dart';
+import 'package:shop_staff/domain/payments/payment_watchdog.dart';
 import 'package:shop_staff/domain/services/pos_payment_service.dart';
 
 import 'pos_payment_status_adapter.dart';

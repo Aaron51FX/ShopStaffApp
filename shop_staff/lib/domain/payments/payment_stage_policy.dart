@@ -16,7 +16,7 @@ extension PaymentPhasePolicy on PaymentPhase {
   PaymentStagePolicy get policy {
     return switch (this) {
       PaymentPhase.initializing => const PaymentStagePolicy(
-        canCancel: true,
+        canCancel: false,
         timeoutOutcome: PaymentTimeoutOutcome.failure,
       ),
       PaymentPhase.connecting => const PaymentStagePolicy(

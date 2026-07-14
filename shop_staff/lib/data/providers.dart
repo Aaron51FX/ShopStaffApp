@@ -155,7 +155,6 @@ final dialogDrivenQrScannerProvider =
       final service = DialogDrivenQrScannerService(
         logger: Logger('QrScannerService'),
       );
-      ref.onDispose(service.dispose);
       return service;
     });
 

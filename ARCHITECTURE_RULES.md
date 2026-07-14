@@ -89,6 +89,13 @@
 ## Payment Presentation
 
 - The payment page presents operator-relevant state, not the internal transport event log.
+- A payment session is owned by the payment controller/orchestrator lifecycle, not by the route widget lifecycle. Disposing or rebuilding a page must never implicitly cancel an active transaction.
+- Payment cancellation must only start from an explicit operator intent after `PaymentSessionState.canCancel` is true. Provider disposal and generic cleanup paths may release listeners, but must not invoke the payment cancel usecase.
+- Keep an active payment controller alive until it reaches a terminal result. Use a session generation/token so late events from a previous retry cannot overwrite the current run.
+- Generic failures after dispatch must be treated conservatively as an indeterminate outcome; never expose retry until reconciliation or an authoritative terminal result makes the outcome known.
+- `PaymentSessionState` owns presentation capabilities such as cancel, retry, reconcile, settings, and network actions. Widgets must render these capabilities rather than infer safety from status text.
+- Application payment usecases accept application/domain request models and must not import presentation route args or Riverpod provider wiring.
+- Provider files construct controllers and inject dependencies. Payment controllers must not keep a `Ref` as a service locator.
 - Its primary content should be limited to order context, the current actionable status, cash amount when applicable, recovery actions, and the currently valid bottom action.
 - Connecting, requesting, sending, and reconciliation details remain in the payment state machine and logs; they should not become a permanent timeline in the production UI.
 - Do not display a disabled cancel button during deterministic non-cancellable work. Show cancellation only when `PaymentSessionState.canCancel` is true.

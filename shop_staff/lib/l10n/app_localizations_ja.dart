@@ -1476,6 +1476,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get paymentErrorRuntime => '決済処理が予期せず終了しました。再試行する前に取引状態を確認してください。';
+
+  @override
   String get routeArgsMissing => '画面パラメータが不足しています';
 
   @override

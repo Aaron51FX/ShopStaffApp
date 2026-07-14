@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shop_staff/application/payments/runtime/payment_watchdog.dart';
+import 'package:shop_staff/domain/payments/payment_watchdog.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/payments/payment_stage_policy.dart';
 

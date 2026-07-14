@@ -2872,6 +2872,12 @@ abstract class AppLocalizations {
   /// **'Unknown error: {detail}'**
   String paymentErrorUnknown(Object detail);
 
+  /// No description provided for @paymentErrorRuntime.
+  ///
+  /// In en, this message translates to:
+  /// **'The payment process ended unexpectedly. Check the transaction status before trying again.'**
+  String get paymentErrorRuntime;
+
   /// No description provided for @routeArgsMissing.
   ///
   /// In en, this message translates to:

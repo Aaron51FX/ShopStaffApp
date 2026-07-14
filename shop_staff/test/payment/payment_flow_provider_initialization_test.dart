@@ -20,7 +20,7 @@ import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/repositories/bookkeeping_order_repository.dart';
 import 'package:shop_staff/domain/services/payment_orchestrator.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_state.dart';
-import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_viewmodel.dart';
+import 'package:shop_staff/presentations/payment/providers/payment_providers.dart';
 
 void main() {
   test(
@@ -42,6 +42,7 @@ void main() {
       final container = ProviderContainer(
         overrides: [
           checkoutCoordinatorProvider.overrideWith((ref) => coordinator),
+          localOrdersUseCasesProvider.overrideWithValue(localOrders),
           paymentFlowUseCaseProvider.overrideWithValue(
             PaymentFlowUseCase(
               orchestrator: orchestrator,
@@ -53,7 +54,7 @@ void main() {
       addTearDown(container.dispose);
 
       final subscription = container.listen<PaymentSessionState>(
-        paymentFlowViewModelProvider(_request),
+        paymentSessionControllerProvider(_request),
         (_, _) {},
         fireImmediately: true,
       );
@@ -68,6 +69,44 @@ void main() {
       );
     },
   );
+
+  test('disposing payment UI never cancels an active transaction', () async {
+    final orchestrator = _PendingPaymentOrchestrator();
+    final localOrders = LocalOrdersUseCases(local: _MemoryLocalOrders());
+    final coordinator = CheckoutCoordinator(
+      submitOrder: SubmitOrderUseCase(
+        bookkeepingOrderRepository: _UnusedOrderRepository(),
+      ),
+      localOrders: localOrders,
+      buildPaymentRequest: const BuildCheckoutPaymentRequestUseCase(),
+      completePayment: CompleteCheckoutPaymentUseCase(localOrders: localOrders),
+      readSettings: () => null,
+    );
+    final container = ProviderContainer(
+      overrides: [
+        checkoutCoordinatorProvider.overrideWith((ref) => coordinator),
+        localOrdersUseCasesProvider.overrideWithValue(localOrders),
+        paymentFlowUseCaseProvider.overrideWithValue(
+          PaymentFlowUseCase(
+            orchestrator: orchestrator,
+            readSettingsSnapshot: () => null,
+          ),
+        ),
+      ],
+    );
+    final subscription = container.listen<PaymentSessionState>(
+      paymentSessionControllerProvider(_request),
+      (_, _) {},
+      fireImmediately: true,
+    );
+
+    await Future<void>.delayed(Duration.zero);
+    subscription.close();
+    container.dispose();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(orchestrator.cancelCalls, 0);
+  });
 }
 
 const _request = CheckoutPaymentRequest(
@@ -86,6 +125,7 @@ const _request = CheckoutPaymentRequest(
 
 class _PendingPaymentOrchestrator implements PaymentOrchestrator {
   int startCalls = 0;
+  int cancelCalls = 0;
   final Completer<PaymentResult> _result = Completer<PaymentResult>();
 
   @override
@@ -101,7 +141,9 @@ class _PendingPaymentOrchestrator implements PaymentOrchestrator {
   }
 
   @override
-  Future<void> cancel(String sessionId) async {}
+  Future<void> cancel(String sessionId) async {
+    cancelCalls += 1;
+  }
 
   @override
   Future<void> finalize(String sessionId) async {}

@@ -1,7 +1,7 @@
 import 'package:logging/logging.dart';
+import 'package:shop_staff/application/checkout/models/checkout_payment_request.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/settings/app_settings_models.dart';
-import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 
 class PreparePaymentChannelConfigUseCase {
   PreparePaymentChannelConfigUseCase({
@@ -13,7 +13,7 @@ class PreparePaymentChannelConfigUseCase {
   final AppSettingsSnapshot? Function() _readSettingsSnapshot;
   final Logger _logger;
 
-  Map<String, dynamic>? call(PaymentFlowPageArgs args) {
+  Map<String, dynamic>? call(CheckoutPaymentRequest args) {
     final raw = args.channelConfig;
     final config = <String, dynamic>{};
     if (raw != null) {

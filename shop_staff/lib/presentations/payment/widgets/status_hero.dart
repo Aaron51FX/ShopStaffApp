@@ -27,7 +27,9 @@ class StatusHero extends StatelessWidget {
     final current = state.currentStatus;
     final theme = Theme.of(context);
     final effectiveResult = state.result?.status;
-    final hasError = state.error != null;
+    final hasError =
+        effectiveResult == PaymentStatusType.failure ||
+        current?.type == PaymentStatusType.failure;
     final t = AppLocalizations.of(context);
     final localizedMessage = resolveMessage(
       t,
@@ -39,7 +41,7 @@ class StatusHero extends StatelessWidget {
     );
     final effectiveErrorType = _effectiveErrorType(state);
     final retryable = _effectiveRetryable(state);
-    final message = hasError ? state.error! : localizedMessage;
+    final message = localizedMessage;
     final icon = hasError
         ? Icons.error_rounded
         : StatusHero.iconForStatus(current?.type, effectiveResult);
@@ -324,7 +326,6 @@ class StatusHero extends StatelessWidget {
       state.currentStatus?.messageArgs?['errorCode']?.toString(),
       state.currentStatus?.messageArgs?['detail']?.toString(),
       state.result?.messageArgs?['detail']?.toString(),
-      state.error,
     ];
     for (final raw in candidates) {
       final token = _normalizeErrorToken(raw);
@@ -675,6 +676,9 @@ class StatusHero extends StatelessWidget {
         break;
       case PaymentMessageKeys.errorUnknown:
         base = t.paymentErrorUnknown(resolveDetail());
+        break;
+      case PaymentMessageKeys.errorRuntime:
+        base = t.paymentErrorRuntime;
         break;
       case PaymentMessageKeys.sessionMissing:
         base = t.paymentSessionMissing;

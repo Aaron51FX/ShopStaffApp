@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:logging/logging.dart';
-import 'package:shop_staff/application/payments/runtime/payment_watchdog.dart';
 import 'package:shop_staff/core/async/buffered_broadcast_controller.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
+import 'package:shop_staff/domain/payments/payment_watchdog.dart';
 import 'package:shop_staff/domain/services/cash_machine_service.dart';
 
 import '../payment_backend_gateway.dart';

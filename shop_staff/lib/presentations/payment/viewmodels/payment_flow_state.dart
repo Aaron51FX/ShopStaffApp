@@ -11,9 +11,7 @@ class PaymentSessionState {
     this.channelGroup,
     this.sessionId,
     this.currentStatus,
-    this.timeline = const <PaymentStatus>[],
     this.result,
-    this.error,
     this.isCancelling = false,
     this.hasStarted = false,
     this.cancelDialog = const CancelDialogState.hidden(),
@@ -28,9 +26,7 @@ class PaymentSessionState {
   final String? channelGroup;
   final String? sessionId;
   final PaymentStatus? currentStatus;
-  final List<PaymentStatus> timeline;
   final PaymentResult? result;
-  final String? error;
   final bool isCancelling;
   final bool hasStarted;
   final CancelDialogState cancelDialog;
@@ -52,7 +48,7 @@ class PaymentSessionState {
 
   bool get isFinished => result != null || (currentStatus?.isTerminal ?? false);
 
-  bool get canExit => error != null || isFinished;
+  bool get canExit => isFinished;
 
   PaymentErrorType? get effectiveErrorType =>
       result?.failure?.type ?? result?.errorType ?? currentStatus?.errorType;
@@ -64,15 +60,9 @@ class PaymentSessionState {
     if (isCancelling || isReconciling || isIndeterminate || isFinished) {
       return false;
     }
-    if (!hasStarted || error != null) return true;
+    if (!hasStarted) return false;
 
     final current = currentStatus?.type;
-    if (current == PaymentStatusType.failure ||
-        current == PaymentStatusType.cancelled ||
-        current == PaymentStatusType.initialized) {
-      return true;
-    }
-
     final phase = currentStatus?.phase;
     if (phase != null) return phase.policy.canCancel;
 
@@ -88,14 +78,16 @@ class PaymentSessionState {
     if (isCancelling || isReconciling || isIndeterminate) return false;
     final retryable = result?.retryable ?? currentStatus?.retryable ?? true;
     if (!retryable) return false;
-    if (error != null) return true;
     final effective = result?.status ?? currentStatus?.type;
     return effective == PaymentStatusType.failure ||
         effective == PaymentStatusType.cancelled;
   }
 
   bool get canReconcile =>
-      isIndeterminate && !isReconciling && result == null && sessionId != null;
+      isIndeterminate &&
+      !isReconciling &&
+      sessionId != null &&
+      recommendedRecovery == PaymentRecovery.reconcileResult;
 
   bool get canOpenSettings =>
       effectiveErrorType == PaymentErrorType.config ||
@@ -118,9 +110,7 @@ class PaymentSessionState {
     String? channelGroup,
     String? sessionId,
     PaymentStatus? currentStatus,
-    List<PaymentStatus>? timeline,
-    PaymentResult? result,
-    String? error,
+    Object? result = _unset,
     bool? isCancelling,
     bool? hasStarted,
     CancelDialogState? cancelDialog,
@@ -133,9 +123,9 @@ class PaymentSessionState {
       channelGroup: channelGroup ?? this.channelGroup,
       sessionId: sessionId ?? this.sessionId,
       currentStatus: currentStatus ?? this.currentStatus,
-      timeline: timeline ?? this.timeline,
-      result: result ?? this.result,
-      error: error,
+      result: identical(result, _unset)
+          ? this.result
+          : result as PaymentResult?,
       isCancelling: isCancelling ?? this.isCancelling,
       hasStarted: hasStarted ?? this.hasStarted,
       cancelDialog: cancelDialog ?? this.cancelDialog,

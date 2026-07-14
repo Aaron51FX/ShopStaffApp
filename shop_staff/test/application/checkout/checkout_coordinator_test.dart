@@ -37,7 +37,7 @@ void main() {
         expect(coordinator.state.order?.orderId, 'order-1');
         expect(repository.submitCalls, 1);
         expect(local.record?.isPaid, isFalse);
-        expect(local.record?.payMethod, 'Cash');
+        expect(local.record?.payMethod, 'cash');
 
         coordinator.paymentStarted(request);
         final updated = await coordinator.paymentCompleted(
