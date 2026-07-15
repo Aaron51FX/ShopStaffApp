@@ -45,73 +45,7 @@ class _QrIllustration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget qrCell({bool filled = true}) {
-      return Container(
-        width: 8,
-        height: 8,
-        decoration: BoxDecoration(
-          color: filled ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(2),
-          border: Border.all(color: Colors.white, width: 1.0),
-        ),
-      );
-    }
-
-    return Container(
-      width: 92,
-      height: 110,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.26)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            width: double.infinity,
-            height: 10,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: [
-              qrCell(),
-              qrCell(filled: false),
-              qrCell(),
-              qrCell(),
-              qrCell(filled: false),
-              qrCell(),
-              qrCell(filled: false),
-              qrCell(),
-              qrCell(),
-            ],
-          ),
-          const Spacer(),
-          Column(
-            children: List.generate(
-              5,
-              (index) => Container(
-                margin: const EdgeInsets.only(bottom: 4),
-                height: 3,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(
-                    alpha: index.isEven ? 0.92 : 0.52,
-                  ),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return Icon(Icons.qr_code_2_rounded, size: 72, color: Colors.white);
   }
 }
 
