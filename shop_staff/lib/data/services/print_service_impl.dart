@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
 import 'package:print_image_generate_tool/print_image_generate_tool.dart';
 import 'package:shop_staff/core/config/print_info.dart';
 import 'package:shop_staff/data/models/print_info.dart';
@@ -30,6 +33,13 @@ class PrintServiceImpl implements PrintService {
     if (info == null || printers.isEmpty) {
       return results;
     }
+
+    _logPrintFlow(
+      document: document,
+      printers: printers,
+      includeKitchenJobs: includeKitchenJobs,
+      includeOrderTicket: includeOrderTicket,
+    );
 
     final isTakeOut = info.orderType != 'Shop_In';
 
@@ -184,7 +194,14 @@ class PrintServiceImpl implements PrintService {
         items: items,
         timeStamp: document.orderDate,
       );
-      _submitTask(hReceiptWidget, printer, PrintTypeEnum.receipt);
+      _submitTask(
+        hReceiptWidget,
+        printer,
+        PrintTypeEnum.receipt,
+        jobKind: 'local_h_receipt',
+        document: document,
+        items: items,
+      );
     }
 
     final receiptWidget = _renderer.buildReceipt(
@@ -209,7 +226,14 @@ class PrintServiceImpl implements PrintService {
       cardNumber: document.memberNo ?? '',
     );
 
-    _submitTask(receiptWidget, printer, PrintTypeEnum.receipt);
+    _submitTask(
+      receiptWidget,
+      printer,
+      PrintTypeEnum.receipt,
+      jobKind: 'local_customer_receipt',
+      document: document,
+      items: items,
+    );
 
     return PrintJobResult(printer: printer);
   }
@@ -230,6 +254,12 @@ class PrintServiceImpl implements PrintService {
     try {
       final receipt = SaleReceiptDocumentAdapter.fromPrintInfo(document);
       if (includeOrderTicket) {
+        _logPrintTask(
+          jobKind: 'local_h_receipt_native',
+          printer: printer,
+          document: document,
+          items: _toLegacyItems(document.printInfo?.orderLines ?? const []),
+        );
         await nativePrinter.printReceipt(
           document: _buildNativeOrderTicket(
             receipt,
@@ -238,6 +268,12 @@ class PrintServiceImpl implements PrintService {
           printer: printer,
         );
       }
+      _logPrintTask(
+        jobKind: 'local_customer_receipt_native',
+        printer: printer,
+        document: document,
+        items: _toLegacyItems(document.printInfo?.orderLines ?? const []),
+      );
       await nativePrinter.printReceipt(document: receipt, printer: printer);
       return PrintJobResult(printer: printer);
     } catch (error) {
@@ -267,7 +303,16 @@ class PrintServiceImpl implements PrintService {
         rotate: rotate,
         isTakeOut: isTakeOut,
       );
-      _submitTask(printWidget, printer, PrintTypeEnum.receipt);
+      _submitTask(
+        printWidget,
+        printer,
+        PrintTypeEnum.receipt,
+        jobKind: printer.type == PrinterSettings.centerType
+            ? 'external_center_total'
+            : 'external_kitchen_continuous',
+        document: document,
+        items: items,
+      );
     } else {
       for (final item in items) {
         final printWidget = _renderer.buildSingleReceipt(
@@ -277,7 +322,14 @@ class PrintServiceImpl implements PrintService {
           rotate: rotate,
           isTakeOut: isTakeOut,
         );
-        _submitTask(printWidget, printer, PrintTypeEnum.receipt);
+        _submitTask(
+          printWidget,
+          printer,
+          PrintTypeEnum.receipt,
+          jobKind: 'external_kitchen_single',
+          document: document,
+          items: <Map<String, dynamic>>[item],
+        );
       }
     }
   }
@@ -347,24 +399,121 @@ class PrintServiceImpl implements PrintService {
       queue.add(widget);
       //_submitTask(widget, printer, PrintTypeEnum.label);
     }
-    for (final widget in queue) {
-      _submitTask(widget, printer, PrintTypeEnum.label);
+    final hasHead =
+        info.orderType != 'Shop_In' && queue.length > widgets.length;
+    for (var index = 0; index < queue.length; index++) {
+      _submitTask(
+        queue[index],
+        printer,
+        PrintTypeEnum.label,
+        jobKind: hasHead && index == 0
+            ? 'external_label_head'
+            : 'external_label',
+        document: document,
+        items: _toLegacyItems(info.orderLines),
+      );
     }
   }
 
   void _submitTask(
     ATempWidget widget,
     PrinterSettings printer,
-    PrintTypeEnum type,
-  ) {
+    PrintTypeEnum type, {
+    required String jobKind,
+    required PrintInfoDocument document,
+    required List<Map<String, dynamic>> items,
+  }) {
     final ip = printer.printIp;
     if (ip == null || ip.isEmpty) return;
+    _logPrintTask(
+      jobKind: jobKind,
+      printer: printer,
+      document: document,
+      items: items,
+    );
     PictureGeneratorProvider.instance.addPicGeneratorTask(
       PicGenerateTask<PrinterInfo>(
         tempWidget: widget,
         printTypeEnum: type,
         params: PrinterInfo.fromIp(ip),
       ),
+    );
+  }
+
+  void _logPrintFlow({
+    required PrintInfoDocument document,
+    required List<PrinterSettings> printers,
+    required bool includeKitchenJobs,
+    required bool includeOrderTicket,
+  }) {
+    final info = document.printInfo;
+    _debugPrintJson('PRINT_FLOW', <String, dynamic>{
+      'orderId': document.orderId,
+      'order': document.order,
+      'serialNumber': document.serialNumber ?? '',
+      'includeKitchenJobs': includeKitchenJobs,
+      'includeOrderTicket': includeOrderTicket,
+      'orderLinesCount': info?.orderLines.length ?? 0,
+      'orderLinesMapCounts': <String, int>{
+        for (final entry
+            in info?.orderLinesMap.entries ??
+                const Iterable<MapEntry<String, List<PrintOrderLine>>>.empty())
+          entry.key: entry.value.length,
+      },
+      'printers': printers.map(_printerLogData).toList(growable: false),
+    });
+  }
+
+  void _logPrintTask({
+    required String jobKind,
+    required PrinterSettings printer,
+    required PrintInfoDocument document,
+    required List<Map<String, dynamic>> items,
+  }) {
+    final info = document.printInfo;
+    _debugPrintJson('PRINT_TASK', <String, dynamic>{
+      'jobKind': jobKind,
+      'printer': _printerLogData(printer),
+      'order': <String, dynamic>{
+        'orderId': document.orderId,
+        'order': document.order,
+        'serialNumber': document.serialNumber ?? '',
+        'orderType': info?.orderType ?? '',
+      },
+      'source': <String, dynamic>{
+        'orderLinesCount': info?.orderLines.length ?? 0,
+        'orderLinesMapCounts': <String, int>{
+          for (final entry
+              in info?.orderLinesMap.entries ??
+                  const Iterable<
+                    MapEntry<String, List<PrintOrderLine>>
+                  >.empty())
+            entry.key: entry.value.length,
+        },
+      },
+      'items': items,
+    });
+  }
+
+  Map<String, dynamic> _printerLogData(PrinterSettings printer) {
+    return <String, dynamic>{
+      'name': printer.name,
+      'type': printer.type,
+      'receipt': printer.receipt,
+      'isOn': printer.isOn,
+      'isDefault': printer.isDefault,
+      'backend': printer.backend.wireValue,
+      'connectionType': printer.connectionType.wireValue,
+      'printIp': printer.printIp ?? '',
+      'printPort': printer.printPort ?? '',
+      'deviceIdentifier': printer.deviceIdentifier ?? '',
+      'continuous': printer.continuous,
+    };
+  }
+
+  void _debugPrintJson(String tag, Map<String, dynamic> payload) {
+    debugPrint(
+      '[$tag]\n${const JsonEncoder.withIndent('  ').convert(payload)}',
     );
   }
 

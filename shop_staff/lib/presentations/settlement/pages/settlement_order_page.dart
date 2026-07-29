@@ -52,7 +52,7 @@ class _SettlementOrderPageState extends ConsumerState<SettlementOrderPage> {
   }
 
   Future<void> _openPayment(SettlementOrder order) async {
-    if (_openingPayment) return;
+    if (_openingPayment || order.lines.isEmpty) return;
     final t = AppLocalizations.of(context);
     final shop = ref.read(shopInfoProvider);
     final machineCode = ref.read(machineCodeProvider)?.trim() ?? '';
@@ -534,21 +534,23 @@ class _OrderSummaryPanel extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: openingPayment ? null : onPay,
-              icon: openingPayment
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.payment_rounded),
-              label: Text(t.settlementPayAction),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
+            if (order.lines.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: openingPayment ? null : onPay,
+                icon: openingPayment
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.payment_rounded),
+                label: Text(t.settlementPayAction),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size.fromHeight(52),
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

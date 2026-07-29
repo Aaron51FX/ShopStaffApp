@@ -42,4 +42,25 @@ void main() {
     expect(option.value.name, '牛串焼');
     expect(option.value.displayTotal, 20);
   });
+
+  test('treats a not-yet-ordered response as an empty order', () {
+    final order = SettlementOrder.fromJson(<String, dynamic>{
+      'orderId': null,
+      'totalPrice': 0,
+      'discount': 0,
+      'voucherAmount': null,
+      'payableAmount': null,
+      'tableNum': '',
+      'tableNumText': '',
+      'orderQty': 0,
+      'tax1': 0,
+      'tax2': 0,
+      'orderInfoMap': null,
+      'orderLines': <Object?>[],
+    });
+
+    expect(order.orderId, isEmpty);
+    expect(order.payableAmount, 0);
+    expect(order.lines, isEmpty);
+  });
 }

@@ -101,11 +101,48 @@ void main() {
     expect(tester.takeException(), isNull);
     debugDefaultTargetPlatformOverride = null;
   });
+
+  testWidgets('hides payment action when scanned orderLines are empty', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final repository = _PageSettlementOrderRepository()
+      ..returnEmptyOrder = true;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settlementOrderRepositoryProvider.overrideWithValue(repository),
+          machineCodeProvider.overrideWithValue('machine-1'),
+          shopLanguageProvider.overrideWithValue('JP'),
+        ],
+        child: MaterialApp(
+          locale: const Locale('zh'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const SettlementOrderPage(hardwareInputEnabled: true),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'empty-order-key');
+    await tester.tap(find.text('获取订单'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('订单中没有菜品明细'), findsOneWidget);
+    expect(find.text('去支付'), findsNothing);
+    expect(repository.confirmCallCount, 0);
+    expect(tester.takeException(), isNull);
+    debugDefaultTargetPlatformOverride = null;
+  });
 }
 
 class _PageSettlementOrderRepository implements SettlementOrderRepository {
   int confirmedTotal = 3147;
   int confirmCallCount = 0;
+  bool returnEmptyOrder = false;
 
   @override
   Future<int> confirmOrderTotal(String orderId) async {
@@ -119,6 +156,21 @@ class _PageSettlementOrderRepository implements SettlementOrderRepository {
     required String language,
     required String machineCode,
   }) async {
+    if (returnEmptyOrder) {
+      return const SettlementOrder(
+        orderId: '',
+        totalPrice: 0,
+        discount: 0,
+        voucherAmount: 0,
+        payableAmount: 0,
+        tableNum: '',
+        tableNumText: '',
+        orderQty: 0,
+        tax1: 0,
+        tax2: 0,
+        lines: [],
+      );
+    }
     return const SettlementOrder(
       orderId: '465512639757484032',
       totalPrice: 3147,
