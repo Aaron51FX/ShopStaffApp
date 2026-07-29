@@ -9,6 +9,7 @@ class EntryOptionButton extends StatelessWidget {
     required this.icon,
     required this.gradient,
     required this.onTap,
+    this.actionLabel,
   });
 
   final String title;
@@ -16,6 +17,7 @@ class EntryOptionButton extends StatelessWidget {
   final IconData icon;
   final LinearGradient gradient;
   final VoidCallback onTap;
+  final String? actionLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -61,13 +63,17 @@ class EntryOptionButton extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    AppLocalizations.of(context).entryStartOrder,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      actionLabel ??
+                          AppLocalizations.of(context).entryStartOrder,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),

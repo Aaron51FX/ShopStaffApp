@@ -14,16 +14,18 @@ abstract class PrintService {
   Future<List<PrintJobResult>> enqueuePrintJobs({
     required PrintInfoDocument document,
     required List<PrinterSettings> printers,
+    bool includeKitchenJobs = true,
+    bool includeOrderTicket = true,
   });
 
-  /// Enqueue receipt-only print tasks (no kitchen/label split) for a document.
+  /// Enqueue a local customer receipt from `document.printInfo.orderLines`.
   Future<List<PrintJobResult>> enqueueReceiptJobs({
     required PrintInfoDocument document,
     required List<PrinterSettings> printers,
   });
 
-  /// Enqueue kitchen tickets by routing `document.printInfo.orderLinesMap` to printers.
-  /// This is the extracted logic from the orderLinesMap loop in `enqueuePrintJobs`.
+  /// Enqueue external kitchen tickets by routing
+  /// `document.printInfo.orderLinesMap` to printers.
   Future<List<PrintJobResult>> enqueueKitchenJobs({
     required PrintInfoDocument document,
     required List<PrinterSettings> printers,

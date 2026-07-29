@@ -30,6 +30,86 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryTakeoutSubtitle => '快速处理外带订单，展示外带专属菜品与优惠';
 
   @override
+  String get entrySettlementTitle => '结算模式';
+
+  @override
+  String get entrySettlementSubtitle => '进入结算流程并完成收款';
+
+  @override
+  String get entryStartSettlement => '开始结算';
+
+  @override
+  String get settlementOrderPageTitle => '扫码结算';
+
+  @override
+  String get settlementScanDialogTitle => '扫描订单二维码';
+
+  @override
+  String get settlementScanCameraHint => '将订单二维码放入取景框';
+
+  @override
+  String get scanCameraUnavailableHint => '当前设备暂不支持摄像头扫码';
+
+  @override
+  String get settlementScanInputHint => '扫码器输入、订单号或包含 ?p= 的链接';
+
+  @override
+  String get settlementScanSubmit => '获取订单';
+
+  @override
+  String get settlementRescanAction => '重新扫码';
+
+  @override
+  String get settlementScanEmptyTitle => '请扫描需要结算的订单';
+
+  @override
+  String get settlementScanEmptySubtitle => '支持纯订单号以及包含 ?p= 参数的订单链接';
+
+  @override
+  String get settlementScanAction => '扫描订单';
+
+  @override
+  String get settlementInvalidCodeError => '无法识别订单二维码，请确认内容后重试';
+
+  @override
+  String get settlementMachineCodeMissingError => '当前设备缺少机器编号，请重新激活设备';
+
+  @override
+  String get settlementOrderFetchError => '订单获取失败，请确认订单状态或网络后重试';
+
+  @override
+  String get settlementOrderDetailsTitle => '订单详情';
+
+  @override
+  String settlementOrderQuantity(int count) {
+    return '共 $count 份';
+  }
+
+  @override
+  String get settlementOrderLinesEmpty => '订单中没有菜品明细';
+
+  @override
+  String get settlementAmountSummaryTitle => '金额汇总';
+
+  @override
+  String get settlementTableLabel => '桌号';
+
+  @override
+  String get settlementVoucherLabel => '优惠券';
+
+  @override
+  String get settlementPayAction => '去支付';
+
+  @override
+  String get settlementPaymentContextMissingError => '缺少店铺或设备信息，无法进入支付';
+
+  @override
+  String get settlementPaymentPrepareError => '支付信息准备失败，请重试';
+
+  @override
+  String get settlementOrderAmountChangedError => '订单金额已更新，请重新扫码确认后再支付';
+
+  @override
   String get entryStartOrder => '开始点餐';
 
   @override
@@ -130,6 +210,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsRoleSelectionSubtitle => '选择设备扮演的端，保存后会重启并进入对应界面';
+
+  @override
+  String get settingsOrderModeSupportTitle => '模式支持选项';
+
+  @override
+  String get settingsOrderModeSupportSubtitle => '选择首页需要展示的业务模式，至少保留一项';
 
   @override
   String get settingsRoleSelectionDescription => '店员端用于收银与管理；顾客端用于商品展示与下单。';
@@ -906,6 +992,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get loginActivateTitle => '设备激活';
+
+  @override
+  String get loginScanDialogTitle => '扫描设备激活码';
+
+  @override
+  String get loginScanCameraHint => '将激活二维码放入取景框';
+
+  @override
+  String get loginScanSubmit => '使用此编号';
 
   @override
   String get loginMachineCodeLabel => '机器码 (Machine Code)';

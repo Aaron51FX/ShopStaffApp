@@ -45,6 +45,41 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
     state = CheckoutState(stage: CheckoutStage.selectingPayment, draft: draft);
   }
 
+  Future<void> beginExistingOrder({
+    required CheckoutDraft draft,
+    required OrderSubmissionResult order,
+  }) async {
+    state = CheckoutState(
+      stage: CheckoutStage.selectingPayment,
+      draft: draft,
+      order: order,
+      submittedTotal: order.total.toDouble(),
+    );
+
+    try {
+      final existing = await _localOrders.getById(order.orderId);
+      if (existing == null) {
+        await _localOrders.save(
+          LocalOrderRecord(
+            orderId: order.orderId,
+            createdAt: DateTime.now(),
+            isPaid: false,
+            items: draft.items,
+            machineCode: draft.machineCode,
+            language: draft.language,
+            takeout: draft.takeout,
+            discount: draft.discount,
+            clientTotal: order.total.toDouble(),
+            orderResult: order,
+          ),
+        );
+      }
+    } catch (error, stack) {
+      _logger.warning('Save existing settlement order failed', error, stack);
+      state = state.copyWith(warning: error.toString());
+    }
+  }
+
   Future<CheckoutPaymentRequest> preparePayment({
     required String group,
     required String code,
@@ -240,6 +275,7 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
   PrintJobRequest _buildPrintRequest(OrderSubmissionResult order) {
     final settings = _readSettings();
     final printers = settings?.printers ?? const <PrinterSettings>[];
+    final receiptOnly = state.draft?.isSettlement ?? false;
     final hasLabelPrinter = printers.any(
       (printer) => printer.type == 10 && !printer.receipt && printer.isOn,
     );
@@ -251,7 +287,8 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
       printers: printers,
       orderId: order.orderId,
       payAmount: order.total.toString(),
-      printType: hasLabelPrinter ? 'Label' : '',
+      printType: !receiptOnly && hasLabelPrinter ? 'Label' : '',
+      receiptOnly: receiptOnly,
     );
   }
 }

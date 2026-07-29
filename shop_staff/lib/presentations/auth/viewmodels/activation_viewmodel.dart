@@ -30,19 +30,13 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
   final LoginFlowUseCase _login;
   final Ref _ref;
   final TextEditingController machineCodeController = TextEditingController();
-  ActivationViewModel(this._login, this._ref)
-    : super(const ActivationState()) {
+  ActivationViewModel(this._login, this._ref) : super(const ActivationState()) {
     machineCodeController.addListener(() {
       state = state.copyWith(
         machineCode: machineCodeController.text,
         error: null,
       );
     });
-  }
-
-  Future<void> mockScan() async {
-    // TODO integrate real QR scanner for machine code
-    machineCodeController.text = '3vYrTAYeWZrW4nzwEY';
   }
 
   Future<void> submit(BuildContext context) async {
@@ -53,7 +47,8 @@ class ActivationViewModel extends StateNotifier<ActivationState> {
       debugPrint('[Activation] submit start machineCode=$mc');
       final result = await _login.activate(mc);
       _ref.read(shopInfoProvider.notifier).state = result.startup.shopInfo;
-      _ref.read(appSettingsSnapshotProvider.notifier).state = result.startup.settings;
+      _ref.read(appSettingsSnapshotProvider.notifier).state =
+          result.startup.settings;
       _ref.read(appRoleProvider.notifier).state = result.role;
       debugPrint('[Activation] backend success, writing storage');
       if (context.mounted) {

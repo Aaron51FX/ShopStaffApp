@@ -12,6 +12,9 @@ class CheckoutDraft {
     required this.orderNumber,
     required this.subtotal,
     required this.discount,
+    this.tableNumber,
+    this.tableNumberText,
+    this.isSettlement = false,
   });
 
   final ShopInfoModel shop;
@@ -22,6 +25,9 @@ class CheckoutDraft {
   final int orderNumber;
   final double subtotal;
   final double discount;
+  final String? tableNumber;
+  final String? tableNumberText;
+  final bool isSettlement;
 
   double get total =>
       (subtotal - discount).clamp(0, double.infinity).toDouble();

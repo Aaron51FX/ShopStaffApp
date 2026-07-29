@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
+import '../../shared/widgets/code_scan_dialog.dart';
 import '../viewmodels/activation_viewmodel.dart';
 
 class LoginPage extends ConsumerWidget {
@@ -8,9 +9,11 @@ class LoginPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-  final vm = ref.watch(activationViewModelProvider);
-  final controller = ref.read(activationViewModelProvider.notifier).machineCodeController;
-  final t = AppLocalizations.of(context);
+    final vm = ref.watch(activationViewModelProvider);
+    final controller = ref
+        .read(activationViewModelProvider.notifier)
+        .machineCodeController;
+    final t = AppLocalizations.of(context);
 
     return Scaffold(
       body: Center(
@@ -22,7 +25,10 @@ class LoginPage extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(t.loginActivateTitle, style: Theme.of(context).textTheme.headlineMedium),
+                Text(
+                  t.loginActivateTitle,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
                 const SizedBox(height: 24),
                 TextField(
                   controller: controller,
@@ -31,21 +37,51 @@ class LoginPage extends ConsumerWidget {
                     prefixIcon: const Icon(Icons.confirmation_number),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.qr_code_scanner),
-                      onPressed: () => ref.read(activationViewModelProvider.notifier).mockScan(),
+                      onPressed: () async {
+                        final value = await showDialog<String>(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (_) => CodeScanDialog(
+                            title: t.loginScanDialogTitle,
+                            cameraHint: t.loginScanCameraHint,
+                            cameraUnavailableHint: t.scanCameraUnavailableHint,
+                            inputHint: t.loginMachineCodeLabel,
+                            cancelLabel: t.dialogCancel,
+                            submitLabel: t.loginScanSubmit,
+                          ),
+                        );
+                        if (value != null) controller.text = value.trim();
+                      },
                     ),
                   ),
-                  onSubmitted: (_) => ref.read(activationViewModelProvider.notifier).submit(context),
+                  onSubmitted: (_) => ref
+                      .read(activationViewModelProvider.notifier)
+                      .submit(context),
                 ),
                 const SizedBox(height: 16),
                 FilledButton(
-                  onPressed: vm.isLoading || vm.machineCode.trim().isEmpty ? null : () => ref.read(activationViewModelProvider.notifier).submit(context),
+                  onPressed: vm.isLoading || vm.machineCode.trim().isEmpty
+                      ? null
+                      : () => ref
+                            .read(activationViewModelProvider.notifier)
+                            .submit(context),
                   child: vm.isLoading
-                      ? const SizedBox(height:20,width:20,child: CircularProgressIndicator(strokeWidth:2,color: Colors.white))
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : Text(t.loginActivateButton),
                 ),
                 if (vm.error != null) ...[
                   const SizedBox(height: 12),
-                  Text(t.activationFailedMessage(vm.error!), style: const TextStyle(color: Colors.red)),
+                  Text(
+                    t.activationFailedMessage(vm.error!),
+                    style: const TextStyle(color: Colors.red),
+                  ),
                 ],
               ],
             ),

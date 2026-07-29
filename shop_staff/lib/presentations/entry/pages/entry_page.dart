@@ -84,6 +84,15 @@ class _EntryPageState extends ConsumerState<EntryPage> {
     final linkState = ref.watch(peerLinkControllerProvider);
     final timeText = _formatTime(now);
     final dateText = _formatDate(now, t);
+    final basic = ref.watch(appSettingsSnapshotProvider)?.basic;
+    final orderModes = basic?.orderModes;
+    final actuarialSupported = ref.watch(shopInfoProvider)?.actuarial ?? false;
+    final configuredDineIn = orderModes?.dineIn ?? true;
+    final configuredTakeout = orderModes?.takeout ?? true;
+    final configuredSettlement =
+        actuarialSupported && (orderModes?.settlement ?? true);
+    final hasConfiguredMode =
+        configuredDineIn || configuredTakeout || configuredSettlement;
 
     return CashMachineDialogPortal(
       child: Scaffold(
@@ -136,6 +145,13 @@ class _EntryPageState extends ConsumerState<EntryPage> {
                             EntryOptionGrid(
                               onDineIn: () => _startOrder(ref, 'dine_in'),
                               onTakeout: () => _startOrder(ref, 'take_out'),
+                              onSettlement: () => ref
+                                  .read(appRouterProvider)
+                                  .push('/settlement'),
+                              showDineIn:
+                                  configuredDineIn || !hasConfiguredMode,
+                              showTakeout: configuredTakeout,
+                              showSettlement: configuredSettlement,
                             ),
                           ],
                         ),

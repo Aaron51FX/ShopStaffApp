@@ -105,6 +105,26 @@ class PosRemoteDataSource {
   Future<dynamic> calculateOrder(Map<String, dynamic> payload) async =>
       _client.postJson(_e.calculateOrder, body: payload);
 
+  Future<dynamic> fetchSettlementOrder({
+    required String orderKey,
+    required String language,
+    required String machineCode,
+  }) {
+    final payload = {
+      'orderKey': orderKey,
+      'language': language,
+      'machineCode': machineCode,
+    };
+    final key = 'POST:${_e.bootCalculateV2}:$orderKey:$language:$machineCode';
+    return _dedupe(
+      key,
+      () => _client.postJson(_e.bootCalculateV2, body: payload),
+    );
+  }
+
+  Future<dynamic> confirmSettlementOrder(String orderId) async =>
+      _client.postJson(_e.calculateConfirm, body: {'orderId': orderId});
+
   Future<dynamic> requestPosPayment(Map<String, dynamic> payload) async =>
       _client.postJson(_e.toPayV2, body: payload);
 

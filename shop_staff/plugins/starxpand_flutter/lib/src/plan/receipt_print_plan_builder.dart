@@ -21,6 +21,14 @@ class ReceiptPrintPlanBuilder {
       return closurePlan;
     }
 
+    if (_stringExtra(document.extras['documentType']) == 'h_receipt') {
+      return _buildHReceiptPlan(
+        document,
+        paperWidthMm: paperWidthMm,
+        includeCut: includeCut,
+      );
+    }
+
     final labels = _labelsForLocale(document.transaction.locale);
     final nodes = <ReceiptPrintPlanNode>[];
     final resolvedLogoAssetKey =
@@ -208,6 +216,74 @@ class ReceiptPrintPlanBuilder {
       },
     );
   }
+}
+
+ReceiptPrintPlanDocument _buildHReceiptPlan(
+  ReceiptDocumentPayload document, {
+  required int paperWidthMm,
+  required bool includeCut,
+}) {
+  final serialNumber = document.transaction.serialNumber ?? '';
+  final nodes = <ReceiptPrintPlanNode>[
+    ReceiptPrintPlanNode.text(
+      'お客様番号',
+      align: ReceiptPrintPlanAlign.center,
+      bold: true,
+      widthScale: 2,
+      heightScale: 2,
+    ),
+    ReceiptPrintPlanNode.text(
+      serialNumber,
+      align: ReceiptPrintPlanAlign.center,
+      bold: true,
+      widthScale: 2,
+      heightScale: 2,
+    ),
+    ReceiptPrintPlanNode.divider(),
+  ];
+
+  for (final line in document.lines) {
+    nodes.add(
+      ReceiptPrintPlanNode.row(<ReceiptPrintPlanColumn>[
+        ReceiptPrintPlanColumn(text: line.name, flex: 5, bold: true),
+        ReceiptPrintPlanColumn(
+          text: 'x${line.quantity}',
+          align: ReceiptPrintPlanAlign.right,
+          flex: 1,
+          bold: true,
+        ),
+      ]),
+    );
+    for (final option in line.options) {
+      final quantity = option.quantity > 1 ? ' x${option.quantity}' : '';
+      nodes.add(
+        ReceiptPrintPlanNode.text('  ${option.group}: ${option.name}$quantity'),
+      );
+    }
+  }
+
+  final time =
+      document.transaction.businessDateLabel ?? document.transaction.occurredAt;
+  if (_hasValue(time)) {
+    nodes.add(ReceiptPrintPlanNode.spacer());
+    nodes.add(
+      ReceiptPrintPlanNode.text(time!, align: ReceiptPrintPlanAlign.right),
+    );
+  }
+  if (includeCut) {
+    nodes.add(ReceiptPrintPlanNode.spacer());
+    nodes.add(ReceiptPrintPlanNode.cut());
+  }
+
+  return ReceiptPrintPlanDocument(
+    kind: document.kind,
+    paperWidthMm: paperWidthMm,
+    nodes: nodes,
+    extras: <String, dynamic>{
+      'sourceSchema': document.schema,
+      'documentType': 'h_receipt',
+    },
+  );
 }
 
 void _addTransactionRows(

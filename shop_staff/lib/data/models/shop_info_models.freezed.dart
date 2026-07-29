@@ -1195,6 +1195,7 @@ mixin _$ShopInfoModel {
   bool? get taxSystem => throw _privateConstructorUsedError;
   bool? get dynamicCode => throw _privateConstructorUsedError;
   bool? get multiplayer => throw _privateConstructorUsedError;
+  bool get actuarial => throw _privateConstructorUsedError;
   String? get canToOrder => throw _privateConstructorUsedError;
   String? get uniqueOrderKey => throw _privateConstructorUsedError;
   Map<String, dynamic>? get linePayChannelMap =>
@@ -1234,6 +1235,7 @@ abstract class $ShopInfoModelCopyWith<$Res> {
     bool? taxSystem,
     bool? dynamicCode,
     bool? multiplayer,
+    bool actuarial,
     String? canToOrder,
     String? uniqueOrderKey,
     Map<String, dynamic>? linePayChannelMap,
@@ -1271,6 +1273,7 @@ class _$ShopInfoModelCopyWithImpl<$Res, $Val extends ShopInfoModel>
     Object? taxSystem = freezed,
     Object? dynamicCode = freezed,
     Object? multiplayer = freezed,
+    Object? actuarial = null,
     Object? canToOrder = freezed,
     Object? uniqueOrderKey = freezed,
     Object? linePayChannelMap = freezed,
@@ -1341,6 +1344,10 @@ class _$ShopInfoModelCopyWithImpl<$Res, $Val extends ShopInfoModel>
                 ? _value.multiplayer
                 : multiplayer // ignore: cast_nullable_to_non_nullable
                       as bool?,
+            actuarial: null == actuarial
+                ? _value.actuarial
+                : actuarial // ignore: cast_nullable_to_non_nullable
+                      as bool,
             canToOrder: freezed == canToOrder
                 ? _value.canToOrder
                 : canToOrder // ignore: cast_nullable_to_non_nullable
@@ -1385,6 +1392,7 @@ abstract class _$$ShopInfoModelImplCopyWith<$Res>
     bool? taxSystem,
     bool? dynamicCode,
     bool? multiplayer,
+    bool actuarial,
     String? canToOrder,
     String? uniqueOrderKey,
     Map<String, dynamic>? linePayChannelMap,
@@ -1421,6 +1429,7 @@ class __$$ShopInfoModelImplCopyWithImpl<$Res>
     Object? taxSystem = freezed,
     Object? dynamicCode = freezed,
     Object? multiplayer = freezed,
+    Object? actuarial = null,
     Object? canToOrder = freezed,
     Object? uniqueOrderKey = freezed,
     Object? linePayChannelMap = freezed,
@@ -1491,6 +1500,10 @@ class __$$ShopInfoModelImplCopyWithImpl<$Res>
             ? _value.multiplayer
             : multiplayer // ignore: cast_nullable_to_non_nullable
                   as bool?,
+        actuarial: null == actuarial
+            ? _value.actuarial
+            : actuarial // ignore: cast_nullable_to_non_nullable
+                  as bool,
         canToOrder: freezed == canToOrder
             ? _value.canToOrder
             : canToOrder // ignore: cast_nullable_to_non_nullable
@@ -1528,6 +1541,7 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
     this.taxSystem,
     this.dynamicCode,
     this.multiplayer,
+    this.actuarial = false,
     this.canToOrder,
     this.uniqueOrderKey,
     final Map<String, dynamic>? linePayChannelMap,
@@ -1585,6 +1599,9 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
   @override
   final bool? multiplayer;
   @override
+  @JsonKey()
+  final bool actuarial;
+  @override
   final String? canToOrder;
   @override
   final String? uniqueOrderKey;
@@ -1601,7 +1618,7 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
 
   @override
   String toString() {
-    return 'ShopInfoModel(shopCode: $shopCode, machineCode: $machineCode, languages: $languages, shopName: $shopName, ntaNo: $ntaNo, stationMachineCode: $stationMachineCode, language: $language, shopAddress: $shopAddress, shopTelephone: $shopTelephone, businessTime: $businessTime, seatNumber: $seatNumber, categoryVoList: $categoryVoList, onlineCall: $onlineCall, taxSystem: $taxSystem, dynamicCode: $dynamicCode, multiplayer: $multiplayer, canToOrder: $canToOrder, uniqueOrderKey: $uniqueOrderKey, linePayChannelMap: $linePayChannelMap)';
+    return 'ShopInfoModel(shopCode: $shopCode, machineCode: $machineCode, languages: $languages, shopName: $shopName, ntaNo: $ntaNo, stationMachineCode: $stationMachineCode, language: $language, shopAddress: $shopAddress, shopTelephone: $shopTelephone, businessTime: $businessTime, seatNumber: $seatNumber, categoryVoList: $categoryVoList, onlineCall: $onlineCall, taxSystem: $taxSystem, dynamicCode: $dynamicCode, multiplayer: $multiplayer, actuarial: $actuarial, canToOrder: $canToOrder, uniqueOrderKey: $uniqueOrderKey, linePayChannelMap: $linePayChannelMap)';
   }
 
   @override
@@ -1644,6 +1661,8 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
                 other.dynamicCode == dynamicCode) &&
             (identical(other.multiplayer, multiplayer) ||
                 other.multiplayer == multiplayer) &&
+            (identical(other.actuarial, actuarial) ||
+                other.actuarial == actuarial) &&
             (identical(other.canToOrder, canToOrder) ||
                 other.canToOrder == canToOrder) &&
             (identical(other.uniqueOrderKey, uniqueOrderKey) ||
@@ -1674,6 +1693,7 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
     taxSystem,
     dynamicCode,
     multiplayer,
+    actuarial,
     canToOrder,
     uniqueOrderKey,
     const DeepCollectionEquality().hash(_linePayChannelMap),
@@ -1711,6 +1731,7 @@ abstract class _ShopInfoModel implements ShopInfoModel {
     final bool? taxSystem,
     final bool? dynamicCode,
     final bool? multiplayer,
+    final bool actuarial,
     final String? canToOrder,
     final String? uniqueOrderKey,
     final Map<String, dynamic>? linePayChannelMap,
@@ -1751,6 +1772,8 @@ abstract class _ShopInfoModel implements ShopInfoModel {
   bool? get dynamicCode;
   @override
   bool? get multiplayer;
+  @override
+  bool get actuarial;
   @override
   String? get canToOrder;
   @override

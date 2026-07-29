@@ -21,15 +21,14 @@ class ReceiptRendererImpl implements ReceiptRenderer {
     final size = _ticketSize(printer.labelSize, true);
     final info = document.printInfo;
     if (info == null) return null;
-    final timeTag =
-        '${document.orderId}#${DateTime.now().toString().substring(5, 16)}';
+    final timeTag = DateTime.now().toString().substring(5, 16);
     final totalQty = _expandLinesForLabels(
       document,
     ).fold<int>(0, (p, e) => p + (e.qty <= 0 ? 1 : e.qty));
 
     return headReceiptWidget(
       info.fromPlate,
-      info.orderSnCode,
+      document.serialNumber ?? '',
       info.orderTime,
       totalQty,
       info.remark,
@@ -48,13 +47,10 @@ class ReceiptRendererImpl implements ReceiptRenderer {
   }) {
     final size = _ticketSize(printer.labelSize, true);
     final lines = _expandLinesForLabels(document);
-    final timeTag =
-        '${document.orderId}#${DateTime.now().toString().substring(5, 16)}';
+    final timeTag = DateTime.now().toString().substring(5, 16);
     if (lines.isEmpty) return const [];
 
-    final orderLabel = document.order.isNotEmpty
-        ? document.order
-        : (document.serialNumber ?? document.serialNo ?? '');
+    final orderLabel = document.serialNumber ?? '';
 
     return lines
         .map(
@@ -674,7 +670,11 @@ class ReceiptRendererImpl implements ReceiptRenderer {
       alignment: Alignment.centerLeft,
       child: Text(
         content,
-        style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+          fontSize: 18,
+          color: Colors.black,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -684,7 +684,11 @@ class ReceiptRendererImpl implements ReceiptRenderer {
       alignment: Alignment.centerLeft,
       child: Text(
         content,
-        style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 18,
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -733,14 +737,14 @@ class ReceiptRendererImpl implements ReceiptRenderer {
                     fit: BoxFit.contain,
                   ),
                 if (shopIcon.isEmpty)
-                Text(
-                  shopName,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                  Text(
+                    shopName,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
                 _normalText(address),
                 //電話番号
                 _normalText("電話番号: $telephone"),
@@ -752,8 +756,10 @@ class ReceiptRendererImpl implements ReceiptRenderer {
                 //draw a border text [領収書]
                 Container(
                   margin: const EdgeInsets.only(top: 10, bottom: 10),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.black, width: 2),
                   ),
@@ -797,7 +803,10 @@ class ReceiptRendererImpl implements ReceiptRenderer {
               ),
               Text(
                 '¥$total',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -808,11 +817,19 @@ class ReceiptRendererImpl implements ReceiptRenderer {
             children: [
               Text(
                 '8% 对象',
-                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 '¥$baseTax1',
-                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -821,11 +838,19 @@ class ReceiptRendererImpl implements ReceiptRenderer {
             children: [
               Text(
                 '   内 消费税',
-                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 '¥$tax1)',
-                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -834,11 +859,19 @@ class ReceiptRendererImpl implements ReceiptRenderer {
             children: [
               Text(
                 '10% 对象',
-                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 '¥$baseTax2',
-                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -847,11 +880,19 @@ class ReceiptRendererImpl implements ReceiptRenderer {
             children: [
               Text(
                 '   内 消费税',
-                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 '¥$tax2)',
-                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -864,11 +905,19 @@ class ReceiptRendererImpl implements ReceiptRenderer {
               children: [
                 Text(
                   paymentMethod,
-                  style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 Text(
                   '¥$payPrice',
-                  style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -878,54 +927,85 @@ class ReceiptRendererImpl implements ReceiptRenderer {
               children: [
                 const Text(
                   'カード番号',
-                  style: TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 Text(
                   cardNumber,
-                  style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
           if (paymentMethod == '現金支払')
-          Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'お預かり',
-                    style: TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
+            Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'お預かり',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '¥$payPrice',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '*軽減税率対象',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Text(
+                      'お釣り',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '¥$change',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  'お明細は上記のとおりです。',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
                   ),
-                  Text(
-                    '¥$payPrice',
-                    style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    '*軽減税率対象',
-                    style: TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
-                  ),
-                  const Text(
-                    'お釣り',
-                    style: TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    '¥$change',
-                    style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-              Text(
-                'お明細は上記のとおりです。',
-                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600),
-              ),
-            ],          
-          ),
-          
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -1001,24 +1081,33 @@ class ReceiptRendererImpl implements ReceiptRenderer {
                 child: Text(
                   title,
                   maxLines: 2,
-                  style: TextStyle(fontSize: fontSize, color: Colors.black, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
 
-
               Text(
                 optionQtyString,
-                style: TextStyle(fontSize: fontSize, color: Colors.black, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontSize: fontSize,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              if (price != null)
-              SizedBox(width: 20),
+              if (price != null) SizedBox(width: 20),
 
               if (price != null)
                 Text(
                   '¥$price',
-                  style: TextStyle(fontSize: fontSize, color: Colors.black, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-
             ],
           ),
           if (option.isNotEmpty && needOption)
@@ -1034,7 +1123,11 @@ class ReceiptRendererImpl implements ReceiptRenderer {
                     children: [
                       Text(
                         '  $optionName',
-                        style: TextStyle(fontSize: fontSize - 2, color: Colors.black, fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontSize: fontSize - 2,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       Expanded(
                         child: Column(
@@ -1049,7 +1142,11 @@ class ReceiptRendererImpl implements ReceiptRenderer {
                             return Text(
                               '    $optionDetail $optionQtyString',
                               maxLines: 3,
-                              style: TextStyle(fontSize: fontSize - 2, color: Colors.black, fontWeight: FontWeight.w600),
+                              style: TextStyle(
+                                fontSize: fontSize - 2,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w600,
+                              ),
                             );
                           }).toList(),
                         ),
@@ -1059,8 +1156,7 @@ class ReceiptRendererImpl implements ReceiptRenderer {
                 ],
               );
             }),
-          if (isUnderLine)
-            const Divider(color: Colors.black, thickness: 2),
+          if (isUnderLine) const Divider(color: Colors.black, thickness: 2),
         ],
       ),
     );

@@ -5,11 +5,10 @@ part 'shop_info_models.g.dart';
 
 @freezed
 class LanguageModel with _$LanguageModel {
-  const factory LanguageModel({
-    required String val,
-    required String name,
-  }) = _LanguageModel;
-  factory LanguageModel.fromJson(Map<String, dynamic> json) => _$LanguageModelFromJson(json);
+  const factory LanguageModel({required String val, required String name}) =
+      _LanguageModel;
+  factory LanguageModel.fromJson(Map<String, dynamic> json) =>
+      _$LanguageModelFromJson(json);
   factory LanguageModel.fromJsonSafe(Map<String, dynamic>? json) {
     final j = json ?? const {};
     return LanguageModel(
@@ -30,15 +29,16 @@ class CategoryModel with _$CategoryModel {
     String? image,
     int? printReceipt,
     @Default(<dynamic>[]) List<dynamic> menuVoList,
-  @Default(<int>[]) List<int> recommends,
-  @Default(<RecommendMenuModel>[]) List<RecommendMenuModel> recommendMenus,
+    @Default(<int>[]) List<int> recommends,
+    @Default(<RecommendMenuModel>[]) List<RecommendMenuModel> recommendMenus,
   }) = _CategoryModel;
-  factory CategoryModel.fromJson(Map<String, dynamic> json) => _$CategoryModelFromJson(json);
+  factory CategoryModel.fromJson(Map<String, dynamic> json) =>
+      _$CategoryModelFromJson(json);
   factory CategoryModel.fromJsonSafe(Map<String, dynamic>? json) {
     final j = json ?? const {};
-  List<int> _listInt(dynamic v) => (v is List)
-    ? v.whereType<num>().map((e) => e.toInt()).toList()
-    : <int>[];
+    List<int> listInt(dynamic v) => (v is List)
+        ? v.whereType<num>().map((e) => e.toInt()).toList()
+        : <int>[];
     return CategoryModel(
       categoryCode: (j['categoryCode'] ?? j['code'] ?? '') as String? ?? '',
       categoryName: (j['categoryName'] ?? j['name'] ?? '') as String? ?? '',
@@ -48,11 +48,16 @@ class CategoryModel with _$CategoryModel {
       image: j['image'] as String?,
       printReceipt: j['printReceipt'] as int?,
       menuVoList: (j['menuVoList'] as List?)?.toList() ?? const [],
-    recommends: _listInt(j['recommends']),
-    recommendMenus: (j['recommendMenus'] as List?)
-        ?.map((e) => RecommendMenuModel.fromJsonSafe((e as Map).cast<String, dynamic>()))
-        .toList() ??
-      const [],
+      recommends: listInt(j['recommends']),
+      recommendMenus:
+          (j['recommendMenus'] as List?)
+              ?.map(
+                (e) => RecommendMenuModel.fromJsonSafe(
+                  (e as Map).cast<String, dynamic>(),
+                ),
+              )
+              .toList() ??
+          const [],
     );
   }
 }
@@ -80,10 +85,11 @@ class RecommendMenuModel with _$RecommendMenuModel {
     @Default(<int>[]) List<int> timeBoundsEnd,
     @Default(<dynamic>[]) List<dynamic> optionGroupVoList,
   }) = _RecommendMenuModel;
-  factory RecommendMenuModel.fromJson(Map<String, dynamic> json) => _$RecommendMenuModelFromJson(json);
+  factory RecommendMenuModel.fromJson(Map<String, dynamic> json) =>
+      _$RecommendMenuModelFromJson(json);
   factory RecommendMenuModel.fromJsonSafe(Map<String, dynamic>? json) {
     final j = json ?? const {};
-    List<int> _listInt(dynamic v) => (v is List)
+    List<int> listInt(dynamic v) => (v is List)
         ? v.whereType<num>().map((e) => e.toInt()).toList()
         : <int>[];
     return RecommendMenuModel(
@@ -103,9 +109,10 @@ class RecommendMenuModel with _$RecommendMenuModel {
       extend1: j['extend1'] as String?,
       tax: (j['tax'] ?? '') as String? ?? '',
       boundsPrice: (j['boundsPrice'] as num?)?.toInt(),
-      timeBoundsStart: _listInt(j['timeBoundsStart']),
-      timeBoundsEnd: _listInt(j['timeBoundsEnd']),
-      optionGroupVoList: (j['optionGroupVoList'] as List?)?.toList() ?? const [],
+      timeBoundsStart: listInt(j['timeBoundsStart']),
+      timeBoundsEnd: listInt(j['timeBoundsEnd']),
+      optionGroupVoList:
+          (j['optionGroupVoList'] as List?)?.toList() ?? const [],
     );
   }
 }
@@ -129,15 +136,17 @@ class ShopInfoModel with _$ShopInfoModel {
     bool? taxSystem,
     bool? dynamicCode,
     bool? multiplayer,
+    @Default(false) bool actuarial,
     String? canToOrder,
     String? uniqueOrderKey,
     Map<String, dynamic>? linePayChannelMap,
   }) = _ShopInfoModel;
 
-  factory ShopInfoModel.fromJson(Map<String, dynamic> json) => _$ShopInfoModelFromJson(json);
+  factory ShopInfoModel.fromJson(Map<String, dynamic> json) =>
+      _$ShopInfoModelFromJson(json);
   factory ShopInfoModel.fromJsonSafe(Map<String, dynamic>? json) {
     final j = json ?? const {};
-    List<LanguageModel> _langs(dynamic v) {
+    List<LanguageModel> langs(dynamic v) {
       if (v is List) {
         return v.map<LanguageModel>((e) {
           if (e is String) {
@@ -150,10 +159,11 @@ class ShopInfoModel with _$ShopInfoModel {
       }
       return const [];
     }
+
     return ShopInfoModel(
       shopCode: (j['shopCode'] ?? '') as String? ?? '',
       machineCode: j['machineCode'] as String?,
-      languages: _langs(j['languages']),
+      languages: langs(j['languages']),
       shopName: (j['shopName'] ?? '') as String? ?? '',
       ntaNo: j['ntaNo'] as String?,
       stationMachineCode: j['stationMachineCode'] as String?,
@@ -162,14 +172,20 @@ class ShopInfoModel with _$ShopInfoModel {
       shopTelephone: j['shopTelephone'] as String?,
       businessTime: j['businessTime'] as String?,
       seatNumber: j['seatNumber'] as String?,
-  categoryVoList: (j['categoryVoList'] as List?)
-      ?.map((e) => CategoryModel.fromJsonSafe((e as Map).cast<String, dynamic>()))
+      categoryVoList:
+          (j['categoryVoList'] as List?)
+              ?.map(
+                (e) => CategoryModel.fromJsonSafe(
+                  (e as Map).cast<String, dynamic>(),
+                ),
+              )
               .toList() ??
           const [],
       onlineCall: j['onlineCall'] as bool?,
       taxSystem: j['taxSystem'] as bool?,
       dynamicCode: j['dynamicCode'] as bool?,
       multiplayer: j['multiplayer'] as bool?,
+      actuarial: _readBool(j['actuarial']) ?? false,
       canToOrder: j['canToOrder'] as String?,
       uniqueOrderKey: j['uniqueOrderKey'] as String?,
       linePayChannelMap: j['linePayChannelMap'] != null
@@ -184,4 +200,22 @@ class ShopInfoModel with _$ShopInfoModel {
     }
     return ShopInfoModel.fromJsonSafe(raw);
   }
+}
+
+bool? _readBool(Object? value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) {
+    switch (value.trim().toLowerCase()) {
+      case 'true':
+      case '1':
+      case 'y':
+        return true;
+      case 'false':
+      case '0':
+      case 'n':
+        return false;
+    }
+  }
+  return null;
 }

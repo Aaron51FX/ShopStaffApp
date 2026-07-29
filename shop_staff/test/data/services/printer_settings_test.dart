@@ -142,5 +142,31 @@ void main() {
       expect(decoded.paymentModes.resolveCard(), PaymentFlowMode.bookkeeping);
       expect(decoded.paymentModes.resolveQr(), PaymentFlowMode.real);
     });
+
+    test('preserves locally enabled order modes', () {
+      const basic = BasicSettings(
+        orderModes: OrderModeSettings(
+          dineIn: true,
+          takeout: false,
+          settlement: true,
+        ),
+      );
+
+      final decoded = BasicSettings.fromJson(basic.toJson());
+
+      expect(decoded.orderModes.dineIn, isTrue);
+      expect(decoded.orderModes.takeout, isFalse);
+      expect(decoded.orderModes.settlement, isTrue);
+    });
+
+    test('enables existing order modes when migrating legacy settings', () {
+      final decoded = BasicSettings.fromJson(<String, dynamic>{
+        'shopCode': 'shop-1',
+      });
+
+      expect(decoded.orderModes.dineIn, isTrue);
+      expect(decoded.orderModes.takeout, isTrue);
+      expect(decoded.orderModes.settlement, isTrue);
+    });
   });
 }

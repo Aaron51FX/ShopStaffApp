@@ -63,15 +63,24 @@ class _SummaryPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
+          if (args.tableNumber case final tableNumber?
+              when tableNumber.isNotEmpty)
+            _SummaryRow(
+              label: args.tableNumberText?.isNotEmpty == true
+                  ? args.tableNumberText!
+                  : t.settlementTableLabel,
+              value: tableNumber,
+            ),
           if (submittedOrder != null)
             _SummaryRow(
               label: t.paymentOrderIdLabel,
               value: submittedOrder!.orderId,
             ),
-          _SummaryRow(
-            label: t.paymentSelectionOrderNumberLabel,
-            value: '#${args.orderNumber}',
-          ),
+          if (args.tableNumber == null || args.tableNumber!.isEmpty)
+            _SummaryRow(
+              label: t.paymentSelectionOrderNumberLabel,
+              value: '#${args.orderNumber}',
+            ),
           _SummaryRow(
             label: t.posSubtotalLabel,
             value: formatter.format(summary.subtotal),

@@ -142,6 +142,162 @@ abstract class AppLocalizations {
   /// **'Handle takeout orders with dedicated items and promotions'**
   String get entryTakeoutSubtitle;
 
+  /// No description provided for @entrySettlementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement'**
+  String get entrySettlementTitle;
+
+  /// No description provided for @entrySettlementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the settlement flow and complete payment'**
+  String get entrySettlementSubtitle;
+
+  /// No description provided for @entryStartSettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Settlement'**
+  String get entryStartSettlement;
+
+  /// No description provided for @settlementOrderPageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to Settle'**
+  String get settlementOrderPageTitle;
+
+  /// No description provided for @settlementScanDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Order QR Code'**
+  String get settlementScanDialogTitle;
+
+  /// No description provided for @settlementScanCameraHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Align the order QR code in the frame'**
+  String get settlementScanCameraHint;
+
+  /// No description provided for @scanCameraUnavailableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera scanning is not available on this device'**
+  String get scanCameraUnavailableHint;
+
+  /// No description provided for @settlementScanInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanner input, order key, or a link containing ?p='**
+  String get settlementScanInputHint;
+
+  /// No description provided for @settlementScanSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Order'**
+  String get settlementScanSubmit;
+
+  /// No description provided for @settlementRescanAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Again'**
+  String get settlementRescanAction;
+
+  /// No description provided for @settlementScanEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan an order to begin settlement'**
+  String get settlementScanEmptyTitle;
+
+  /// No description provided for @settlementScanEmptySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Supports a plain order key or an order link containing the ?p= parameter'**
+  String get settlementScanEmptySubtitle;
+
+  /// No description provided for @settlementScanAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Order'**
+  String get settlementScanAction;
+
+  /// No description provided for @settlementInvalidCodeError.
+  ///
+  /// In en, this message translates to:
+  /// **'The order QR code is invalid. Check it and try again.'**
+  String get settlementInvalidCodeError;
+
+  /// No description provided for @settlementMachineCodeMissingError.
+  ///
+  /// In en, this message translates to:
+  /// **'This device has no machine code. Activate the device again.'**
+  String get settlementMachineCodeMissingError;
+
+  /// No description provided for @settlementOrderFetchError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to fetch the order. Check its status or the network and try again.'**
+  String get settlementOrderFetchError;
+
+  /// No description provided for @settlementOrderDetailsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order Details'**
+  String get settlementOrderDetailsTitle;
+
+  /// No description provided for @settlementOrderQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String settlementOrderQuantity(int count);
+
+  /// No description provided for @settlementOrderLinesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'This order has no item details'**
+  String get settlementOrderLinesEmpty;
+
+  /// No description provided for @settlementAmountSummaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount Summary'**
+  String get settlementAmountSummaryTitle;
+
+  /// No description provided for @settlementTableLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Table'**
+  String get settlementTableLabel;
+
+  /// No description provided for @settlementVoucherLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Voucher'**
+  String get settlementVoucherLabel;
+
+  /// No description provided for @settlementPayAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue to Payment'**
+  String get settlementPayAction;
+
+  /// No description provided for @settlementPaymentContextMissingError.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop or device information is missing, so payment cannot start'**
+  String get settlementPaymentContextMissingError;
+
+  /// No description provided for @settlementPaymentPrepareError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to prepare payment. Please try again.'**
+  String get settlementPaymentPrepareError;
+
+  /// No description provided for @settlementOrderAmountChangedError.
+  ///
+  /// In en, this message translates to:
+  /// **'The order amount has changed. Scan the order again before payment.'**
+  String get settlementOrderAmountChangedError;
+
   /// No description provided for @entryStartOrder.
   ///
   /// In en, this message translates to:
@@ -321,6 +477,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose the device role; it will restart and open the selected interface'**
   String get settingsRoleSelectionSubtitle;
+
+  /// No description provided for @settingsOrderModeSupportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported modes'**
+  String get settingsOrderModeSupportTitle;
+
+  /// No description provided for @settingsOrderModeSupportSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which modes appear on the home screen; keep at least one enabled'**
+  String get settingsOrderModeSupportSubtitle;
 
   /// No description provided for @settingsRoleSelectionDescription.
   ///
@@ -1863,6 +2031,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Device activation'**
   String get loginActivateTitle;
+
+  /// No description provided for @loginScanDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Device Activation Code'**
+  String get loginScanDialogTitle;
+
+  /// No description provided for @loginScanCameraHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Align the activation QR code in the frame'**
+  String get loginScanCameraHint;
+
+  /// No description provided for @loginScanSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Use This Code'**
+  String get loginScanSubmit;
 
   /// No description provided for @loginMachineCodeLabel.
   ///

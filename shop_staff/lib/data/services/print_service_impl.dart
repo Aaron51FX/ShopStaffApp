@@ -2,6 +2,7 @@ import 'package:print_image_generate_tool/print_image_generate_tool.dart';
 import 'package:shop_staff/core/config/print_info.dart';
 import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/data/services/receipt_document_adapters.dart';
+import 'package:shop_staff/domain/entities/receipt_document.dart';
 import 'package:shop_staff/domain/services/native_receipt_printer.dart';
 import 'package:shop_staff/domain/services/print_service.dart';
 import 'package:shop_staff/domain/services/receipt_renderer.dart';
@@ -21,26 +22,36 @@ class PrintServiceImpl implements PrintService {
   Future<List<PrintJobResult>> enqueuePrintJobs({
     required PrintInfoDocument document,
     required List<PrinterSettings> printers,
+    bool includeKitchenJobs = true,
+    bool includeOrderTicket = true,
   }) async {
     final results = <PrintJobResult>[];
     final info = document.printInfo;
-    if (info == null || info.orderLinesMap.isEmpty || printers.isEmpty) {
+    if (info == null || printers.isEmpty) {
       return results;
     }
 
     final isTakeOut = info.orderType != 'Shop_In';
 
-    final receiptPrinter = _pickReceiptPrinter(printers);
-    if (receiptPrinter != null) {
-      final result = await _printReceipt(document, receiptPrinter);
-      if (result != null) {
-        results.add(result);
+    if (info.orderLines.isNotEmpty) {
+      final receiptPrinter = _pickLocalDefaultReceiptPrinter(printers);
+      if (receiptPrinter != null) {
+        final result = await _printReceipt(
+          document,
+          receiptPrinter,
+          includeOrderTicket: includeOrderTicket,
+        );
+        if (result != null) {
+          results.add(result);
+        }
       }
     }
 
-    results.addAll(
-      await enqueueKitchenJobs(document: document, printers: printers),
-    );
+    if (includeKitchenJobs && info.orderLinesMap.isNotEmpty) {
+      results.addAll(
+        await enqueueKitchenJobs(document: document, printers: printers),
+      );
+    }
 
     // Center consolidated receipt (type 11) when enabled and takeout
     final centerPrinter = printers.firstWhere(
@@ -48,8 +59,16 @@ class PrintServiceImpl implements PrintService {
       orElse: () => const PrinterSettings(name: '', type: -1),
     );
 
-    if (centerPrinter.type == 11 && isTakeOut) {
-      _enqueueReceipt(document, centerPrinter, forceContinuous: true);
+    if (includeKitchenJobs &&
+        info.orderLines.isNotEmpty &&
+        centerPrinter.type == 11 &&
+        isTakeOut) {
+      final centerDocument = _documentForLines(
+        document,
+        info.orderLines,
+        PrinterSettings.centerType,
+      );
+      _enqueueReceipt(centerDocument, centerPrinter, forceContinuous: true);
       results.add(PrintJobResult(printer: centerPrinter));
     }
 
@@ -63,14 +82,18 @@ class PrintServiceImpl implements PrintService {
   }) async {
     final results = <PrintJobResult>[];
     final info = document.printInfo;
-    if (info == null || info.orderLinesMap.isEmpty || printers.isEmpty) {
+    if (info == null || info.orderLines.isEmpty || printers.isEmpty) {
       return results;
     }
 
-    final printer = _pickReceiptPrinter(printers);
+    final printer = _pickLocalDefaultReceiptPrinter(printers);
     if (printer == null) return results;
 
-    final result = await _printReceipt(document, printer);
+    final result = await _printReceipt(
+      document,
+      printer,
+      includeOrderTicket: false,
+    );
     if (result != null) {
       results.add(result);
     }
@@ -116,50 +139,53 @@ class PrintServiceImpl implements PrintService {
     return results;
   }
 
-  PrinterSettings? _pickReceiptPrinter(List<PrinterSettings> printers) {
-    final active = printers
-        .where(_isReceiptPrinterAvailable)
+  PrinterSettings? _pickLocalDefaultReceiptPrinter(
+    List<PrinterSettings> printers,
+  ) {
+    final localPrinters = printers
+        .where(
+          (printer) =>
+              printer.type == PrinterSettings.localType &&
+              printer.receipt &&
+              _isReceiptPrinterAvailable(printer),
+        )
         .toList(growable: false);
-    if (active.isEmpty) return null;
+    if (localPrinters.isEmpty) return null;
 
-    final receiptCapable = active
-        .where((p) => p.receipt != false)
-        .toList(growable: false);
-    if (receiptCapable.isEmpty) return null;
-
-    for (final p in receiptCapable) {
-      if (p.type == PrinterSettings.localType) return p;
+    for (final printer in localPrinters) {
+      if (printer.isDefault) return printer;
     }
-
-    for (final p in receiptCapable) {
-      if (p.type == PrinterSettings.kitchenType) return p;
-    }
-    return receiptCapable.first;
+    return localPrinters.first;
   }
 
   Future<PrintJobResult?> _printReceipt(
     PrintInfoDocument document,
-    PrinterSettings printer,
-  ) async {
+    PrinterSettings printer, {
+    bool includeOrderTicket = true,
+  }) async {
     final info = document.printInfo;
     if (info == null) return null;
 
     if (printer.usesNativeSdk) {
-      return _printReceiptNative(document, printer);
+      return _printReceiptNative(
+        document,
+        printer,
+        includeOrderTicket: includeOrderTicket,
+      );
     }
 
     final isTakeOut = document.takeOut;
-    final mappedLines = _linesFromMap(info);
-    final items = _toLegacyItems(mappedLines);
+    final items = _toLegacyItems(info.orderLines);
     if (items.isEmpty) return null;
 
-    final hReceiptWidget = _renderer.buildHReceipt(
-      number: document.serialNumber ?? '',
-      items: items,
-      timeStamp: document.orderDate,
-    );
-
-    _submitTask(hReceiptWidget, printer, PrintTypeEnum.receipt);
+    if (includeOrderTicket) {
+      final hReceiptWidget = _renderer.buildHReceipt(
+        number: document.serialNumber ?? '',
+        items: items,
+        timeStamp: document.orderDate,
+      );
+      _submitTask(hReceiptWidget, printer, PrintTypeEnum.receipt);
+    }
 
     final receiptWidget = _renderer.buildReceipt(
       shopName: document.shopName,
@@ -190,8 +216,9 @@ class PrintServiceImpl implements PrintService {
 
   Future<PrintJobResult> _printReceiptNative(
     PrintInfoDocument document,
-    PrinterSettings printer,
-  ) async {
+    PrinterSettings printer, {
+    required bool includeOrderTicket,
+  }) async {
     final nativePrinter = _nativeReceiptPrinter;
     if (nativePrinter == null) {
       return PrintJobResult(
@@ -202,6 +229,15 @@ class PrintServiceImpl implements PrintService {
 
     try {
       final receipt = SaleReceiptDocumentAdapter.fromPrintInfo(document);
+      if (includeOrderTicket) {
+        await nativePrinter.printReceipt(
+          document: _buildNativeOrderTicket(
+            receipt,
+            serialNumber: document.serialNumber ?? '',
+          ),
+          printer: printer,
+        );
+      }
       await nativePrinter.printReceipt(document: receipt, printer: printer);
       return PrintJobResult(printer: printer);
     } catch (error) {
@@ -216,6 +252,7 @@ class PrintServiceImpl implements PrintService {
   }) {
     final info = document.printInfo;
     if (info == null) return;
+    final kitchenInfo = info.copyWith(orderSnCode: document.serialNumber ?? '');
     final rotate = printer.direction;
     final isTakeOut = info.orderType != 'Shop_In';
     final mappedLines = _linesFromMap(info);
@@ -224,7 +261,7 @@ class PrintServiceImpl implements PrintService {
 
     if (printer.continuous || forceContinuous) {
       final printWidget = _renderer.buildContinuousReceipt(
-        info: info,
+        info: kitchenInfo,
         items: items,
         printer: printer,
         rotate: rotate,
@@ -234,7 +271,7 @@ class PrintServiceImpl implements PrintService {
     } else {
       for (final item in items) {
         final printWidget = _renderer.buildSingleReceipt(
-          info: info,
+          info: kitchenInfo,
           item: item,
           printer: printer,
           rotate: rotate,
@@ -355,6 +392,36 @@ class PrintServiceImpl implements PrintService {
     final identifier = printer.deviceIdentifier?.trim();
     return identifier != null && identifier.isNotEmpty;
   }
+}
+
+ReceiptDocument _buildNativeOrderTicket(
+  ReceiptDocument receipt, {
+  required String serialNumber,
+}) {
+  final transaction = receipt.transaction;
+  return ReceiptDocument(
+    kind: receipt.kind,
+    detailLevel: receipt.detailLevel,
+    shop: receipt.shop,
+    transaction: ReceiptTransactionInfo(
+      receiptId: transaction.receiptId,
+      orderId: transaction.orderId,
+      displayOrderNo: serialNumber,
+      serialNumber: serialNumber,
+      occurredAt: transaction.occurredAt,
+      businessDateLabel: transaction.businessDateLabel,
+      orderMode: transaction.orderMode,
+      machineCode: transaction.machineCode,
+      locale: transaction.locale,
+      currency: transaction.currency,
+    ),
+    originalTransaction: receipt.originalTransaction,
+    lines: receipt.lines,
+    totals: receipt.totals,
+    payment: receipt.payment,
+    refund: receipt.refund,
+    extras: <String, dynamic>{...receipt.extras, 'documentType': 'h_receipt'},
+  );
 }
 
 PrintInfoDocument _documentForLines(

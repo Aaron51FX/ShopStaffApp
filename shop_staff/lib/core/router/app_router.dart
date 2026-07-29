@@ -8,6 +8,7 @@ import 'package:shop_staff/presentations/cash_register_closure/pages/cash_regist
 import 'package:shop_staff/presentations/payment/viewmodels/payment_flow_page_args.dart';
 import 'package:shop_staff/presentations/payment/viewmodels/payment_selection_page_args.dart';
 import 'package:shop_staff/presentations/settings/pages/settings_page.dart';
+import 'package:shop_staff/presentations/settlement/pages/settlement_order_page.dart';
 import 'package:shop_staff/presentations/settings/sections/business_info/pages/shop_info_detail_page.dart';
 import '../../presentations/pos/pages/pos_page.dart';
 import '../../presentations/auth/pages/login_page.dart';
@@ -47,6 +48,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         '/settings',
         '/payment-selection',
         '/payment',
+        '/settlement',
       };
       final needsGuard =
           protectedPaths.contains(loc) ||
@@ -100,6 +102,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/settings',
             name: 'settings',
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/settlement',
+            name: 'settlement',
+            builder: (context, state) => const SettlementOrderPage(),
           ),
           GoRoute(
             path: '/settings/shop-info',

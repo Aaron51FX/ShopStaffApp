@@ -30,6 +30,8 @@
 	<string>Use Bluetooth for communication with the printer.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Use Bluetooth for communication with the printer.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Use the camera to scan order and activation QR codes.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_shop-staff._tcp</string>

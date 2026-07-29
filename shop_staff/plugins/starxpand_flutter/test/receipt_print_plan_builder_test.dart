@@ -73,6 +73,60 @@ void main() {
       expect(plan.nodes.last.type, ReceiptPrintPlanNodeType.cut);
     });
 
+    test('builds a compact HReceipt plan when requested', () {
+      final payload = ReceiptDocumentPayload.fromJson(<String, dynamic>{
+        'schema': 'shop_staff.receipt.v1',
+        'kind': 'sale',
+        'shop': <String, dynamic>{'name': 'Tokyo Shop'},
+        'transaction': <String, dynamic>{
+          'receiptId': 'sale-9001',
+          'serialNumber': 'S-102',
+          'businessDateLabel': '2026-07-29 12:30',
+          'locale': 'ja-JP',
+          'currency': 'JPY',
+        },
+        'lines': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'name': 'Beef Noodle',
+            'quantity': 2,
+            'unitPriceMinor': 100,
+            'lineTotalMinor': 200,
+            'options': <Map<String, dynamic>>[
+              <String, dynamic>{
+                'group': 'Size',
+                'name': 'Large',
+                'quantity': 1,
+                'priceDeltaMinor': 0,
+              },
+            ],
+          },
+        ],
+        'totals': <String, dynamic>{
+          'subtotalMinor': 200,
+          'grandTotalMinor': 200,
+        },
+        'extras': <String, dynamic>{'documentType': 'h_receipt'},
+      });
+
+      final plan = ReceiptPrintPlanBuilder.build(payload);
+      final texts = plan.nodes
+          .where((node) => node.type == ReceiptPrintPlanNodeType.text)
+          .map((node) => node.text)
+          .toList();
+
+      expect(plan.extras['documentType'], 'h_receipt');
+      expect(texts, containsAll(<String?>['お客様番号', 'S-102']));
+      expect(
+        plan.nodes.any(
+          (node) =>
+              node.type == ReceiptPrintPlanNodeType.row &&
+              node.columns.any((column) => column.text == 'Beef Noodle'),
+        ),
+        isTrue,
+      );
+      expect(plan.nodes.last.type, ReceiptPrintPlanNodeType.cut);
+    });
+
     test('builds refund plan without cut when disabled', () {
       final payload = ReceiptDocumentPayload.fromJson(<String, dynamic>{
         'schema': 'shop_staff.receipt.v1',

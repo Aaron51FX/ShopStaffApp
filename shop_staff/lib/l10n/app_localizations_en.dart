@@ -32,6 +32,96 @@ class AppLocalizationsEn extends AppLocalizations {
       'Handle takeout orders with dedicated items and promotions';
 
   @override
+  String get entrySettlementTitle => 'Settlement';
+
+  @override
+  String get entrySettlementSubtitle =>
+      'Enter the settlement flow and complete payment';
+
+  @override
+  String get entryStartSettlement => 'Start Settlement';
+
+  @override
+  String get settlementOrderPageTitle => 'Scan to Settle';
+
+  @override
+  String get settlementScanDialogTitle => 'Scan Order QR Code';
+
+  @override
+  String get settlementScanCameraHint => 'Align the order QR code in the frame';
+
+  @override
+  String get scanCameraUnavailableHint =>
+      'Camera scanning is not available on this device';
+
+  @override
+  String get settlementScanInputHint =>
+      'Scanner input, order key, or a link containing ?p=';
+
+  @override
+  String get settlementScanSubmit => 'Fetch Order';
+
+  @override
+  String get settlementRescanAction => 'Scan Again';
+
+  @override
+  String get settlementScanEmptyTitle => 'Scan an order to begin settlement';
+
+  @override
+  String get settlementScanEmptySubtitle =>
+      'Supports a plain order key or an order link containing the ?p= parameter';
+
+  @override
+  String get settlementScanAction => 'Scan Order';
+
+  @override
+  String get settlementInvalidCodeError =>
+      'The order QR code is invalid. Check it and try again.';
+
+  @override
+  String get settlementMachineCodeMissingError =>
+      'This device has no machine code. Activate the device again.';
+
+  @override
+  String get settlementOrderFetchError =>
+      'Unable to fetch the order. Check its status or the network and try again.';
+
+  @override
+  String get settlementOrderDetailsTitle => 'Order Details';
+
+  @override
+  String settlementOrderQuantity(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get settlementOrderLinesEmpty => 'This order has no item details';
+
+  @override
+  String get settlementAmountSummaryTitle => 'Amount Summary';
+
+  @override
+  String get settlementTableLabel => 'Table';
+
+  @override
+  String get settlementVoucherLabel => 'Voucher';
+
+  @override
+  String get settlementPayAction => 'Continue to Payment';
+
+  @override
+  String get settlementPaymentContextMissingError =>
+      'Shop or device information is missing, so payment cannot start';
+
+  @override
+  String get settlementPaymentPrepareError =>
+      'Unable to prepare payment. Please try again.';
+
+  @override
+  String get settlementOrderAmountChangedError =>
+      'The order amount has changed. Scan the order again before payment.';
+
+  @override
   String get entryStartOrder => 'Start Order';
 
   @override
@@ -137,6 +227,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsRoleSelectionSubtitle =>
       'Choose the device role; it will restart and open the selected interface';
+
+  @override
+  String get settingsOrderModeSupportTitle => 'Supported modes';
+
+  @override
+  String get settingsOrderModeSupportSubtitle =>
+      'Choose which modes appear on the home screen; keep at least one enabled';
 
   @override
   String get settingsRoleSelectionDescription =>
@@ -951,6 +1048,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginActivateTitle => 'Device activation';
+
+  @override
+  String get loginScanDialogTitle => 'Scan Device Activation Code';
+
+  @override
+  String get loginScanCameraHint => 'Align the activation QR code in the frame';
+
+  @override
+  String get loginScanSubmit => 'Use This Code';
 
   @override
   String get loginMachineCodeLabel => 'Machine code';

@@ -9,15 +9,15 @@ import 'print_job_models.dart';
 
 final printJobViewModelProvider = StateNotifierProvider.autoDispose
     .family<PrintJobViewModel, PrintProgressState, PrintJobRequest>((ref, req) {
-  final link = ref.keepAlive();
-  ref.onDispose(link.close);
-  return PrintJobViewModel(
-    ref: ref,
-    request: req,
-    repository: ref.read(printRepositoryProvider),
-    service: ref.read(printServiceProvider),
-  );
-});
+      final link = ref.keepAlive();
+      ref.onDispose(link.close);
+      return PrintJobViewModel(
+        ref: ref,
+        request: req,
+        repository: ref.read(printRepositoryProvider),
+        service: ref.read(printServiceProvider),
+      );
+    });
 
 class PrintJobViewModel extends StateNotifier<PrintProgressState> {
   PrintJobViewModel({
@@ -25,10 +25,10 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
     required this.request,
     required PrintRepository repository,
     required PrintService service,
-  })  : _repository = repository,
-        _service = service,
-        _logger = Logger('PrintJobViewModel'),
-        super(const PrintProgressState());
+  }) : _repository = repository,
+       _service = service,
+       _logger = Logger('PrintJobViewModel'),
+       super(const PrintProgressState());
 
   final Ref ref;
   final PrintJobRequest request;
@@ -43,7 +43,12 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
     _running = true;
     final activePrinters = request.printers.where((p) => p.isOn).toList();
     if (mounted) {
-      state = state.copyWith(stage: '获取打印内容…', jobs: const [], error: null, completed: false);
+      state = state.copyWith(
+        stage: '获取打印内容…',
+        jobs: const [],
+        error: null,
+        completed: false,
+      );
     }
 
     if (request.machineCode.isEmpty) {
@@ -71,16 +76,22 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
       }
       state = state.copyWith(stage: '生成打印任务…');
       debugPrint('Generating print jobs for ${activePrinters.length} printers');
-      _logger.info('Generating print jobs for ${activePrinters.length} printers');
+      _logger.info(
+        'Generating print jobs for ${activePrinters.length} printers',
+      );
       final results = await _service.enqueuePrintJobs(
         document: doc,
         printers: activePrinters,
+        includeKitchenJobs: !request.receiptOnly,
+        includeOrderTicket: !request.receiptOnly,
       );
       final updatedJobs = results
           .map(
             (r) => PrintJobStateItem(
               name: r.printer.name,
-              status: r.isSuccess ? PrintJobStatus.success : PrintJobStatus.failure,
+              status: r.isSuccess
+                  ? PrintJobStatus.success
+                  : PrintJobStatus.failure,
               error: r.error,
             ),
           )
@@ -114,7 +125,9 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
 
   Future<PrintInfoDocument> _resolveDocument() async {
     if (request.document != null) return request.document!;
-    if (request.orderId == null || request.payAmount == null || request.printType == null) {
+    if (request.orderId == null ||
+        request.payAmount == null ||
+        request.printType == null) {
       throw StateError('缺少打印参数');
     }
     return _repository.printInfo(

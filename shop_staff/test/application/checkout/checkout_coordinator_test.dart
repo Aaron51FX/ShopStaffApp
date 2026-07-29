@@ -79,6 +79,52 @@ void main() {
       },
     );
 
+    test(
+      'uses an existing settlement order without submitting it again',
+      () async {
+        final repository = _FakeBookkeepingOrderRepository();
+        final local = _MemoryLocalOrders();
+        final localOrders = LocalOrdersUseCases(local: local);
+        final coordinator = _coordinator(repository, localOrders);
+        const existingOrder = OrderSubmissionResult(
+          orderId: 'settlement-order-1',
+          tax1: 80,
+          baseTax1: 0,
+          tax2: 0,
+          baseTax2: 0,
+          total: 1000,
+        );
+
+        await coordinator.beginExistingOrder(
+          draft: _draft(isSettlement: true),
+          order: existingOrder,
+        );
+        final request = await coordinator.preparePayment(
+          group: PaymentChannels.cash,
+          code: 'cash',
+          label: 'Cash',
+        );
+
+        expect(repository.submitCalls, 0);
+        expect(request.order.orderId, 'settlement-order-1');
+        expect(request.order.total, 1000);
+        expect(local.record?.orderId, 'settlement-order-1');
+        expect(local.record?.isPaid, isFalse);
+
+        coordinator.paymentStarted(request);
+        await coordinator.paymentCompleted(
+          PaymentResult.success(messageKey: PaymentMessageKeys.cashSuccess),
+        );
+
+        expect(local.record?.isPaid, isTrue);
+        expect(coordinator.state.stage, CheckoutStage.printReady);
+        expect(coordinator.state.printRequest?.orderId, 'settlement-order-1');
+        expect(coordinator.state.printRequest?.payAmount, '1000');
+        expect(coordinator.state.printRequest?.printType, '');
+        expect(coordinator.state.printRequest?.receiptOnly, isTrue);
+      },
+    );
+
     test('does not create print work for failed or unknown payments', () async {
       final repository = _FakeBookkeepingOrderRepository();
       final localOrders = LocalOrdersUseCases(local: _MemoryLocalOrders());
@@ -131,8 +177,8 @@ CheckoutCoordinator _coordinator(
   );
 }
 
-CheckoutDraft _draft() {
-  return const CheckoutDraft(
+CheckoutDraft _draft({bool isSettlement = false}) {
+  return CheckoutDraft(
     shop: ShopInfoModel(shopCode: 'shop-1', shopName: 'Shop', language: 'ja'),
     machineCode: 'machine-1',
     language: 'ja',
@@ -141,6 +187,7 @@ CheckoutDraft _draft() {
     orderNumber: 1,
     subtotal: 1000,
     discount: 0,
+    isSettlement: isSettlement,
   );
 }
 

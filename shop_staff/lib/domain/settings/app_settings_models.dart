@@ -105,6 +105,39 @@ extension CashMachineBrandX on CashMachineBrand {
 const Object _copyWithUnset = Object();
 
 @immutable
+class OrderModeSettings {
+  const OrderModeSettings({
+    this.dineIn = true,
+    this.takeout = true,
+    this.settlement = true,
+  });
+
+  final bool dineIn;
+  final bool takeout;
+  final bool settlement;
+
+  OrderModeSettings copyWith({bool? dineIn, bool? takeout, bool? settlement}) {
+    return OrderModeSettings(
+      dineIn: dineIn ?? this.dineIn,
+      takeout: takeout ?? this.takeout,
+      settlement: settlement ?? this.settlement,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'dineIn': dineIn, 'takeout': takeout, 'settlement': settlement};
+  }
+
+  factory OrderModeSettings.fromJson(Map<String, dynamic> json) {
+    return OrderModeSettings(
+      dineIn: _readBool(json['dineIn']) ?? true,
+      takeout: _readBool(json['takeout']) ?? true,
+      settlement: _readBool(json['settlement']) ?? true,
+    );
+  }
+}
+
+@immutable
 class PaymentModeSettings {
   const PaymentModeSettings({this.cash, this.card, this.qr});
 
@@ -272,6 +305,7 @@ class BasicSettings {
     this.cashMachineEnabled,
     this.cashMachine = const CashMachineSettings(),
     this.paymentModes = const PaymentModeSettings(),
+    this.orderModes = const OrderModeSettings(),
     this.peerLinkEnabled = true,
   });
 
@@ -284,6 +318,7 @@ class BasicSettings {
   final bool? cashMachineEnabled;
   final CashMachineSettings cashMachine;
   final PaymentModeSettings paymentModes;
+  final OrderModeSettings orderModes;
   final bool peerLinkEnabled;
 
   BasicSettings copyWith({
@@ -296,6 +331,7 @@ class BasicSettings {
     bool? cashMachineEnabled,
     CashMachineSettings? cashMachine,
     PaymentModeSettings? paymentModes,
+    OrderModeSettings? orderModes,
     bool? peerLinkEnabled,
   }) {
     final baseCashMachine = cashMachine ?? this.cashMachine;
@@ -317,6 +353,7 @@ class BasicSettings {
       cashMachineEnabled: resolvedCashMachineEnabled,
       cashMachine: resolvedCashMachine,
       paymentModes: paymentModes ?? this.paymentModes,
+      orderModes: orderModes ?? this.orderModes,
       peerLinkEnabled: peerLinkEnabled ?? this.peerLinkEnabled,
     );
   }
@@ -332,6 +369,7 @@ class BasicSettings {
       'cashMachineEnabled': cashMachineEnabled,
       'cashMachine': cashMachine.toJson(),
       'paymentModes': paymentModes.toJson(),
+      'orderModes': orderModes.toJson(),
       'peerLinkEnabled': peerLinkEnabled,
     }..removeWhere((key, value) => value == null);
   }
@@ -363,6 +401,11 @@ class BasicSettings {
               Map<String, dynamic>.from(json['paymentModes'] as Map),
             )
           : const PaymentModeSettings(),
+      orderModes: json['orderModes'] is Map
+          ? OrderModeSettings.fromJson(
+              Map<String, dynamic>.from(json['orderModes'] as Map),
+            )
+          : const OrderModeSettings(),
       peerLinkEnabled: _readBool(json['peerLinkEnabled']) ?? true,
     );
   }

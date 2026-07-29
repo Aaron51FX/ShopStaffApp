@@ -26,6 +26,15 @@ class _SystemSettingsView extends ConsumerWidget {
     final vm = ref.read(settingsControllerProvider.notifier);
     final cashCheckState = ref.watch(cashMachineCheckControllerProvider);
     final currentRole = ref.watch(appRoleProvider);
+    final actuarialSupported = state.shopInfo?.actuarial ?? false;
+    final availableModeCount =
+        (basic.orderModes.dineIn ? 1 : 0) +
+        (basic.orderModes.takeout ? 1 : 0) +
+        (actuarialSupported && basic.orderModes.settlement ? 1 : 0);
+
+    Future<void> updateOrderModes(OrderModeSettings orderModes) {
+      return vm.saveBasicSettings(basic.copyWith(orderModes: orderModes));
+    }
 
     Future<void> onRoleSelected(AppRole target) async {
       if (target == currentRole) return;
@@ -82,6 +91,42 @@ class _SystemSettingsView extends ConsumerWidget {
     return _RefreshableScroll(
       onRefresh: onRefresh,
       children: [
+        _SectionCard(
+          title: t.settingsOrderModeSupportTitle,
+          subtitle: t.settingsOrderModeSupportSubtitle,
+          children: [
+            _OrderModeSupportTile(
+              icon: Icons.restaurant_menu_rounded,
+              label: t.entryDineInTitle,
+              selected: basic.orderModes.dineIn,
+              canDisable: availableModeCount > 1,
+              onChanged: (selected) =>
+                  updateOrderModes(basic.orderModes.copyWith(dineIn: selected)),
+            ),
+            const SizedBox(height: 8),
+            _OrderModeSupportTile(
+              icon: Icons.shopping_bag_rounded,
+              label: t.entryTakeoutTitle,
+              selected: basic.orderModes.takeout,
+              canDisable: availableModeCount > 1,
+              onChanged: (selected) => updateOrderModes(
+                basic.orderModes.copyWith(takeout: selected),
+              ),
+            ),
+            if (actuarialSupported) ...[
+              const SizedBox(height: 8),
+              _OrderModeSupportTile(
+                icon: Icons.point_of_sale_rounded,
+                label: t.entrySettlementTitle,
+                selected: basic.orderModes.settlement,
+                canDisable: availableModeCount > 1,
+                onChanged: (selected) => updateOrderModes(
+                  basic.orderModes.copyWith(settlement: selected),
+                ),
+              ),
+            ],
+          ],
+        ),
         _SectionCard(
           title: t.settingsRoleSelectionTitle,
           subtitle: t.settingsRoleSelectionSubtitle,
@@ -264,6 +309,44 @@ class _SystemSettingsView extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+class _OrderModeSupportTile extends StatelessWidget {
+  const _OrderModeSupportTile({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.canDisable,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final bool canDisable;
+  final Future<void> Function(bool selected) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return CheckboxListTile(
+      value: selected,
+      onChanged: (value) {
+        if (value == null || (selected && !canDisable)) return;
+        onChanged(value);
+      },
+      secondary: Icon(icon, color: theme.colorScheme.primary),
+      title: Text(
+        label,
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      controlAffinity: ListTileControlAffinity.trailing,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 }

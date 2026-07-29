@@ -10,6 +10,7 @@ class PrintJobRequest {
     this.payAmount,
     this.printType,
     this.document,
+    this.receiptOnly = false,
   });
 
   final String machineCode;
@@ -18,6 +19,7 @@ class PrintJobRequest {
   final String? payAmount;
   final String? printType;
   final PrintInfoDocument? document;
+  final bool receiptOnly;
 
   bool get hasDocument => document != null;
 }

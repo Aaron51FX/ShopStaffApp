@@ -30,6 +30,90 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryTakeoutSubtitle => 'テイクアウト注文を迅速に処理し、専用メニューと特典を表示します';
 
   @override
+  String get entrySettlementTitle => '会計モード';
+
+  @override
+  String get entrySettlementSubtitle => '会計フローに進み、支払いを完了します';
+
+  @override
+  String get entryStartSettlement => '会計を開始';
+
+  @override
+  String get settlementOrderPageTitle => 'QR会計';
+
+  @override
+  String get settlementScanDialogTitle => '注文QRコードをスキャン';
+
+  @override
+  String get settlementScanCameraHint => '注文QRコードを枠内に合わせてください';
+
+  @override
+  String get scanCameraUnavailableHint => 'この端末ではカメラによるスキャンを利用できません';
+
+  @override
+  String get settlementScanInputHint => 'スキャナー入力、注文番号、または ?p= を含むリンク';
+
+  @override
+  String get settlementScanSubmit => '注文を取得';
+
+  @override
+  String get settlementRescanAction => '再スキャン';
+
+  @override
+  String get settlementScanEmptyTitle => '会計する注文をスキャンしてください';
+
+  @override
+  String get settlementScanEmptySubtitle =>
+      '注文番号のみ、または ?p= パラメータを含むリンクに対応しています';
+
+  @override
+  String get settlementScanAction => '注文をスキャン';
+
+  @override
+  String get settlementInvalidCodeError => '注文QRコードを認識できません。内容を確認して再度お試しください';
+
+  @override
+  String get settlementMachineCodeMissingError =>
+      '端末コードがありません。端末を再アクティベーションしてください';
+
+  @override
+  String get settlementOrderFetchError =>
+      '注文を取得できませんでした。注文状態またはネットワークを確認してください';
+
+  @override
+  String get settlementOrderDetailsTitle => '注文詳細';
+
+  @override
+  String settlementOrderQuantity(int count) {
+    return '合計 $count 点';
+  }
+
+  @override
+  String get settlementOrderLinesEmpty => '注文商品がありません';
+
+  @override
+  String get settlementAmountSummaryTitle => '金額明細';
+
+  @override
+  String get settlementTableLabel => '席番号';
+
+  @override
+  String get settlementVoucherLabel => 'クーポン';
+
+  @override
+  String get settlementPayAction => '支払いへ';
+
+  @override
+  String get settlementPaymentContextMissingError => '店舗または端末情報がないため、支払いに進めません';
+
+  @override
+  String get settlementPaymentPrepareError => '支払い情報を準備できませんでした。再度お試しください';
+
+  @override
+  String get settlementOrderAmountChangedError =>
+      '注文金額が更新されました。再度スキャンして確認してください';
+
+  @override
   String get entryStartOrder => '注文を開始';
 
   @override
@@ -130,6 +214,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsRoleSelectionSubtitle => '端末の役割を選択すると再起動して対象画面に切り替わります';
+
+  @override
+  String get settingsOrderModeSupportTitle => '対応モード';
+
+  @override
+  String get settingsOrderModeSupportSubtitle =>
+      'ホーム画面に表示するモードを選択します。1つ以上選択してください';
 
   @override
   String get settingsRoleSelectionDescription =>
@@ -913,6 +1004,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get loginActivateTitle => '端末アクティベーション';
+
+  @override
+  String get loginScanDialogTitle => '端末アクティベーションコードをスキャン';
+
+  @override
+  String get loginScanCameraHint => 'アクティベーションQRコードを枠内に合わせてください';
+
+  @override
+  String get loginScanSubmit => 'このコードを使用';
 
   @override
   String get loginMachineCodeLabel => '機器コード (Machine Code)';
