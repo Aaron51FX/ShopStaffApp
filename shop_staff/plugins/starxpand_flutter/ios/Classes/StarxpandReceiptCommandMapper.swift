@@ -302,8 +302,14 @@ final class StarxpandReceiptCommandMapper {
   }
 
   private func pixelWidth(for paperWidthMm: Int) -> Int {
-    let dots = Int(round(Double(paperWidthMm) / 25.4 * 203.0))
-    return max(200, min(dots, 832))
+    switch paperWidthMm {
+    case 58:
+      return 320
+    case 80:
+      return 480
+    default:
+      return 480
+    }
   }
 
   private func mapAlignment(_ align: ReceiptPrintPlanNode.Align) -> StarXpandCommand.Printer.Alignment {

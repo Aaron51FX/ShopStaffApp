@@ -332,8 +332,11 @@ internal class StarxpandReceiptCommandMapper(
     }
 
     private fun pixelWidth(paperWidthMm: Int): Int {
-        val dots = (paperWidthMm / 25.4 * 203.0).roundToInt()
-        return dots.coerceIn(200, 832)
+        return when (paperWidthMm) {
+            58 -> 320
+            80 -> 480
+            else -> 480
+        }
     }
 
     private fun mapAlignment(align: ReceiptPrintPlanNode.Align): Alignment {
