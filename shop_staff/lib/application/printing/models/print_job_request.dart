@@ -11,6 +11,7 @@ class PrintJobRequest {
     this.printType,
     this.document,
     this.receiptOnly = false,
+    this.logoImageBase64,
   });
 
   final String machineCode;
@@ -20,6 +21,7 @@ class PrintJobRequest {
   final String? printType;
   final PrintInfoDocument? document;
   final bool receiptOnly;
+  final String? logoImageBase64;
 
   bool get hasDocument => document != null;
 }

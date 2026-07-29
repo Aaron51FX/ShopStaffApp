@@ -49,6 +49,7 @@ void main() {
         expect(coordinator.state.stage, CheckoutStage.printReady);
         expect(coordinator.state.printRequest?.orderId, 'order-1');
         expect(coordinator.state.printRequest?.printType, 'Label');
+        expect(coordinator.state.printRequest?.logoImageBase64, 'AQIDBA==');
       },
     );
 
@@ -179,7 +180,12 @@ CheckoutCoordinator _coordinator(
 
 CheckoutDraft _draft({bool isSettlement = false}) {
   return CheckoutDraft(
-    shop: ShopInfoModel(shopCode: 'shop-1', shopName: 'Shop', language: 'ja'),
+    shop: ShopInfoModel(
+      shopCode: 'shop-1',
+      shopName: 'Shop',
+      language: 'ja',
+      logoImageBase64: 'AQIDBA==',
+    ),
     machineCode: 'machine-1',
     language: 'ja',
     takeout: false,

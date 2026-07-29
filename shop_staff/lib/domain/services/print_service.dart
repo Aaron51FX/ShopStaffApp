@@ -16,12 +16,14 @@ abstract class PrintService {
     required List<PrinterSettings> printers,
     bool includeKitchenJobs = true,
     bool includeOrderTicket = true,
+    String? logoImageBase64,
   });
 
   /// Enqueue a local customer receipt from `document.printInfo.orderLines`.
   Future<List<PrintJobResult>> enqueueReceiptJobs({
     required PrintInfoDocument document,
     required List<PrinterSettings> printers,
+    String? logoImageBase64,
   });
 
   /// Enqueue external kitchen tickets by routing

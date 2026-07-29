@@ -13,6 +13,7 @@ void main() {
           'name': 'Tokyo Shop',
           'address': 'Tokyo\nChiyoda',
           'phone': '03-0000-0000',
+          'taxRegistrationNo': 'T1234567890123',
         },
         'transaction': <String, dynamic>{
           'receiptId': 'sale-9001',
@@ -62,6 +63,23 @@ void main() {
 
       expect(plan.kind, ReceiptDocumentKind.sale);
       expect(plan.nodes.first.type, ReceiptPrintPlanNodeType.image);
+      expect(
+        plan.nodes.any(
+          (node) =>
+              node.type == ReceiptPrintPlanNodeType.text &&
+              node.text == 'Tokyo Shop',
+        ),
+        isFalse,
+      );
+      for (final expected in <String>[
+        'Tokyo',
+        'Chiyoda',
+        '電話: 03-0000-0000',
+        '登録番号: T1234567890123',
+      ]) {
+        final node = plan.nodes.firstWhere((node) => node.text == expected);
+        expect(node.align, ReceiptPrintPlanAlign.left);
+      }
       expect(
         plan.nodes.any(
           (node) =>

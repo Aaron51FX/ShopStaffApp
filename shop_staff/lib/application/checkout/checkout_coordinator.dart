@@ -289,6 +289,7 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
       payAmount: order.total.toString(),
       printType: !receiptOnly && hasLabelPrinter ? 'Label' : '',
       receiptOnly: receiptOnly,
+      logoImageBase64: state.draft?.shop.logoImageBase64,
     );
   }
 }

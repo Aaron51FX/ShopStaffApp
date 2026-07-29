@@ -37,42 +37,42 @@ class ReceiptPrintPlanBuilder {
     final resolvedFooterNote =
         footerNote ?? _stringExtra(document.extras['footerNote']);
 
-    if (resolvedLogoAssetKey != null && resolvedLogoAssetKey.isNotEmpty) {
+    final hasLogoAsset =
+        resolvedLogoAssetKey != null && resolvedLogoAssetKey.isNotEmpty;
+    final hasLogoBase64 =
+        resolvedLogoBase64 != null && resolvedLogoBase64.isNotEmpty;
+    if (hasLogoAsset) {
       nodes.add(ReceiptPrintPlanNode.imageAsset(resolvedLogoAssetKey));
       nodes.add(ReceiptPrintPlanNode.spacer());
-    } else if (resolvedLogoBase64 != null && resolvedLogoBase64.isNotEmpty) {
+    } else if (hasLogoBase64) {
       nodes.add(ReceiptPrintPlanNode.imageBase64(resolvedLogoBase64));
       nodes.add(ReceiptPrintPlanNode.spacer());
     }
 
-    nodes.add(
-      ReceiptPrintPlanNode.text(
-        document.shop.name,
-        align: ReceiptPrintPlanAlign.center,
-        bold: true,
-        widthScale: 2,
-        heightScale: 2,
-      ),
-    );
+    if (!hasLogoAsset && !hasLogoBase64) {
+      nodes.add(
+        ReceiptPrintPlanNode.text(
+          document.shop.name,
+          align: ReceiptPrintPlanAlign.center,
+          bold: true,
+          widthScale: 2,
+          heightScale: 2,
+        ),
+      );
+    }
 
     for (final line in _multiline(document.shop.address)) {
-      nodes.add(
-        ReceiptPrintPlanNode.text(line, align: ReceiptPrintPlanAlign.center),
-      );
+      nodes.add(ReceiptPrintPlanNode.text(line));
     }
     if (_hasValue(document.shop.phone)) {
       nodes.add(
-        ReceiptPrintPlanNode.text(
-          '${labels.phone}: ${document.shop.phone}',
-          align: ReceiptPrintPlanAlign.center,
-        ),
+        ReceiptPrintPlanNode.text('${labels.phone}: ${document.shop.phone}'),
       );
     }
     if (_hasValue(document.shop.taxRegistrationNo)) {
       nodes.add(
         ReceiptPrintPlanNode.text(
           '${labels.taxRegistrationNo}: ${document.shop.taxRegistrationNo}',
-          align: ReceiptPrintPlanAlign.center,
         ),
       );
     }

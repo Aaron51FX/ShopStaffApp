@@ -1183,6 +1183,9 @@ mixin _$ShopInfoModel {
   String? get machineCode => throw _privateConstructorUsedError;
   List<LanguageModel> get languages => throw _privateConstructorUsedError;
   String get shopName => throw _privateConstructorUsedError;
+  String? get logoImage => throw _privateConstructorUsedError;
+  String? get logoImageCachePath => throw _privateConstructorUsedError;
+  String? get logoImageBase64 => throw _privateConstructorUsedError;
   String? get ntaNo => throw _privateConstructorUsedError;
   String? get stationMachineCode => throw _privateConstructorUsedError;
   String get language => throw _privateConstructorUsedError;
@@ -1223,6 +1226,9 @@ abstract class $ShopInfoModelCopyWith<$Res> {
     String? machineCode,
     List<LanguageModel> languages,
     String shopName,
+    String? logoImage,
+    String? logoImageCachePath,
+    String? logoImageBase64,
     String? ntaNo,
     String? stationMachineCode,
     String language,
@@ -1261,6 +1267,9 @@ class _$ShopInfoModelCopyWithImpl<$Res, $Val extends ShopInfoModel>
     Object? machineCode = freezed,
     Object? languages = null,
     Object? shopName = null,
+    Object? logoImage = freezed,
+    Object? logoImageCachePath = freezed,
+    Object? logoImageBase64 = freezed,
     Object? ntaNo = freezed,
     Object? stationMachineCode = freezed,
     Object? language = null,
@@ -1296,6 +1305,18 @@ class _$ShopInfoModelCopyWithImpl<$Res, $Val extends ShopInfoModel>
                 ? _value.shopName
                 : shopName // ignore: cast_nullable_to_non_nullable
                       as String,
+            logoImage: freezed == logoImage
+                ? _value.logoImage
+                : logoImage // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            logoImageCachePath: freezed == logoImageCachePath
+                ? _value.logoImageCachePath
+                : logoImageCachePath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            logoImageBase64: freezed == logoImageBase64
+                ? _value.logoImageBase64
+                : logoImageBase64 // ignore: cast_nullable_to_non_nullable
+                      as String?,
             ntaNo: freezed == ntaNo
                 ? _value.ntaNo
                 : ntaNo // ignore: cast_nullable_to_non_nullable
@@ -1380,6 +1401,9 @@ abstract class _$$ShopInfoModelImplCopyWith<$Res>
     String? machineCode,
     List<LanguageModel> languages,
     String shopName,
+    String? logoImage,
+    String? logoImageCachePath,
+    String? logoImageBase64,
     String? ntaNo,
     String? stationMachineCode,
     String language,
@@ -1417,6 +1441,9 @@ class __$$ShopInfoModelImplCopyWithImpl<$Res>
     Object? machineCode = freezed,
     Object? languages = null,
     Object? shopName = null,
+    Object? logoImage = freezed,
+    Object? logoImageCachePath = freezed,
+    Object? logoImageBase64 = freezed,
     Object? ntaNo = freezed,
     Object? stationMachineCode = freezed,
     Object? language = null,
@@ -1452,6 +1479,18 @@ class __$$ShopInfoModelImplCopyWithImpl<$Res>
             ? _value.shopName
             : shopName // ignore: cast_nullable_to_non_nullable
                   as String,
+        logoImage: freezed == logoImage
+            ? _value.logoImage
+            : logoImage // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        logoImageCachePath: freezed == logoImageCachePath
+            ? _value.logoImageCachePath
+            : logoImageCachePath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        logoImageBase64: freezed == logoImageBase64
+            ? _value.logoImageBase64
+            : logoImageBase64 // ignore: cast_nullable_to_non_nullable
+                  as String?,
         ntaNo: freezed == ntaNo
             ? _value.ntaNo
             : ntaNo // ignore: cast_nullable_to_non_nullable
@@ -1529,6 +1568,9 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
     this.machineCode,
     final List<LanguageModel> languages = const <LanguageModel>[],
     required this.shopName,
+    this.logoImage,
+    this.logoImageCachePath,
+    this.logoImageBase64,
     this.ntaNo,
     this.stationMachineCode,
     required this.language,
@@ -1567,6 +1609,12 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
 
   @override
   final String shopName;
+  @override
+  final String? logoImage;
+  @override
+  final String? logoImageCachePath;
+  @override
+  final String? logoImageBase64;
   @override
   final String? ntaNo;
   @override
@@ -1618,7 +1666,7 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
 
   @override
   String toString() {
-    return 'ShopInfoModel(shopCode: $shopCode, machineCode: $machineCode, languages: $languages, shopName: $shopName, ntaNo: $ntaNo, stationMachineCode: $stationMachineCode, language: $language, shopAddress: $shopAddress, shopTelephone: $shopTelephone, businessTime: $businessTime, seatNumber: $seatNumber, categoryVoList: $categoryVoList, onlineCall: $onlineCall, taxSystem: $taxSystem, dynamicCode: $dynamicCode, multiplayer: $multiplayer, actuarial: $actuarial, canToOrder: $canToOrder, uniqueOrderKey: $uniqueOrderKey, linePayChannelMap: $linePayChannelMap)';
+    return 'ShopInfoModel(shopCode: $shopCode, machineCode: $machineCode, languages: $languages, shopName: $shopName, logoImage: $logoImage, logoImageCachePath: $logoImageCachePath, logoImageBase64: $logoImageBase64, ntaNo: $ntaNo, stationMachineCode: $stationMachineCode, language: $language, shopAddress: $shopAddress, shopTelephone: $shopTelephone, businessTime: $businessTime, seatNumber: $seatNumber, categoryVoList: $categoryVoList, onlineCall: $onlineCall, taxSystem: $taxSystem, dynamicCode: $dynamicCode, multiplayer: $multiplayer, actuarial: $actuarial, canToOrder: $canToOrder, uniqueOrderKey: $uniqueOrderKey, linePayChannelMap: $linePayChannelMap)';
   }
 
   @override
@@ -1636,6 +1684,12 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
             ) &&
             (identical(other.shopName, shopName) ||
                 other.shopName == shopName) &&
+            (identical(other.logoImage, logoImage) ||
+                other.logoImage == logoImage) &&
+            (identical(other.logoImageCachePath, logoImageCachePath) ||
+                other.logoImageCachePath == logoImageCachePath) &&
+            (identical(other.logoImageBase64, logoImageBase64) ||
+                other.logoImageBase64 == logoImageBase64) &&
             (identical(other.ntaNo, ntaNo) || other.ntaNo == ntaNo) &&
             (identical(other.stationMachineCode, stationMachineCode) ||
                 other.stationMachineCode == stationMachineCode) &&
@@ -1681,6 +1735,9 @@ class _$ShopInfoModelImpl implements _ShopInfoModel {
     machineCode,
     const DeepCollectionEquality().hash(_languages),
     shopName,
+    logoImage,
+    logoImageCachePath,
+    logoImageBase64,
     ntaNo,
     stationMachineCode,
     language,
@@ -1719,6 +1776,9 @@ abstract class _ShopInfoModel implements ShopInfoModel {
     final String? machineCode,
     final List<LanguageModel> languages,
     required final String shopName,
+    final String? logoImage,
+    final String? logoImageCachePath,
+    final String? logoImageBase64,
     final String? ntaNo,
     final String? stationMachineCode,
     required final String language,
@@ -1748,6 +1808,12 @@ abstract class _ShopInfoModel implements ShopInfoModel {
   List<LanguageModel> get languages;
   @override
   String get shopName;
+  @override
+  String? get logoImage;
+  @override
+  String? get logoImageCachePath;
+  @override
+  String? get logoImageBase64;
   @override
   String? get ntaNo;
   @override

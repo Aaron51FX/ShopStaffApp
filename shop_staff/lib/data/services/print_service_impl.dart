@@ -27,6 +27,7 @@ class PrintServiceImpl implements PrintService {
     required List<PrinterSettings> printers,
     bool includeKitchenJobs = true,
     bool includeOrderTicket = true,
+    String? logoImageBase64,
   }) async {
     final results = <PrintJobResult>[];
     final info = document.printInfo;
@@ -39,6 +40,7 @@ class PrintServiceImpl implements PrintService {
       printers: printers,
       includeKitchenJobs: includeKitchenJobs,
       includeOrderTicket: includeOrderTicket,
+      hasLogoImage: logoImageBase64?.trim().isNotEmpty ?? false,
     );
 
     final isTakeOut = info.orderType != 'Shop_In';
@@ -50,6 +52,7 @@ class PrintServiceImpl implements PrintService {
           document,
           receiptPrinter,
           includeOrderTicket: includeOrderTicket,
+          logoImageBase64: logoImageBase64,
         );
         if (result != null) {
           results.add(result);
@@ -89,6 +92,7 @@ class PrintServiceImpl implements PrintService {
   Future<List<PrintJobResult>> enqueueReceiptJobs({
     required PrintInfoDocument document,
     required List<PrinterSettings> printers,
+    String? logoImageBase64,
   }) async {
     final results = <PrintJobResult>[];
     final info = document.printInfo;
@@ -103,6 +107,7 @@ class PrintServiceImpl implements PrintService {
       document,
       printer,
       includeOrderTicket: false,
+      logoImageBase64: logoImageBase64,
     );
     if (result != null) {
       results.add(result);
@@ -172,6 +177,7 @@ class PrintServiceImpl implements PrintService {
     PrintInfoDocument document,
     PrinterSettings printer, {
     bool includeOrderTicket = true,
+    String? logoImageBase64,
   }) async {
     final info = document.printInfo;
     if (info == null) return null;
@@ -181,6 +187,7 @@ class PrintServiceImpl implements PrintService {
         document,
         printer,
         includeOrderTicket: includeOrderTicket,
+        logoImageBase64: logoImageBase64,
       );
     }
 
@@ -242,6 +249,7 @@ class PrintServiceImpl implements PrintService {
     PrintInfoDocument document,
     PrinterSettings printer, {
     required bool includeOrderTicket,
+    String? logoImageBase64,
   }) async {
     final nativePrinter = _nativeReceiptPrinter;
     if (nativePrinter == null) {
@@ -252,7 +260,10 @@ class PrintServiceImpl implements PrintService {
     }
 
     try {
-      final receipt = SaleReceiptDocumentAdapter.fromPrintInfo(document);
+      final receipt = _withLogoImage(
+        SaleReceiptDocumentAdapter.fromPrintInfo(document),
+        logoImageBase64,
+      );
       if (includeOrderTicket) {
         _logPrintTask(
           jobKind: 'local_h_receipt_native',
@@ -445,6 +456,7 @@ class PrintServiceImpl implements PrintService {
     required List<PrinterSettings> printers,
     required bool includeKitchenJobs,
     required bool includeOrderTicket,
+    required bool hasLogoImage,
   }) {
     final info = document.printInfo;
     _debugPrintJson('PRINT_FLOW', <String, dynamic>{
@@ -453,6 +465,7 @@ class PrintServiceImpl implements PrintService {
       'serialNumber': document.serialNumber ?? '',
       'includeKitchenJobs': includeKitchenJobs,
       'includeOrderTicket': includeOrderTicket,
+      'hasLogoImage': hasLogoImage,
       'orderLinesCount': info?.orderLines.length ?? 0,
       'orderLinesMapCounts': <String, int>{
         for (final entry
@@ -570,6 +583,26 @@ ReceiptDocument _buildNativeOrderTicket(
     payment: receipt.payment,
     refund: receipt.refund,
     extras: <String, dynamic>{...receipt.extras, 'documentType': 'h_receipt'},
+  );
+}
+
+ReceiptDocument _withLogoImage(
+  ReceiptDocument receipt,
+  String? logoImageBase64,
+) {
+  final logo = logoImageBase64?.trim() ?? '';
+  if (logo.isEmpty) return receipt;
+  return ReceiptDocument(
+    kind: receipt.kind,
+    detailLevel: receipt.detailLevel,
+    shop: receipt.shop,
+    transaction: receipt.transaction,
+    originalTransaction: receipt.originalTransaction,
+    lines: receipt.lines,
+    totals: receipt.totals,
+    payment: receipt.payment,
+    refund: receipt.refund,
+    extras: <String, dynamic>{...receipt.extras, 'logoBase64': logo},
   );
 }
 

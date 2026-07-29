@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shop_staff/data/repositories_impl/activation_repository_impl.dart';
@@ -33,6 +34,7 @@ import 'services/app_role_service_impl.dart';
 import 'services/pos_card_payment_gateway.dart';
 import 'services/pos_payment_orchestrator.dart';
 import 'services/pos_payment_service_impl.dart';
+import 'services/shop_logo_cache_impl.dart';
 import 'services/print_service_impl.dart';
 import 'services/star_cash_machine_service.dart';
 import 'services/starxpand_cash_drawer_service.dart';
@@ -236,11 +238,32 @@ CashMachineService _buildCashMachineService(
 
 const _appVersion = '1.0.0';
 
+final shopLogoCacheProvider = Provider<ShopLogoCacheImpl>((ref) {
+  final logoDio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 8),
+      receiveTimeout: const Duration(seconds: 15),
+      responseType: ResponseType.bytes,
+    ),
+  );
+  return ShopLogoCacheImpl(
+    downloader: (imageUrl) async {
+      final response = await logoDio.get<List<int>>(
+        imageUrl,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response.data ?? const <int>[];
+    },
+    logger: Logger('ShopLogoCache'),
+  );
+});
+
 final startupServiceProvider = Provider<StartupService>((ref) {
   return StartupServiceImpl(
     store: ref.watch(keyValueStoreProvider),
     activationRepository: ref.watch(activationRepositoryProvider),
     appSettingsService: ref.watch(appSettingsServiceProvider),
+    shopLogoCache: ref.watch(shopLogoCacheProvider),
     appVersion: _appVersion,
     logger: Logger('StartupService'),
   );

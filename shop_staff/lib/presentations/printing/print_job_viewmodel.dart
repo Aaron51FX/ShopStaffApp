@@ -84,6 +84,7 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
         printers: activePrinters,
         includeKitchenJobs: !request.receiptOnly,
         includeOrderTicket: !request.receiptOnly,
+        logoImageBase64: request.logoImageBase64,
       );
       final updatedJobs = results
           .map(

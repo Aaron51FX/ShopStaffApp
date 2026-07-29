@@ -16,6 +16,19 @@ void main() {
       expect(shop.actuarial, isTrue);
     });
 
+    test('reads the receipt logo URL from activation data', () {
+      final shop = ShopInfoModel.fromActivationResponse(<String, dynamic>{
+        'data': <String, dynamic>{
+          'shopCode': 'shop-1',
+          'shopName': 'Shop',
+          'language': 'JP',
+          'logoImage': 'https://example.com/shop-logo.png',
+        },
+      });
+
+      expect(shop.logoImage, 'https://example.com/shop-logo.png');
+    });
+
     test('defaults actuarial capability to false when absent', () {
       final shop = ShopInfoModel.fromActivationResponse(<String, dynamic>{
         'shopCode': 'shop-1',

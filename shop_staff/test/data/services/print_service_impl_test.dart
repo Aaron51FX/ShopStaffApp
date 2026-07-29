@@ -205,6 +205,7 @@ void main() {
           ),
         ],
         includeKitchenJobs: false,
+        logoImageBase64: 'AQIDBA==',
       );
 
       expect(results, hasLength(1));
@@ -214,6 +215,10 @@ void main() {
         'h_receipt',
       );
       expect(nativePrinter.calls.last.printer.name, 'Star LAN');
+      expect(
+        nativePrinter.calls.last.document.extras['logoBase64'],
+        'AQIDBA==',
+      );
     });
 
     test('native settlement prints only the customer receipt', () async {

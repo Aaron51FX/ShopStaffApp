@@ -2,6 +2,7 @@ import 'package:logging/logging.dart';
 
 import '../../core/storage/key_value_store.dart';
 import '../../domain/services/app_settings_service.dart';
+import '../../domain/services/shop_logo_cache.dart';
 import '../../domain/services/startup_service.dart';
 import '../models/shop_info_models.dart';
 import '../../domain/repositories/activation_repository.dart';
@@ -11,17 +12,20 @@ class StartupServiceImpl implements StartupService {
     required KeyValueStore store,
     required ActivationRepository activationRepository,
     required AppSettingsService appSettingsService,
+    required ShopLogoCache shopLogoCache,
     required String appVersion,
     Logger? logger,
-  })  : _store = store,
-        _activationRepository = activationRepository,
-        _appSettingsService = appSettingsService,
-        _appVersion = appVersion,
-        _logger = logger ?? Logger('StartupService');
+  }) : _store = store,
+       _activationRepository = activationRepository,
+       _appSettingsService = appSettingsService,
+       _shopLogoCache = shopLogoCache,
+       _appVersion = appVersion,
+       _logger = logger ?? Logger('StartupService');
 
   final KeyValueStore _store;
   final ActivationRepository _activationRepository;
   final AppSettingsService _appSettingsService;
+  final ShopLogoCache _shopLogoCache;
   final String _appVersion;
   final Logger _logger;
 
@@ -38,11 +42,20 @@ class StartupServiceImpl implements StartupService {
       version: _appVersion,
     );
 
-    final normalizedShop = _normalizeShopInfo(shop, trimmed);
+    var normalizedShop = _normalizeShopInfo(shop, trimmed);
+    final cachedLogo = await _shopLogoCache.cache(normalizedShop.logoImage);
+    if (cachedLogo != null) {
+      normalizedShop = normalizedShop.copyWith(
+        logoImageCachePath: cachedLogo.path,
+        logoImageBase64: cachedLogo.base64,
+      );
+    }
     await _store.write(AppStorageKeys.activationCode, trimmed);
 
     final settings = await _appSettingsService.loadAll();
-    _logger.fine('Loaded settings: basic=${settings.basic.shopName ?? '-'}, printers=${settings.printers.length}');
+    _logger.fine(
+      'Loaded settings: basic=${settings.basic.shopName ?? '-'}, printers=${settings.printers.length}',
+    );
 
     return StartupResult(
       shopInfo: normalizedShop,
