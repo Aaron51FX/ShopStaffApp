@@ -179,6 +179,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsBusinessInfoSubtitle => 'これらの情報は顧客端とレシートに表示されます';
 
   @override
+  String get settingsCurrentStaffLabel => '現在のスタッフ';
+
+  @override
   String get settingsBusinessNameLabel => '店舗名';
 
   @override

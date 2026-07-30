@@ -31,4 +31,19 @@ class AuthTokenStore {
   Future<bool> hasToken() async => (await read()) != null;
 
   Future<void> clear() => _store.delete(AppStorageKeys.authToken);
+
+  Future<void> saveStaffEmail(String email) {
+    final normalized = email.trim();
+    if (normalized.isEmpty) {
+      throw ArgumentError('email must not be empty');
+    }
+    return _store.write(AppStorageKeys.staffEmail, normalized);
+  }
+
+  Future<String?> readStaffEmail() async {
+    final email = (await _store.read(AppStorageKeys.staffEmail))?.trim();
+    return email == null || email.isEmpty ? null : email;
+  }
+
+  Future<void> clearStaffEmail() => _store.delete(AppStorageKeys.staffEmail);
 }

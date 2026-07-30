@@ -12,6 +12,7 @@ class _BusinessInfoView extends ConsumerWidget {
     final shop = state.shopInfo;
     final vm = ref.read(settingsControllerProvider.notifier);
     final t = AppLocalizations.of(context);
+    final staffEmail = ref.watch(currentStaffEmailProvider);
     return _RefreshableScroll(
       onRefresh: onRefresh,
       children: [
@@ -27,18 +28,13 @@ class _BusinessInfoView extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         _NavigationRow(
-          icon: Icons.phone_iphone,
-          title: t.settingsBusinessPhoneLabel,
-          subtitle: _displayValue(
-            t,
-            basic.contactNumber ?? shop?.shopTelephone,
+          icon: Icons.person_outline_rounded,
+          title: t.settingsCurrentStaffLabel,
+          subtitle: staffEmail.when(
+            data: (email) => _displayValue(t, email),
+            loading: () => t.splashInitializing,
+            error: (_, _) => t.commonUnknownError,
           ),
-        ),
-        const SizedBox(height: 12),
-        _NavigationRow(
-          icon: Icons.place_rounded,
-          title: t.settingsBusinessAddressLabel,
-          subtitle: _displayValue(t, basic.address ?? shop?.shopAddress),
         ),
         const SizedBox(height: 12),
         _NavigationRow(

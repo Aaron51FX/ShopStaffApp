@@ -190,6 +190,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'These details appear on the customer display and receipts';
 
   @override
+  String get settingsCurrentStaffLabel => 'Current Staff';
+
+  @override
   String get settingsBusinessNameLabel => 'Store name';
 
   @override

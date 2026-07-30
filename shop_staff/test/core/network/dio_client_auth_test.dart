@@ -44,6 +44,7 @@ void main() {
     final storage = _MemoryKeyValueStore();
     final tokenStore = AuthTokenStore(storage);
     await storage.write(AppStorageKeys.activationCode, 'MACHINE-1');
+    await tokenStore.saveStaffEmail('staff@example.com');
     await tokenStore.save(
       const AuthToken(
         accessToken: 'expired-access',
@@ -72,6 +73,7 @@ void main() {
       'MACHINE-1',
       reason: 'automatic auth expiry must preserve machine activation',
     );
+    expect(await tokenStore.readStaffEmail(), 'staff@example.com');
     expect(authenticationRequiredCount, 1);
   });
 

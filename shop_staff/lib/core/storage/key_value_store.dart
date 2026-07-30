@@ -38,6 +38,7 @@ final keyValueStoreProvider = Provider<KeyValueStore>(
 // Common keys
 class AppStorageKeys {
   static const authToken = 'auth_token';
+  static const staffEmail = 'staff_email';
   static const activationCode = 'activation_code';
   static const settingsBasic = 'settings_basic';
   static const settingsPosTerminal = 'settings_pos_terminal';

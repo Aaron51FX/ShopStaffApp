@@ -77,6 +77,7 @@
   },
   "settingsBusinessInfoTitle": "店舗基本情報",
   "settingsBusinessInfoSubtitle": "これらの情報は顧客端とレシートに表示されます",
+  "settingsCurrentStaffLabel": "現在のスタッフ",
   "settingsBusinessNameLabel": "店舗名",
   "settingsBusinessCodeLabel": "店舗番号",
   "settingsBusinessPhoneLabel": "連絡先電話",

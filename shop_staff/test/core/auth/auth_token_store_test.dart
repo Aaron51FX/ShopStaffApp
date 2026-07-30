@@ -15,13 +15,23 @@ void main() {
     );
 
     await tokenStore.save(token);
+    await tokenStore.saveStaffEmail(' staff@example.com ');
 
     expect((await tokenStore.read())?.accessToken, 'access-1');
     expect((await tokenStore.read())?.refreshToken, 'refresh-1');
+    expect(await tokenStore.readStaffEmail(), 'staff@example.com');
     expect(await tokenStore.hasToken(), isTrue);
 
     await tokenStore.clear();
     expect(await tokenStore.read(), isNull);
+    expect(
+      await tokenStore.readStaffEmail(),
+      'staff@example.com',
+      reason: 'automatic token clearing must preserve the current staff email',
+    );
+
+    await tokenStore.clearStaffEmail();
+    expect(await tokenStore.readStaffEmail(), isNull);
   });
 
   test('treats corrupt token data as unauthenticated', () async {

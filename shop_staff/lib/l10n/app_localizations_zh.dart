@@ -175,6 +175,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsBusinessInfoSubtitle => '这些信息将展示在前台与票据上';
 
   @override
+  String get settingsCurrentStaffLabel => '当前店员';
+
+  @override
   String get settingsBusinessNameLabel => '店铺名称';
 
   @override

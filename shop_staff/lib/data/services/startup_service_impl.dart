@@ -77,8 +77,7 @@ class StartupServiceImpl implements StartupService {
   @override
   Future<void> clear() async {
     await _store.delete(AppStorageKeys.activationCode);
-    await _store.delete(AppStorageKeys.appRole);
-    await _appSettingsService.clearAll();
+    await _store.delete(AppStorageKeys.staffEmail);
   }
 
   ShopInfoModel _normalizeShopInfo(ShopInfoModel shop, String machineCode) {

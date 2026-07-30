@@ -5,6 +5,10 @@ import 'package:shop_staff/domain/settings/app_settings_models.dart';
 import 'package:shop_staff/presentations/settings/controllers/settings_controller.dart';
 import 'package:shop_staff/presentations/settings/state/settings_state.dart';
 
+final currentStaffEmailProvider = FutureProvider.autoDispose<String?>((ref) {
+  return ref.watch(authTokenStoreProvider).readStaffEmail();
+});
+
 final settingsControllerProvider =
     StateNotifierProvider<SettingsController, SettingsState>((ref) {
       final service = ref.read(appSettingsServiceProvider);

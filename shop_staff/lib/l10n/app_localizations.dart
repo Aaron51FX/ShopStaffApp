@@ -412,6 +412,12 @@ abstract class AppLocalizations {
   /// **'These details appear on the customer display and receipts'**
   String get settingsBusinessInfoSubtitle;
 
+  /// No description provided for @settingsCurrentStaffLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Staff'**
+  String get settingsCurrentStaffLabel;
+
   /// No description provided for @settingsBusinessNameLabel.
   ///
   /// In en, this message translates to:

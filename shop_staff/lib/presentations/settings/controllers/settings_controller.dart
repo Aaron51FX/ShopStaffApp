@@ -7,7 +7,6 @@ import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/data/providers.dart';
 import 'package:shop_staff/domain/settings/app_settings_models.dart';
 import 'package:shop_staff/domain/services/app_settings_service.dart';
-import 'package:shop_staff/presentations/pos/order/providers/pos_order_providers.dart';
 import 'package:shop_staff/presentations/settings/state/settings_state.dart';
 
 class SettingsController extends StateNotifier<SettingsState> {
@@ -115,8 +114,6 @@ class SettingsController extends StateNotifier<SettingsState> {
         } finally {
           authenticationChangeNotifier.notifyAuthenticationChanged();
           _ref.read(shopInfoProvider.notifier).state = null;
-          _ref.read(appSettingsSnapshotProvider.notifier).state = null;
-          _ref.read(orderModeSelectionProvider.notifier).state = 'dine_in';
           final router = _ref.read(appRouterProvider);
           router.go('/login');
         }

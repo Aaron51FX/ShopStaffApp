@@ -77,6 +77,7 @@
   },
   "settingsBusinessInfoTitle": "店铺基本信息",
   "settingsBusinessInfoSubtitle": "这些信息将展示在前台与票据上",
+  "settingsCurrentStaffLabel": "当前店员",
   "settingsBusinessNameLabel": "店铺名称",
   "settingsBusinessCodeLabel": "店铺编号",
   "settingsBusinessPhoneLabel": "联系电话",

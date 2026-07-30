@@ -62,7 +62,10 @@ class AuthRepositoryImpl implements AuthRepository {
     if (!token.isUsable) {
       throw StateError('AUTH_ACCESS_TOKEN_MISSING');
     }
-    await _tokenStore.save(token);
+    await Future.wait<void>([
+      _tokenStore.save(token),
+      _tokenStore.saveStaffEmail(email),
+    ]);
     authenticationChangeNotifier.notifyAuthenticationChanged();
   }
 }

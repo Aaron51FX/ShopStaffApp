@@ -77,6 +77,7 @@
   },
   "settingsBusinessInfoTitle": "Store profile",
   "settingsBusinessInfoSubtitle": "These details appear on the customer display and receipts",
+  "settingsCurrentStaffLabel": "Current Staff",
   "settingsBusinessNameLabel": "Store name",
   "settingsBusinessCodeLabel": "Store code",
   "settingsBusinessPhoneLabel": "Contact phone",
