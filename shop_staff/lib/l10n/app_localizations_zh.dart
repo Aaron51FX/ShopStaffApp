@@ -1006,6 +1006,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentChannelLabel => '选择方式';
 
   @override
+  String get emailLoginTitle => '员工登录';
+
+  @override
+  String get emailLoginDescription => '请输入邮箱，并使用收到的验证码登录。';
+
+  @override
+  String get emailLoginEmailLabel => '邮箱';
+
+  @override
+  String get emailLoginVerificationCodeLabel => '验证码';
+
+  @override
+  String get emailLoginSendCode => '获取验证码';
+
+  @override
+  String emailLoginResendCountdown(int seconds) {
+    return '$seconds秒后重新发送';
+  }
+
+  @override
+  String get emailLoginButton => '登录';
+
+  @override
+  String emailLoginFailedMessage(Object detail) {
+    return '登录失败: $detail';
+  }
+
+  @override
   String get loginActivateTitle => '设备激活';
 
   @override

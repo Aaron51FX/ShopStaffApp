@@ -2056,6 +2056,54 @@ abstract class AppLocalizations {
   /// **'Payment method'**
   String get paymentChannelLabel;
 
+  /// No description provided for @emailLoginTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Staff login'**
+  String get emailLoginTitle;
+
+  /// No description provided for @emailLoginDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address and sign in with the verification code.'**
+  String get emailLoginDescription;
+
+  /// No description provided for @emailLoginEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get emailLoginEmailLabel;
+
+  /// No description provided for @emailLoginVerificationCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verification code'**
+  String get emailLoginVerificationCodeLabel;
+
+  /// No description provided for @emailLoginSendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get emailLoginSendCode;
+
+  /// No description provided for @emailLoginResendCountdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend in {seconds}s'**
+  String emailLoginResendCountdown(int seconds);
+
+  /// No description provided for @emailLoginButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in'**
+  String get emailLoginButton;
+
+  /// No description provided for @emailLoginFailedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Login failed: {detail}'**
+  String emailLoginFailedMessage(Object detail);
+
   /// No description provided for @loginActivateTitle.
   ///
   /// In en, this message translates to:

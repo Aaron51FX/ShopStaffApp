@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/entities/product.dart';
@@ -99,6 +100,11 @@ class _FakeBookkeepingOrderRepository implements BookkeepingOrderRepository {
 
   @override
   Future<void> recordOrder(BookkeepingOrderRecordInput input) async {}
+
+  @override
+  Future<PrintInfoDocument> updateOrderState(
+    OrderStateUpdateInput input,
+  ) async => throw UnimplementedError();
 }
 
 class _SubmitCall {

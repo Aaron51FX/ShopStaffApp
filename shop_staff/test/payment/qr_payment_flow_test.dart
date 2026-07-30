@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/data/services/payment_backend_gateway.dart';
 import 'package:shop_staff/data/services/payment_channel_support.dart';
 import 'package:shop_staff/data/services/payment_flows/qr_payment_flow.dart';
@@ -175,10 +176,10 @@ class _FakeScannerService implements QrScannerService {
 
 class _FakePaymentBackendGateway implements PaymentBackendGateway {
   @override
-  Future<void> confirmPayment(
+  Future<PrintInfoDocument?> confirmPayment(
     PaymentContext context,
     Map<String, dynamic> payload,
-  ) async {}
+  ) async => null;
 }
 
 class _FakePosPaymentService implements PosPaymentService {

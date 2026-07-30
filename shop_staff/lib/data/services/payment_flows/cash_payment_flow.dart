@@ -296,7 +296,7 @@ class CashPaymentFlow implements PaymentFlow {
         final receipt = await _cashMachine.completePayment();
         if (isFinished) return;
         final payload = receipt.toJson();
-        await _backendGateway.confirmPayment(context, {
+        final printDocument = await _backendGateway.confirmPayment(context, {
           'method': PaymentChannels.cash,
           'receipt': payload,
         });
@@ -311,7 +311,10 @@ class CashPaymentFlow implements PaymentFlow {
         await finish(
           PaymentResult.success(
             messageKey: PaymentMessageKeys.cashSuccess,
-            payload: {'receipt': payload},
+            payload: {
+              'receipt': payload,
+              if (printDocument != null) 'printDocument': printDocument,
+            },
           ),
         );
       } catch (e, stack) {

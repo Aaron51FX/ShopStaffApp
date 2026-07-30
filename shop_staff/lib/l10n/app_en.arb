@@ -371,6 +371,26 @@
   "cashAmountExpectedPrefix": "Order total: ",
   "paymentOrderIdLabel": "Order ID",
   "paymentChannelLabel": "Payment method",
+  "emailLoginTitle": "Staff login",
+  "emailLoginDescription": "Enter your email address and sign in with the verification code.",
+  "emailLoginEmailLabel": "Email address",
+  "emailLoginVerificationCodeLabel": "Verification code",
+  "emailLoginSendCode": "Send code",
+  "emailLoginResendCountdown": "Resend in {seconds}s",
+  "@emailLoginResendCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "emailLoginButton": "Log in",
+  "emailLoginFailedMessage": "Login failed: {detail}",
+  "@emailLoginFailedMessage": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
   "loginActivateTitle": "Device activation",
   "loginScanDialogTitle": "Scan Device Activation Code",
   "loginScanCameraHint": "Align the activation QR code in the frame",

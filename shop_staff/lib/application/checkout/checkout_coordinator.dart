@@ -9,6 +9,7 @@ import 'package:shop_staff/application/checkout/usecases/build_checkout_payment_
 import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
 import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
 import 'package:shop_staff/application/printing/models/print_job_request.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
@@ -43,6 +44,28 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
 
   void begin(CheckoutDraft draft) {
     state = CheckoutState(stage: CheckoutStage.selectingPayment, draft: draft);
+  }
+
+  Future<OrderSubmissionResult> beginNewOrder(CheckoutDraft draft) async {
+    state = CheckoutState(stage: CheckoutStage.submittingOrder, draft: draft);
+    try {
+      _logger.info(
+        '[CHECKOUT_FLOW] submit offline order before payment selection',
+      );
+      final order = await _ensureOrderSubmitted(draft);
+      _logger.info(
+        '[CHECKOUT_FLOW] offline order submitted orderId=${order.orderId}',
+      );
+      return order;
+    } catch (error, stack) {
+      _logger.warning(
+        'Submit checkout order before navigation failed',
+        error,
+        stack,
+      );
+      state = CheckoutState(error: error.toString());
+      rethrow;
+    }
   }
 
   Future<void> beginExistingOrder({
@@ -96,10 +119,15 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
     );
 
     try {
-      final order = await _ensureOrderSubmitted(draft, paymentMode);
+      final order = await _ensureOrderSubmitted(draft);
       await _localOrders.updatePaymentMode(order.orderId, paymentMode);
       await _localOrders.updatePayMethod(order.orderId, code);
 
+      final requiresOrderStateUpdate =
+          paymentMode == PaymentFlowMode.bookkeeping ||
+          (paymentMode == PaymentFlowMode.real &&
+              group == PaymentChannels.cash &&
+              basic.cashMachine.brand == CashMachineBrand.star);
       final request = _buildPaymentRequest.execute(
         order: order,
         shop: draft.shop,
@@ -113,6 +141,8 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
         takeout: draft.takeout,
         basic: basic,
         posInfo: settings?.posTerminal,
+        discount: draft.discount,
+        requiresOrderStateUpdate: requiresOrderStateUpdate,
       );
       state = state.copyWith(
         stage: CheckoutStage.paymentReady,
@@ -174,7 +204,7 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
         state = state.copyWith(
           stage: CheckoutStage.printReady,
           paymentResult: result,
-          printRequest: _buildPrintRequest(order),
+          printRequest: _buildPrintRequest(order, result),
           warning: warning,
           error: null,
         );
@@ -224,7 +254,6 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
 
   Future<OrderSubmissionResult> _ensureOrderSubmitted(
     CheckoutDraft draft,
-    PaymentFlowMode paymentMode,
   ) async {
     final existing = state.order;
     if (existing != null) return existing;
@@ -248,7 +277,6 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
           orderId: output.order.orderId,
           createdAt: DateTime.now(),
           isPaid: false,
-          paymentMode: paymentMode,
           items: draft.items,
           machineCode: draft.machineCode,
           language: draft.language,
@@ -272,7 +300,10 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
     return output.order;
   }
 
-  PrintJobRequest _buildPrintRequest(OrderSubmissionResult order) {
+  PrintJobRequest _buildPrintRequest(
+    OrderSubmissionResult order,
+    PaymentResult result,
+  ) {
     final settings = _readSettings();
     final printers = settings?.printers ?? const <PrinterSettings>[];
     final receiptOnly = state.draft?.isSettlement ?? false;
@@ -288,6 +319,7 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
       orderId: order.orderId,
       payAmount: order.total.toString(),
       printType: !receiptOnly && hasLabelPrinter ? 'Label' : '',
+      document: result.payload?['printDocument'] as PrintInfoDocument?,
       receiptOnly: receiptOnly,
       logoImageBase64: state.draft?.shop.logoImageBase64,
       paymentMethodOverride: _bookkeepingPaymentMethodLabel(),

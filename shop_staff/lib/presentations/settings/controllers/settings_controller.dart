@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/core/auth/authentication_change_notifier.dart';
 import 'package:shop_staff/core/dialog/dialog_service.dart';
 import 'package:shop_staff/core/router/app_router.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
@@ -106,12 +107,19 @@ class SettingsController extends StateNotifier<SettingsState> {
         .confirm(title: title, message: message, destructive: true);
     if (ok) {
       try {
-        await _ref.read(startupServiceProvider).clear();
-        _ref.read(shopInfoProvider.notifier).state = null;
-        _ref.read(appSettingsSnapshotProvider.notifier).state = null;
-        _ref.read(orderModeSelectionProvider.notifier).state = 'dine_in';
-        final router = _ref.read(appRouterProvider);
-        router.go('/login');
+        try {
+          await Future.wait<void>([
+            _ref.read(startupServiceProvider).clear(),
+            _ref.read(authTokenStoreProvider).clear(),
+          ]);
+        } finally {
+          authenticationChangeNotifier.notifyAuthenticationChanged();
+          _ref.read(shopInfoProvider.notifier).state = null;
+          _ref.read(appSettingsSnapshotProvider.notifier).state = null;
+          _ref.read(orderModeSelectionProvider.notifier).state = 'dine_in';
+          final router = _ref.read(appRouterProvider);
+          router.go('/login');
+        }
       } catch (e) {
         debugPrint('Logout failed: $e');
       }

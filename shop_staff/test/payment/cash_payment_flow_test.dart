@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/data/services/payment_backend_gateway.dart';
 import 'package:shop_staff/data/services/payment_flows/cash_payment_flow.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
@@ -69,6 +70,10 @@ void main() {
       expect(machine.completeCount, 1);
       expect(backend.confirmedPayloads, hasLength(1));
       expect(backend.confirmedPayloads.single['method'], PaymentChannels.cash);
+      expect(
+        result.payload?['printDocument'],
+        const PrintInfoDocument(orderId: 123),
+      );
     });
 
     test(
@@ -97,6 +102,7 @@ void main() {
 
         final firstFinalize = run.finalize!();
         await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(backend.confirmedPayloads, isEmpty);
 
         expect(
           () => run.finalize!(),
@@ -115,6 +121,7 @@ void main() {
         await firstFinalize;
         final result = await run.result;
         expect(result.status, PaymentStatusType.success);
+        expect(backend.confirmedPayloads, hasLength(1));
       },
     );
 
@@ -279,10 +286,11 @@ class _FakePaymentBackendGateway implements PaymentBackendGateway {
   final List<Map<String, dynamic>> confirmedPayloads = <Map<String, dynamic>>[];
 
   @override
-  Future<void> confirmPayment(
+  Future<PrintInfoDocument?> confirmPayment(
     PaymentContext context,
     Map<String, dynamic> payload,
   ) async {
     confirmedPayloads.add(Map<String, dynamic>.from(payload));
+    return const PrintInfoDocument(orderId: 123);
   }
 }

@@ -428,6 +428,7 @@ String _localeFromShopStaffLanguage(String raw) {
     case 'JP':
     case 'JA':
       return 'ja-JP';
+    case 'CH':
     case 'ZH':
     case 'CN':
       return 'zh-CN';

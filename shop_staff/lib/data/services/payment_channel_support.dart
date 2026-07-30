@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 
 import 'payment_backend_gateway.dart';
@@ -34,15 +35,19 @@ class QrScanUiState {
 
   @override
   bool operator ==(Object other) {
-    return other is QrScanUiState && other.status == status && other.message == message;
+    return other is QrScanUiState &&
+        other.status == status &&
+        other.message == message;
   }
 
   @override
   int get hashCode => Object.hash(status, message);
 }
 
-class DialogDrivenQrScannerService extends ChangeNotifier implements QrScannerService {
-  DialogDrivenQrScannerService({Logger? logger}) : _logger = logger ?? Logger('DialogDrivenQrScannerService');
+class DialogDrivenQrScannerService extends ChangeNotifier
+    implements QrScannerService {
+  DialogDrivenQrScannerService({Logger? logger})
+    : _logger = logger ?? Logger('DialogDrivenQrScannerService');
 
   final Logger _logger;
   Completer<String>? _pending;
@@ -143,14 +148,21 @@ class DialogDrivenQrScannerService extends ChangeNotifier implements QrScannerSe
 
 /// Default stubbed implementations used until real integrations are provided.
 class StubPaymentBackendGateway implements PaymentBackendGateway {
-  StubPaymentBackendGateway({Logger? logger}) : _logger = logger ?? Logger('StubPaymentBackendGateway');
+  StubPaymentBackendGateway({Logger? logger})
+    : _logger = logger ?? Logger('StubPaymentBackendGateway');
 
   final Logger _logger;
 
   @override
-  Future<void> confirmPayment(PaymentContext context, Map<String, dynamic> payload) async {
-    _logger.info('Reporting payment for order ${context.order.orderId}: $payload');
+  Future<PrintInfoDocument?> confirmPayment(
+    PaymentContext context,
+    Map<String, dynamic> payload,
+  ) async {
+    _logger.info(
+      'Reporting payment for order ${context.order.orderId}: $payload',
+    );
     await Future<void>.delayed(const Duration(milliseconds: 300));
+    return null;
   }
 }
 

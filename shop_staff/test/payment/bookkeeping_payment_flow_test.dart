@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/data/services/payment_backend_gateway.dart';
 import 'package:shop_staff/data/services/payment_flows/bookkeeping_payment_flow.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
@@ -58,6 +59,10 @@ void main() {
       expect(result.status, PaymentStatusType.success);
       expect(backend.confirmedPayloads, hasLength(1));
       expect(backend.confirmedPayloads.single['channelCode'], 'PayPay');
+      expect(
+        result.payload?['printDocument'],
+        const PrintInfoDocument(orderId: 123),
+      );
     },
   );
 }
@@ -66,10 +71,11 @@ class _FakePaymentBackendGateway implements PaymentBackendGateway {
   final List<Map<String, dynamic>> confirmedPayloads = <Map<String, dynamic>>[];
 
   @override
-  Future<void> confirmPayment(
+  Future<PrintInfoDocument?> confirmPayment(
     PaymentContext context,
     Map<String, dynamic> payload,
   ) async {
     confirmedPayloads.add(payload);
+    return const PrintInfoDocument(orderId: 123);
   }
 }

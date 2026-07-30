@@ -1,4 +1,6 @@
 import 'package:shop_staff/data/datasources/remote/pos_remote_datasource.dart';
+import 'package:shop_staff/core/localization/shop_language_code.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
@@ -19,7 +21,7 @@ class BookkeepingOrderRepositoryImpl implements BookkeepingOrderRepository {
     String? shopCode,
   }) async {
     final payload = <String, dynamic>{
-      'language': language,
+      'language': normalizeShopLanguageCode(language),
       'machineCode': machineCode,
       'orderLineList': _buildOrderLineList(items),
       'total': total.round(),
@@ -51,6 +53,29 @@ class BookkeepingOrderRepositoryImpl implements BookkeepingOrderRepository {
     };
 
     await _remote.recordStaffOrderV1(payload);
+  }
+
+  @override
+  Future<PrintInfoDocument> updateOrderState(
+    OrderStateUpdateInput input,
+  ) async {
+    final payload = <String, dynamic>{
+      'payPrice': input.payPrice,
+      'payChannel': input.payChannel,
+      'orderId': int.tryParse(input.orderId) ?? input.orderId,
+      'discount': input.discount,
+      'finalTotal': input.finalTotal,
+      'machineCode': input.machineCode,
+    };
+    final response = await _remote.updateStaffOrderStateV1(payload);
+    if (response is! Map) {
+      throw StateError('ORDER_STATE_UPDATE_RESPONSE_INVALID');
+    }
+    final data = response['data'];
+    if (data is! Map) {
+      throw StateError('ORDER_STATE_UPDATE_DATA_MISSING');
+    }
+    return PrintInfoDocument.fromJson(Map<String, dynamic>.from(data));
   }
 
   List<Map<String, dynamic>> _buildOrderLineList(List<CartItem> items) {

@@ -13,6 +13,7 @@ import 'package:shop_staff/application/payments/payment_flow_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
 import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
 import 'package:shop_staff/data/datasources/local/local_order_local_data_source.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
@@ -174,6 +175,11 @@ class _UnusedOrderRepository implements BookkeepingOrderRepository {
 
   @override
   Future<void> recordOrder(BookkeepingOrderRecordInput input) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<PrintInfoDocument> updateOrderState(OrderStateUpdateInput input) {
     throw UnimplementedError();
   }
 }

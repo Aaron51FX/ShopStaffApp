@@ -8,7 +8,7 @@ import 'package:shop_staff/presentations/pos/order/state/pos_order_state.dart';
 import 'package:shop_staff/presentations/pos/viewmodels/pos_effect.dart';
 
 class PosController {
-  const PosController({
+  PosController({
     required PosOrderState Function() readOrder,
     required PosOrderController Function() readOrderController,
     required ShopInfoModel? Function() readShop,
@@ -31,6 +31,7 @@ class PosController {
   final String Function() _readLanguage;
   final CheckoutCoordinator Function() _readCheckout;
   final void Function(PosEffect) _emitEffect;
+  bool _checkoutInProgress = false;
 
   void requestClearCart() {
     if (_readOrder().cart.isNotEmpty) {
@@ -48,7 +49,8 @@ class PosController {
 
   Future<void> confirmSuspendOrder() => _readOrderController().suspend();
 
-  void checkout() {
+  Future<void> checkout() async {
+    if (_checkoutInProgress) return;
     final order = _readOrder();
     if (order.cart.isEmpty) return;
     final shop = _readShop();
@@ -73,10 +75,22 @@ class PosController {
       subtotal: order.subtotal,
       discount: order.discount,
     );
-    _readCheckout().begin(draft);
-    _emitEffect(
-      PosNavigateEffect(location: '/payment-selection', extra: draft),
-    );
+    _checkoutInProgress = true;
+    try {
+      await _readCheckout().beginNewOrder(draft);
+      _emitEffect(
+        PosNavigateEffect(location: '/payment-selection', extra: draft),
+      );
+    } catch (_) {
+      _emitEffect(
+        const PosToastEffect(
+          messageKey: PosToastKey.orderSubmitFailed,
+          isError: true,
+        ),
+      );
+    } finally {
+      _checkoutInProgress = false;
+    }
   }
 
   Map<String, Map<String, int>> buildInitialOptionSelection(

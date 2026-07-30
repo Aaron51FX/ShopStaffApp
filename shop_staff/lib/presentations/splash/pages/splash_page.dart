@@ -28,19 +28,21 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     if (_inFlight) return;
     setState(() => _inFlight = true);
     try {
-      final t = AppLocalizations.of(context);
       final login = ref.read(loginFlowUseCaseProvider);
       final result = await login.resume();
       if (!mounted) return;
       if (result == null) {
-        context.go('/login');
+        context.go('/activate');
         return;
       }
       ref.read(shopInfoProvider.notifier).state = result.startup.shopInfo;
-      ref.read(appSettingsSnapshotProvider.notifier).state = result.startup.settings;
+      ref.read(appSettingsSnapshotProvider.notifier).state =
+          result.startup.settings;
       ref.read(appRoleProvider.notifier).state = result.role;
       _error = null;
-      debugPrint('[Splash] resume success, navigating to role=${result.role.name}');
+      debugPrint(
+        '[Splash] resume success, navigating to role=${result.role.name}',
+      );
       context.go(result.role == AppRole.customer ? '/customer' : '/entry');
     } catch (e) {
       final t = AppLocalizations.of(context);
@@ -118,7 +120,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
                     child: Text(t.splashRetry),
                   ),
                   OutlinedButton(
-                    onPressed: () => context.go('/login'),
+                    onPressed: () => context.go('/activate'),
                     child: Text(t.splashReactivate),
                   ),
                 ],

@@ -46,7 +46,7 @@ String? localeToSettingsCode(Locale? locale) {
 String? localeToShopLanguageOverride(Locale? locale) {
   switch (locale?.languageCode.toLowerCase()) {
     case 'zh':
-      return 'CN';
+      return 'CH';
     case 'ja':
       return 'JP';
     case 'en':

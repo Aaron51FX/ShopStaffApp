@@ -8,6 +8,7 @@ import 'package:shop_staff/application/checkout/usecases/build_checkout_payment_
 import 'package:shop_staff/application/pos/usecases/local_orders_usecases.dart';
 import 'package:shop_staff/application/pos/usecases/submit_order_usecase.dart';
 import 'package:shop_staff/data/datasources/local/local_order_local_data_source.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/local_order_record.dart';
@@ -26,7 +27,9 @@ void main() {
         final localOrders = LocalOrdersUseCases(local: local);
         final coordinator = _coordinator(repository, localOrders);
 
-        coordinator.begin(_draft());
+        await coordinator.beginNewOrder(_draft());
+        expect(repository.submitCalls, 1);
+        expect(coordinator.state.stage, CheckoutStage.selectingPayment);
         final request = await coordinator.preparePayment(
           group: PaymentChannels.cash,
           code: 'cash',
@@ -40,8 +43,15 @@ void main() {
         expect(local.record?.payMethod, 'cash');
 
         coordinator.paymentStarted(request);
+        const printDocument = PrintInfoDocument(
+          orderId: 123,
+          shopName: 'Test Shop',
+        );
         final updated = await coordinator.paymentCompleted(
-          PaymentResult.success(messageKey: PaymentMessageKeys.cashSuccess),
+          PaymentResult.success(
+            messageKey: PaymentMessageKeys.cashSuccess,
+            payload: const <String, dynamic>{'printDocument': printDocument},
+          ),
         );
 
         expect(updated, isTrue);
@@ -50,6 +60,7 @@ void main() {
         expect(coordinator.state.printRequest?.orderId, 'order-1');
         expect(coordinator.state.printRequest?.printType, 'Label');
         expect(coordinator.state.printRequest?.logoImageBase64, 'AQIDBA==');
+        expect(coordinator.state.printRequest?.document, printDocument);
       },
     );
 
@@ -60,7 +71,7 @@ void main() {
         final localOrders = LocalOrdersUseCases(local: _MemoryLocalOrders());
         final coordinator = _coordinator(repository, localOrders);
 
-        coordinator.begin(_draft());
+        await coordinator.beginNewOrder(_draft());
         await coordinator.preparePayment(
           group: PaymentChannels.cash,
           code: 'cash',
@@ -136,7 +147,7 @@ void main() {
         final localOrders = LocalOrdersUseCases(local: _MemoryLocalOrders());
         final coordinator = _coordinator(repository, localOrders);
 
-        coordinator.begin(_draft());
+        await coordinator.beginNewOrder(_draft());
         final request = await coordinator.preparePayment(
           group: scenario.$1,
           code: scenario.$1,
@@ -154,12 +165,130 @@ void main() {
       }
     });
 
+    test(
+      'bookkeeping payment defers order state update to payment flow',
+      () async {
+        final repository = _FakeBookkeepingOrderRepository();
+        final coordinator = _coordinator(
+          repository,
+          LocalOrdersUseCases(local: _MemoryLocalOrders()),
+        );
+
+        await coordinator.beginNewOrder(_draft());
+        final request = await coordinator.preparePayment(
+          group: PaymentChannels.qr,
+          code: 'qr',
+          label: 'QR',
+        );
+
+        expect(repository.recordCalls, isEmpty);
+        expect(request.metadata?['requiresOrderStateUpdate'], isTrue);
+
+        final secondRequest = await coordinator.preparePayment(
+          group: PaymentChannels.card,
+          code: 'card',
+          label: 'Card',
+        );
+        expect(repository.recordCalls, isEmpty);
+        expect(secondRequest.metadata?['requiresOrderStateUpdate'], isTrue);
+      },
+    );
+
+    test(
+      'real Star cash defers order state update until cash finalization',
+      () async {
+        final repository = _FakeBookkeepingOrderRepository();
+        final coordinator = _coordinator(
+          repository,
+          LocalOrdersUseCases(local: _MemoryLocalOrders()),
+          settings: const AppSettingsSnapshot(
+            basic: BasicSettings(
+              cashMachine: CashMachineSettings(
+                enabled: true,
+                brand: CashMachineBrand.star,
+              ),
+              paymentModes: PaymentModeSettings(cash: PaymentFlowMode.real),
+            ),
+          ),
+        );
+
+        await coordinator.beginNewOrder(_draft());
+        final request = await coordinator.preparePayment(
+          group: PaymentChannels.cash,
+          code: 'cash',
+          label: 'Cash',
+        );
+
+        expect(repository.recordCalls, isEmpty);
+        expect(request.metadata?['requiresOrderStateUpdate'], isTrue);
+      },
+    );
+
+    test('real Glory cash keeps current flow without staff order', () async {
+      final repository = _FakeBookkeepingOrderRepository();
+      final coordinator = _coordinator(
+        repository,
+        LocalOrdersUseCases(local: _MemoryLocalOrders()),
+        settings: const AppSettingsSnapshot(
+          basic: BasicSettings(
+            cashMachine: CashMachineSettings(
+              enabled: true,
+              brand: CashMachineBrand.glory,
+            ),
+            paymentModes: PaymentModeSettings(cash: PaymentFlowMode.real),
+          ),
+        ),
+      );
+
+      await coordinator.beginNewOrder(_draft());
+      final request = await coordinator.preparePayment(
+        group: PaymentChannels.cash,
+        code: 'cash',
+        label: 'Cash',
+      );
+
+      expect(repository.recordCalls, isEmpty);
+      expect(request.metadata?['requiresOrderStateUpdate'], isNull);
+    });
+
+    test('real card and QR keep current flow without staff order', () async {
+      for (final group in <String>[PaymentChannels.card, PaymentChannels.qr]) {
+        final repository = _FakeBookkeepingOrderRepository();
+        final coordinator = _coordinator(
+          repository,
+          LocalOrdersUseCases(local: _MemoryLocalOrders()),
+          settings: const AppSettingsSnapshot(
+            basic: BasicSettings(
+              paymentModes: PaymentModeSettings(
+                card: PaymentFlowMode.real,
+                qr: PaymentFlowMode.real,
+              ),
+            ),
+            posTerminal: PosTerminalSettings(
+              posIp: '192.0.2.10',
+              posPort: 1234,
+            ),
+          ),
+        );
+
+        await coordinator.beginNewOrder(_draft());
+        final request = await coordinator.preparePayment(
+          group: group,
+          code: group,
+          label: group,
+        );
+
+        expect(repository.recordCalls, isEmpty);
+        expect(request.metadata?['requiresOrderStateUpdate'], isNull);
+      }
+    });
+
     test('does not create print work for failed or unknown payments', () async {
       final repository = _FakeBookkeepingOrderRepository();
       final localOrders = LocalOrdersUseCases(local: _MemoryLocalOrders());
       final coordinator = _coordinator(repository, localOrders);
 
-      coordinator.begin(_draft());
+      await coordinator.beginNewOrder(_draft());
       final request = await coordinator.preparePayment(
         group: PaymentChannels.cash,
         code: 'cash',
@@ -180,30 +309,33 @@ void main() {
 
 CheckoutCoordinator _coordinator(
   _FakeBookkeepingOrderRepository repository,
-  LocalOrdersUseCases localOrders,
-) {
+  LocalOrdersUseCases localOrders, {
+  AppSettingsSnapshot? settings,
+}) {
   return CheckoutCoordinator(
     submitOrder: SubmitOrderUseCase(bookkeepingOrderRepository: repository),
     localOrders: localOrders,
     buildPaymentRequest: const BuildCheckoutPaymentRequestUseCase(),
     completePayment: CompleteCheckoutPaymentUseCase(localOrders: localOrders),
-    readSettings: () => const AppSettingsSnapshot(
-      basic: BasicSettings(
-        paymentModes: PaymentModeSettings(
-          cash: PaymentFlowMode.bookkeeping,
-          card: PaymentFlowMode.bookkeeping,
-          qr: PaymentFlowMode.bookkeeping,
+    readSettings: () =>
+        settings ??
+        const AppSettingsSnapshot(
+          basic: BasicSettings(
+            paymentModes: PaymentModeSettings(
+              cash: PaymentFlowMode.bookkeeping,
+              card: PaymentFlowMode.bookkeeping,
+              qr: PaymentFlowMode.bookkeeping,
+            ),
+          ),
+          printers: [
+            PrinterSettings(
+              name: 'Label',
+              type: PrinterSettings.kitchenType,
+              receipt: false,
+              isOn: true,
+            ),
+          ],
         ),
-      ),
-      printers: [
-        PrinterSettings(
-          name: 'Label',
-          type: PrinterSettings.kitchenType,
-          receipt: false,
-          isOn: true,
-        ),
-      ],
-    ),
   );
 }
 
@@ -228,6 +360,8 @@ CheckoutDraft _draft({bool isSettlement = false}) {
 
 class _FakeBookkeepingOrderRepository implements BookkeepingOrderRepository {
   int submitCalls = 0;
+  final List<BookkeepingOrderRecordInput> recordCalls =
+      <BookkeepingOrderRecordInput>[];
 
   @override
   Future<OrderSubmissionResult> submitOfflineOrder({
@@ -250,7 +384,14 @@ class _FakeBookkeepingOrderRepository implements BookkeepingOrderRepository {
   }
 
   @override
-  Future<void> recordOrder(BookkeepingOrderRecordInput input) async {}
+  Future<void> recordOrder(BookkeepingOrderRecordInput input) async {
+    recordCalls.add(input);
+  }
+
+  @override
+  Future<PrintInfoDocument> updateOrderState(
+    OrderStateUpdateInput input,
+  ) async => const PrintInfoDocument();
 }
 
 class _MemoryLocalOrders extends LocalOrderLocalDataSource {

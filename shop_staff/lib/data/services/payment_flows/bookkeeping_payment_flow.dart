@@ -48,7 +48,7 @@ class BookkeepingPaymentFlow implements PaymentFlow {
           ),
         );
 
-        await _backendGateway.confirmPayment(context, {
+        final printDocument = await _backendGateway.confirmPayment(context, {
           'method': context.channel.group,
           'channelCode': context.channel.code,
           'channelDisplayName': context.channel.displayName,
@@ -68,6 +68,7 @@ class BookkeepingPaymentFlow implements PaymentFlow {
               'mode': context.mode.wireValue,
               'method': context.channel.group,
               'channelCode': context.channel.code,
+              if (printDocument != null) 'printDocument': printDocument,
             },
           ),
         );

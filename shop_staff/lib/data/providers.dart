@@ -1,7 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shop_staff/core/auth/auth_token_store.dart';
+import 'package:shop_staff/core/auth/authentication_change_notifier.dart';
+import 'package:shop_staff/core/localization/shop_language_code.dart';
 import 'package:shop_staff/data/repositories_impl/activation_repository_impl.dart';
+import 'package:shop_staff/data/repositories_impl/auth_repository_impl.dart';
 import 'package:logging/logging.dart';
 import 'package:shop_staff/data/services/cash_machine_service_impl.dart';
 import 'package:shop_staff/domain/repositories/activation_repository.dart';
@@ -23,7 +27,7 @@ import 'repositories_impl/bookkeeping_order_repository_impl.dart';
 import 'repositories_impl/order_repository_impl.dart';
 import 'repositories_impl/cash_register_closure_repository_impl.dart';
 import 'services/payment_backend_gateway.dart';
-import 'services/bookkeeping_payment_backend_gateway.dart';
+import 'services/order_state_payment_backend_gateway.dart';
 import 'services/payment_channel_support.dart';
 import 'services/payment_flows/bookkeeping_payment_flow.dart';
 import 'services/payment_flows/card_payment_flow.dart';
@@ -45,6 +49,7 @@ import 'package:shop_staff/presentations/printing/printing_providers.dart';
 
 // Public repository interfaces
 import '../domain/repositories/menu_repository.dart';
+import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/bookkeeping_order_repository.dart';
 import '../domain/repositories/order_repository.dart';
 import '../domain/repositories/cash_register_closure_repository.dart';
@@ -71,16 +76,33 @@ final appConfigProvider = Provider<AppConfig>(
   (ref) => AppConfig.forEnv(ref.watch(appEnvironmentProvider)),
 );
 
+final authTokenStoreProvider = Provider<AuthTokenStore>((ref) {
+  return AuthTokenStore(ref.watch(keyValueStoreProvider));
+});
+
 // Core shared HTTP client
 final dioClientProvider = Provider<DioClient>((ref) {
   final config = ref.watch(appConfigProvider);
-  return DioClient.create(config);
+  return DioClient.create(
+    config,
+    authTokenStore: ref.watch(authTokenStoreProvider),
+    onAuthenticationRequired: () async {
+      authenticationChangeNotifier.notifyAuthenticationChanged();
+    },
+  );
 });
 
 // Remote datasource
 final posRemoteDataSourceProvider = Provider<PosRemoteDataSource>((ref) {
   final client = ref.watch(dioClientProvider);
   return PosRemoteDataSource(client);
+});
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl(
+    client: ref.watch(dioClientProvider),
+    tokenStore: ref.watch(authTokenStoreProvider),
+  );
 });
 
 // Repositories (unified naming: <feature><Repo>Provider kept backward compatible)
@@ -120,7 +142,7 @@ final posCardPaymentGatewayProvider = Provider<PosCardPaymentGateway>((ref) {
 });
 
 final paymentBackendGatewayProvider = Provider<PaymentBackendGateway>((ref) {
-  return BookkeepingPaymentBackendGateway(
+  return OrderStatePaymentBackendGateway(
     bookkeepingOrders: ref.watch(bookkeepingOrderRepositoryProvider),
     logger: Logger('PaymentBackendGateway'),
   );
@@ -364,9 +386,11 @@ final machineCodeProvider = Provider<String?>((ref) {
 
 final shopLanguageProvider = Provider<String>((ref) {
   final override = ref.watch(languageOverrideProvider);
-  if (override != null && override.isNotEmpty) return override;
   final info = ref.watch(shopInfoProvider);
-  return info?.language.isNotEmpty == true ? info!.language : 'JP';
+  final language = normalizeShopLanguageCode(
+    override != null && override.isNotEmpty ? override : info?.language,
+  );
+  return language.isEmpty ? 'JP' : language;
 });
 
 // 更新工具: 激活接口未返回 machineCode 时, 用已知值补齐

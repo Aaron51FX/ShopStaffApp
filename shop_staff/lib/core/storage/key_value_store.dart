@@ -12,10 +12,11 @@ abstract class KeyValueStore {
 class SecureKeyValueStore implements KeyValueStore {
   final FlutterSecureStorage _storage;
   const SecureKeyValueStore([FlutterSecureStorage? storage])
-      : _storage = storage ?? const FlutterSecureStorage();
+    : _storage = storage ?? const FlutterSecureStorage();
 
   @override
-  Future<void> write(String key, String value) => _storage.write(key: key, value: value);
+  Future<void> write(String key, String value) =>
+      _storage.write(key: key, value: value);
 
   @override
   Future<String?> read(String key) => _storage.read(key: key);
@@ -30,10 +31,13 @@ class SecureKeyValueStore implements KeyValueStore {
   Future<void> clearAll() => _storage.deleteAll();
 }
 
-final keyValueStoreProvider = Provider<KeyValueStore>((_) => const SecureKeyValueStore());
+final keyValueStoreProvider = Provider<KeyValueStore>(
+  (_) => const SecureKeyValueStore(),
+);
 
 // Common keys
 class AppStorageKeys {
+  static const authToken = 'auth_token';
   static const activationCode = 'activation_code';
   static const settingsBasic = 'settings_basic';
   static const settingsPosTerminal = 'settings_pos_terminal';

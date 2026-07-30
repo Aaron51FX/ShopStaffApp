@@ -51,7 +51,9 @@ class SubmitOrderUseCase {
   Future<SubmitOrderOutput> execute(SubmitOrderInput input) async {
     final total =
         input.items.fold<double>(0, (p, e) => p + e.lineTotal) - input.discount;
-    _logger.fine('Prepare checkout order total=$total takeout=${input.takeout}');
+    _logger.fine(
+      'Prepare checkout order total=$total takeout=${input.takeout}',
+    );
     final result = await _bookkeepingOrderRepository.submitOfflineOrder(
       items: input.items,
       machineCode: input.machineCode,

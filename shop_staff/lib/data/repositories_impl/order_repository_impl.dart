@@ -1,4 +1,5 @@
 import '../../domain/repositories/order_repository.dart';
+import '../../core/localization/shop_language_code.dart';
 import '../../domain/entities/cart_item.dart';
 import '../../domain/entities/order_submission_result.dart';
 import '../datasources/remote/pos_remote_datasource.dart';
@@ -30,7 +31,7 @@ class OrderRepositoryImpl implements OrderRepository {
 			orderLines.add(line);
 		}
 		final payload = {
-			'language': language,
+			'language': normalizeShopLanguageCode(language),
 			'machineCode': machineCode,
 			'orderLineList': orderLines,
 			'total': total,

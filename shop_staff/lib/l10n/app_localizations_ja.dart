@@ -1018,6 +1018,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentChannelLabel => '選択方式';
 
   @override
+  String get emailLoginTitle => 'スタッフログイン';
+
+  @override
+  String get emailLoginDescription => 'メールアドレスを入力し、認証コードでログインしてください。';
+
+  @override
+  String get emailLoginEmailLabel => 'メールアドレス';
+
+  @override
+  String get emailLoginVerificationCodeLabel => '認証コード';
+
+  @override
+  String get emailLoginSendCode => '認証コード送信';
+
+  @override
+  String emailLoginResendCountdown(int seconds) {
+    return '$seconds秒後に再送信';
+  }
+
+  @override
+  String get emailLoginButton => 'ログイン';
+
+  @override
+  String emailLoginFailedMessage(Object detail) {
+    return 'ログインに失敗しました: $detail';
+  }
+
+  @override
   String get loginActivateTitle => '端末アクティベーション';
 
   @override

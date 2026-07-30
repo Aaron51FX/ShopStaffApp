@@ -1,16 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shop_staff/core/network/app_environment.dart';
+import 'package:shop_staff/core/localization/shop_language_code.dart';
 import 'package:shop_staff/core/network/dio_client.dart';
 import 'package:shop_staff/core/network/endpoints.dart';
-
-final dioClientProvider = Provider<DioClient>((ref) {
-  final config = AppConfig.forEnv(appEnvironmentFromDartDefine());
-  return DioClient.create(config);
-});
-
-final posRemoteDataSourceProvider = Provider<PosRemoteDataSource>((ref) {
-  return PosRemoteDataSource(ref.watch(dioClientProvider));
-});
 
 class PosRemoteDataSource {
   final DioClient _client;
@@ -34,13 +24,15 @@ class PosRemoteDataSource {
     String language = 'JP',
     bool takeout = false,
   }) async {
+    final requestLanguage = normalizeShopLanguageCode(language);
     // 与 fetchCategoriesV2 一致: POST 同一分类接口, 便于统一首批数据来源
     final payload = {
       'machineCode': machineCode,
-      'language': language,
+      'language': requestLanguage,
       'takeout': takeout ? 0 : 2,
     };
-    final key = 'POST:HOME:${_e.bootIndexV1}:$machineCode:$language:$takeout';
+    final key =
+        'POST:HOME:${_e.bootIndexV1}:$machineCode:$requestLanguage:$takeout';
     return _dedupe(key, () => _client.postJson(_e.bootIndexV1, body: payload));
   }
 
@@ -49,13 +41,14 @@ class PosRemoteDataSource {
     String language = 'JP',
     bool takeout = false,
   }) async {
+    final requestLanguage = normalizeShopLanguageCode(language);
     final payload = {
       'machineCode': machineCode,
-      'language': language,
+      'language': requestLanguage,
       'takeout': takeout ? 0 : 2,
     };
     final key =
-        'POST:${_e.bootIndexCategoryV2}:$machineCode:$language:$takeout';
+        'POST:${_e.bootIndexCategoryV2}:$machineCode:$requestLanguage:$takeout';
     return _dedupe(
       key,
       () => _client.postJson(_e.bootIndexCategoryV2, body: payload),
@@ -79,14 +72,15 @@ class PosRemoteDataSource {
     bool takeout = false,
     required String categoryCode,
   }) async {
+    final requestLanguage = normalizeShopLanguageCode(language);
     final payload = {
       'machineCode': machineCode,
-      'language': language,
+      'language': requestLanguage,
       'takeout': takeout ? 0 : 2,
       'categoryCode': categoryCode,
     };
     final key =
-        'POST:${_e.bootIndexMenuV2}:$machineCode:$language:$takeout:$categoryCode';
+        'POST:${_e.bootIndexMenuV2}:$machineCode:$requestLanguage:$takeout:$categoryCode';
     return _dedupe(
       key,
       () => _client.postJson(_e.bootIndexMenuV2, body: payload),
@@ -102,6 +96,9 @@ class PosRemoteDataSource {
   Future<dynamic> recordStaffOrderV1(Map<String, dynamic> payload) async =>
       _client.postJson(_e.staffOrderV1, body: payload);
 
+  Future<dynamic> updateStaffOrderStateV1(Map<String, dynamic> payload) async =>
+      _client.postJson(_e.orderStaffUpdateStateV1, body: payload);
+
   Future<dynamic> calculateOrder(Map<String, dynamic> payload) async =>
       _client.postJson(_e.calculateOrder, body: payload);
 
@@ -110,12 +107,14 @@ class PosRemoteDataSource {
     required String language,
     required String machineCode,
   }) {
+    final requestLanguage = normalizeShopLanguageCode(language);
     final payload = {
       'orderKey': orderKey,
-      'language': language,
+      'language': requestLanguage,
       'machineCode': machineCode,
     };
-    final key = 'POST:${_e.bootCalculateV2}:$orderKey:$language:$machineCode';
+    final key =
+        'POST:${_e.bootCalculateV2}:$orderKey:$requestLanguage:$machineCode';
     return _dedupe(
       key,
       () => _client.postJson(_e.bootCalculateV2, body: payload),

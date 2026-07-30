@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/data/services/payment_backend_gateway.dart';
 import 'package:shop_staff/data/services/payment_flows/bookkeeping_payment_flow.dart';
 import 'package:shop_staff/data/services/pos_payment_orchestrator.dart';
@@ -50,12 +51,12 @@ PaymentContext _context() {
 }
 
 class _CompletingBackendGateway implements PaymentBackendGateway {
-  final _completer = Completer<void>();
+  final _completer = Completer<PrintInfoDocument?>();
 
-  void complete() => _completer.complete();
+  void complete() => _completer.complete(null);
 
   @override
-  Future<void> confirmPayment(
+  Future<PrintInfoDocument?> confirmPayment(
     PaymentContext context,
     Map<String, dynamic> payload,
   ) {

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
+import 'package:shop_staff/core/auth/auth_token_store.dart';
+import 'package:shop_staff/core/auth/authentication_change_notifier.dart';
 import 'package:shop_staff/presentations/cash_register_closure/pages/cash_register_closure_detail_page.dart';
 import 'package:shop_staff/presentations/cash_register_closure/pages/cash_register_closure_page.dart';
 import 'package:shop_staff/presentations/cash_register_closure/pages/cash_register_closure_route_args.dart';
@@ -12,6 +14,7 @@ import 'package:shop_staff/presentations/settlement/pages/settlement_order_page.
 import 'package:shop_staff/presentations/settings/sections/business_info/pages/shop_info_detail_page.dart';
 import '../../presentations/pos/pages/pos_page.dart';
 import '../../presentations/auth/pages/login_page.dart';
+import '../../presentations/auth/pages/email_login_page.dart';
 import '../../presentations/splash/pages/splash_page.dart';
 import '../../presentations/pos/pages/suspended_orders_page.dart';
 import '../../presentations/order/pages/local_orders_page.dart';
@@ -33,12 +36,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
+    refreshListenable: authenticationChangeNotifier,
     redirect: (context, state) async {
       final loc = state.matchedLocation;
-      if (loc == '/splash') return null; // always allow splash
+      final hasToken = await AuthTokenStore(store).hasToken();
       final hasCode = await store.contains(AppStorageKeys.activationCode);
       // ignore: avoid_print
-      print('[RouterRedirect] hasCode=$hasCode location=$loc');
+      print(
+        '[RouterRedirect] hasToken=$hasToken hasCode=$hasCode location=$loc',
+      );
+      if (loc == '/login') {
+        if (!hasToken) return null;
+        return hasCode ? '/splash' : '/activate';
+      }
+      if (!hasToken) return '/login';
+      if (loc == '/activate') {
+        return hasCode ? '/splash' : null;
+      }
+      if (loc == '/splash') return null;
       final protectedPaths = {
         '/entry',
         '/customer',
@@ -55,8 +70,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           loc.startsWith('/pos/') ||
           loc.startsWith('/settings/') ||
           loc.startsWith('/cash-register-closure');
-      if (!hasCode && needsGuard) return '/login';
-      if (hasCode && loc == '/login') return '/splash';
+      if (!hasCode && needsGuard) return '/activate';
       return null;
     },
     routes: [
@@ -68,6 +82,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         name: 'login',
+        builder: (context, state) => const EmailLoginPage(),
+      ),
+      GoRoute(
+        path: '/activate',
+        name: 'activate',
         builder: (context, state) => const LoginPage(),
       ),
       ShellRoute(

@@ -371,6 +371,26 @@
   "cashAmountExpectedPrefix": "注文金額：",
   "paymentOrderIdLabel": "注文番号",
   "paymentChannelLabel": "選択方式",
+  "emailLoginTitle": "スタッフログイン",
+  "emailLoginDescription": "メールアドレスを入力し、認証コードでログインしてください。",
+  "emailLoginEmailLabel": "メールアドレス",
+  "emailLoginVerificationCodeLabel": "認証コード",
+  "emailLoginSendCode": "認証コード送信",
+  "emailLoginResendCountdown": "{seconds}秒後に再送信",
+  "@emailLoginResendCountdown": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "emailLoginButton": "ログイン",
+  "emailLoginFailedMessage": "ログインに失敗しました: {detail}",
+  "@emailLoginFailedMessage": {
+    "placeholders": {
+      "detail": {}
+    }
+  },
   "loginActivateTitle": "端末アクティベーション",
   "loginScanDialogTitle": "端末アクティベーションコードをスキャン",
   "loginScanCameraHint": "アクティベーションQRコードを枠内に合わせてください",

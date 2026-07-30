@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:shop_staff/application/checkout/models/checkout_payment_request.dart';
+import 'package:shop_staff/core/localization/shop_language_code.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
@@ -28,6 +29,8 @@ class BuildCheckoutPaymentRequestUseCase {
     required bool takeout,
     BasicSettings? basic,
     PosTerminalSettings? posInfo,
+    required double discount,
+    required bool requiresOrderStateUpdate,
   }) {
     final config = Map<String, dynamic>.from(
       shop.linePayChannelMap ?? const {},
@@ -48,11 +51,14 @@ class BuildCheckoutPaymentRequestUseCase {
       'machineCode': machineCode,
       'shopCode': shop.shopCode,
       'shopName': shop.shopName,
-      'language': language,
+      'language': normalizeShopLanguageCode(language),
       'takeout': takeout,
       'channelDisplayName': label,
       'cartItems': List<CartItem>.from(items),
       'paymentMode': paymentMode.wireValue,
+      'discount': discount.round(),
+      'finalTotal': order.total,
+      if (requiresOrderStateUpdate) 'requiresOrderStateUpdate': true,
     };
 
     return CheckoutPaymentRequest(

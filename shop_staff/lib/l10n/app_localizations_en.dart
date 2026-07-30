@@ -1063,6 +1063,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentChannelLabel => 'Payment method';
 
   @override
+  String get emailLoginTitle => 'Staff login';
+
+  @override
+  String get emailLoginDescription =>
+      'Enter your email address and sign in with the verification code.';
+
+  @override
+  String get emailLoginEmailLabel => 'Email address';
+
+  @override
+  String get emailLoginVerificationCodeLabel => 'Verification code';
+
+  @override
+  String get emailLoginSendCode => 'Send code';
+
+  @override
+  String emailLoginResendCountdown(int seconds) {
+    return 'Resend in ${seconds}s';
+  }
+
+  @override
+  String get emailLoginButton => 'Log in';
+
+  @override
+  String emailLoginFailedMessage(Object detail) {
+    return 'Login failed: $detail';
+  }
+
+  @override
   String get loginActivateTitle => 'Device activation';
 
   @override

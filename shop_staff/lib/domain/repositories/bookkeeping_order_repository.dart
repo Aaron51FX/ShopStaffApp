@@ -1,5 +1,6 @@
 import 'package:shop_staff/domain/entities/cart_item.dart';
 import 'package:shop_staff/domain/entities/order_submission_result.dart';
+import 'package:shop_staff/data/models/print_info.dart';
 
 class BookkeepingOrderRecordInput {
   const BookkeepingOrderRecordInput({
@@ -25,6 +26,24 @@ class BookkeepingOrderRecordInput {
   final String? orderSnCode;
 }
 
+class OrderStateUpdateInput {
+  const OrderStateUpdateInput({
+    required this.orderId,
+    required this.machineCode,
+    required this.payChannel,
+    required this.discount,
+    required this.finalTotal,
+    this.payPrice,
+  });
+
+  final String orderId;
+  final String machineCode;
+  final String payChannel;
+  final int discount;
+  final int finalTotal;
+  final int? payPrice;
+}
+
 abstract class BookkeepingOrderRepository {
   Future<OrderSubmissionResult> submitOfflineOrder({
     required List<CartItem> items,
@@ -36,4 +55,6 @@ abstract class BookkeepingOrderRepository {
   });
 
   Future<void> recordOrder(BookkeepingOrderRecordInput input);
+
+  Future<PrintInfoDocument> updateOrderState(OrderStateUpdateInput input);
 }

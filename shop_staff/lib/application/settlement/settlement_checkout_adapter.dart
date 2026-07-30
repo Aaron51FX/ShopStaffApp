@@ -1,4 +1,5 @@
 import '../../data/models/shop_info_models.dart';
+import '../../core/localization/shop_language_code.dart';
 import '../../domain/entities/cart_item.dart';
 import '../../domain/entities/order_submission_result.dart';
 import '../../domain/entities/product.dart';
@@ -36,7 +37,7 @@ SettlementCheckoutData buildSettlementCheckoutData({
     draft: CheckoutDraft(
       shop: shop,
       machineCode: machineCode,
-      language: language,
+      language: normalizeShopLanguageCode(language),
       takeout: false,
       items: items,
       orderNumber: orderNumber,
