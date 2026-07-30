@@ -19,6 +19,7 @@ class SaleReceiptDocumentAdapter {
     final grandTotal = document.price > 0
         ? document.price
         : subtotal - document.discount;
+    final paymentMethodCode = _paymentMethodCode(document.payMethod);
 
     return ReceiptDocument(
       kind: ReceiptDocumentKind.sale,
@@ -65,10 +66,10 @@ class SaleReceiptDocumentAdapter {
         taxLines: _saleTaxLines(document),
         grandTotalMinor: grandTotal,
         paidMinor: document.payPrice > 0 ? document.payPrice : null,
-        changeMinor: document.change,
+        changeMinor: paymentMethodCode == 'cash' ? document.change : null,
       ),
       payment: ReceiptPaymentInfo(
-        methodCode: _paymentMethodCode(document.payMethod),
+        methodCode: paymentMethodCode,
         methodLabel: document.payMethod.isEmpty ? '未設定' : document.payMethod,
         memberNo: _nullIfEmpty(document.memberNo),
       ),

@@ -60,8 +60,25 @@ void main() {
       expect(receipt.lines, hasLength(1));
       expect(receipt.lines.single.lineTotalMinor, 220);
       expect(receipt.totals.grandTotalMinor, 220);
+      expect(receipt.totals.changeMinor, 30);
       expect(receipt.payment?.methodCode, 'cash');
       expect(receipt.extras['qrPaymentCode'], 'PAY-QR');
+    });
+
+    test('omits change for non-cash payment', () {
+      const document = PrintInfoDocument(
+        shopName: 'Tokyo Shop',
+        orderId: 9002,
+        price: 220,
+        payPrice: 220,
+        change: 0,
+        payMethod: 'QR Code',
+      );
+
+      final receipt = SaleReceiptDocumentAdapter.fromPrintInfo(document);
+
+      expect(receipt.payment?.methodCode, 'qr');
+      expect(receipt.totals.changeMinor, isNull);
     });
   });
 

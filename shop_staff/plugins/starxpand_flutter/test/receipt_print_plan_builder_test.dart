@@ -100,9 +100,47 @@ void main() {
         transactionRows,
         anyElement(orderedEquals(<String>['お客様番号', 'A001'])),
       );
+      expect(
+        plan.nodes.any(
+          (node) =>
+              node.type == ReceiptPrintPlanNodeType.text && node.text == '領収書',
+        ),
+        isTrue,
+      );
       expect(transactionRows.expand((row) => row), isNot(contains('レシートID')));
       expect(transactionRows.expand((row) => row), isNot(contains('伝票番号')));
       expect(plan.nodes.last.type, ReceiptPrintPlanNodeType.cut);
+    });
+
+    test('does not print change for non-cash payment', () {
+      final payload = ReceiptDocumentPayload.fromJson(<String, dynamic>{
+        'schema': 'shop_staff.receipt.v1',
+        'kind': 'sale',
+        'shop': <String, dynamic>{'name': 'Tokyo Shop'},
+        'transaction': <String, dynamic>{
+          'receiptId': 'sale-9002',
+          'locale': 'ja-JP',
+          'currency': 'JPY',
+        },
+        'totals': <String, dynamic>{
+          'subtotalMinor': 220,
+          'grandTotalMinor': 220,
+          'paidMinor': 220,
+          'changeMinor': 0,
+        },
+        'payment': <String, dynamic>{
+          'methodCode': 'qr',
+          'methodLabel': 'QR Code',
+        },
+      });
+
+      final plan = ReceiptPrintPlanBuilder.build(payload);
+      final rowLabels = plan.nodes
+          .where((node) => node.type == ReceiptPrintPlanNodeType.row)
+          .expand((node) => node.columns)
+          .map((column) => column.text);
+
+      expect(rowLabels, isNot(contains('釣銭')));
     });
 
     test('builds a compact HReceipt plan when requested', () {

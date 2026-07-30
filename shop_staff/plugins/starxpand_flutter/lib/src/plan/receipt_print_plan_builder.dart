@@ -374,7 +374,7 @@ void _addTotals(
       document.transaction.currency,
     );
   }
-  if (document.totals.changeMinor != null) {
+  if (document.totals.changeMinor != null && _isCashPayment(document)) {
     _addAmountRow(
       nodes,
       labels.change,
@@ -382,6 +382,13 @@ void _addTotals(
       document.transaction.currency,
     );
   }
+}
+
+bool _isCashPayment(ReceiptDocumentPayload document) {
+  final payment = document.payment;
+  if (payment == null) return false;
+  final methodCode = payment.methodCode.trim().toLowerCase();
+  return methodCode == 'cash' || payment.methodLabel.contains('現金');
 }
 
 void _addAmountRow(
@@ -531,7 +538,7 @@ _ReceiptLabels _labelsForLocale(String? locale) {
     );
   }
   return const _ReceiptLabels(
-    saleTitle: '販売明細',
+    saleTitle: '領収書',
     refundTitle: '返金伝票',
     orderId: '注文番号',
     originalOrderId: '元注文',
