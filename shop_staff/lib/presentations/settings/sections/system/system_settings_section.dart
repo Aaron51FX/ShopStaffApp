@@ -331,12 +331,10 @@ class _OrderModeSupportTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return CheckboxListTile(
+    final isLockedOn = selected && !canDisable;
+    return SwitchListTile.adaptive(
       value: selected,
-      onChanged: (value) {
-        if (value == null || (selected && !canDisable)) return;
-        onChanged(value);
-      },
+      onChanged: isLockedOn ? null : onChanged,
       secondary: Icon(icon, color: theme.colorScheme.primary),
       title: Text(
         label,
@@ -344,7 +342,6 @@ class _OrderModeSupportTile extends StatelessWidget {
           fontWeight: FontWeight.w700,
         ),
       ),
-      controlAffinity: ListTileControlAffinity.trailing,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );

@@ -15,6 +15,7 @@ class EntryTopBar extends ConsumerWidget {
     required this.linkState,
     required this.peerLinkEnabled,
     required this.onSearchPeer,
+    required this.showOrderActions,
   });
 
   final String timeText;
@@ -22,6 +23,7 @@ class EntryTopBar extends ConsumerWidget {
   final PeerLinkState linkState;
   final bool peerLinkEnabled;
   final VoidCallback onSearchPeer;
+  final bool showOrderActions;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,17 +32,19 @@ class EntryTopBar extends ConsumerWidget {
     final role = ref.watch(appRoleProvider);
     return Row(
       children: [
-        _TopBarButton(
-          onPressed: () => router.push('/pos/suspended'),
-          icon: Icons.assignment_returned_outlined,
-          label: t.entryPickup,
-        ),
-        const SizedBox(width: 12),
-        _TopBarButton(
-          onPressed: () => router.push('/orders'),
-          icon: Icons.receipt_long_rounded,
-          label: t.entryHistoryOrders,
-        ),
+        if (showOrderActions) ...[
+          _TopBarButton(
+            onPressed: () => router.push('/pos/suspended'),
+            icon: Icons.assignment_returned_outlined,
+            label: t.entryPickup,
+          ),
+          const SizedBox(width: 12),
+          _TopBarButton(
+            onPressed: () => router.push('/orders'),
+            icon: Icons.receipt_long_rounded,
+            label: t.entryHistoryOrders,
+          ),
+        ],
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,

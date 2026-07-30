@@ -93,6 +93,8 @@ class _EntryPageState extends ConsumerState<EntryPage> {
         actuarialSupported && (orderModes?.settlement ?? true);
     final hasConfiguredMode =
         configuredDineIn || configuredTakeout || configuredSettlement;
+    final settlementOnly =
+        configuredSettlement && !configuredDineIn && !configuredTakeout;
 
     return CashMachineDialogPortal(
       child: Scaffold(
@@ -116,6 +118,7 @@ class _EntryPageState extends ConsumerState<EntryPage> {
                     linkState: linkState,
                     peerLinkEnabled: _peerLinkEnabled(),
                     onSearchPeer: _showSearchDialog,
+                    showOrderActions: !settlementOnly,
                   ),
                   const SizedBox(height: 40),
                   Expanded(
