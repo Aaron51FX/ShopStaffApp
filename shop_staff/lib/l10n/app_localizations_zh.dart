@@ -57,6 +57,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settlementScanSubmit => '获取订单';
 
   @override
+  String get paymentQrScanDialogTitle => '扫描支付二维码';
+
+  @override
+  String get paymentQrScanCameraHint => '将支付二维码放入取景框';
+
+  @override
+  String get paymentQrScanInputHint => '扫码枪输入';
+
+  @override
+  String get paymentQrScanActivateInput => '激活扫码枪';
+
+  @override
+  String get paymentQrScanSubmit => '使用此码';
+
+  @override
   String get settlementRescanAction => '重新扫码';
 
   @override

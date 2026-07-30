@@ -34,11 +34,11 @@ class SaleReceiptDocumentAdapter {
       ),
       transaction: ReceiptTransactionInfo(
         receiptId: 'sale-${document.orderId}',
-        orderId: _stringOrNull(document.orderId),
+        orderId: _nullIfEmpty(document.order),
         displayOrderNo: _firstNonEmpty(<String?>[
           document.serialNumberText,
           document.serialNumber,
-          document.order,
+          document.serialNo,
         ]),
         serialNumber: _firstNonEmpty(<String?>[
           document.serialNumberText,

@@ -126,6 +126,34 @@ void main() {
       },
     );
 
+    test('marks bookkeeping receipt payment methods as offline', () async {
+      for (final scenario in <(String, String)>[
+        (PaymentChannels.cash, '現金支払（オフライン）'),
+        (PaymentChannels.card, 'クレジットカード（オフライン）'),
+        (PaymentChannels.qr, 'QR Code（オフライン）'),
+      ]) {
+        final repository = _FakeBookkeepingOrderRepository();
+        final localOrders = LocalOrdersUseCases(local: _MemoryLocalOrders());
+        final coordinator = _coordinator(repository, localOrders);
+
+        coordinator.begin(_draft());
+        final request = await coordinator.preparePayment(
+          group: scenario.$1,
+          code: scenario.$1,
+          label: scenario.$1,
+        );
+        coordinator.paymentStarted(request);
+        await coordinator.paymentCompleted(
+          PaymentResult.success(messageKey: PaymentMessageKeys.statusSuccess),
+        );
+
+        expect(
+          coordinator.state.printRequest?.paymentMethodOverride,
+          scenario.$2,
+        );
+      }
+    });
+
     test('does not create print work for failed or unknown payments', () async {
       final repository = _FakeBookkeepingOrderRepository();
       final localOrders = LocalOrdersUseCases(local: _MemoryLocalOrders());
@@ -163,6 +191,7 @@ CheckoutCoordinator _coordinator(
       basic: BasicSettings(
         paymentModes: PaymentModeSettings(
           cash: PaymentFlowMode.bookkeeping,
+          card: PaymentFlowMode.bookkeeping,
           qr: PaymentFlowMode.bookkeeping,
         ),
       ),

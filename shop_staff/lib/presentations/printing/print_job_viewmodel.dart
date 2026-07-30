@@ -69,7 +69,7 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
     }
 
     try {
-      final doc = await _resolveDocument();
+      final doc = request.applyDocumentOverrides(await _resolveDocument());
       if (!mounted) {
         _running = false;
         return;

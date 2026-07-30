@@ -62,6 +62,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settlementScanSubmit => 'Fetch Order';
 
   @override
+  String get paymentQrScanDialogTitle => 'Scan Payment QR Code';
+
+  @override
+  String get paymentQrScanCameraHint =>
+      'Align the payment QR code in the frame';
+
+  @override
+  String get paymentQrScanInputHint => 'Scanner input';
+
+  @override
+  String get paymentQrScanActivateInput => 'Activate scanner';
+
+  @override
+  String get paymentQrScanSubmit => 'Use Code';
+
+  @override
   String get settlementRescanAction => 'Scan Again';
 
   @override

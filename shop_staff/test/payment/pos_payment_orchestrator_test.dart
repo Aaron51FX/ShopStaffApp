@@ -45,6 +45,40 @@ void main() {
     expect(result.failure?.certainty, PaymentOutcomeCertainty.indeterminate);
     expect(result.retryable, isFalse);
   });
+
+  test(
+    'bookkeeping cash uses bookkeeping flow without cash hardware',
+    () async {
+      final cashFlow = _RecordingPaymentFlow();
+      final bookkeepingFlow = _RecordingPaymentFlow();
+      final orchestrator = PosPaymentOrchestrator(
+        flows: {
+          PaymentChannels.cash: cashFlow,
+          PaymentChannels.bookkeeping: bookkeepingFlow,
+        },
+      );
+
+      final session = orchestrator.start(
+        const PaymentContext(
+          order: OrderSubmissionResult(
+            orderId: 'order-bookkeeping-cash',
+            tax1: 0,
+            baseTax1: 100,
+            tax2: 0,
+            baseTax2: 0,
+            total: 100,
+          ),
+          channel: PaymentChannel(group: PaymentChannels.cash, code: 'cash'),
+          mode: PaymentFlowMode.bookkeeping,
+        ),
+      );
+      final result = await session.result;
+
+      expect(result.status, PaymentStatusType.success);
+      expect(bookkeepingFlow.contexts, hasLength(1));
+      expect(cashFlow.contexts, isEmpty);
+    },
+  );
 }
 
 const _context = PaymentContext(
@@ -70,6 +104,27 @@ class _ControllablePaymentFlow implements PaymentFlow {
     return PaymentFlowRun(
       statuses: statuses.stream,
       result: result.future,
+      cancel: () async {},
+    );
+  }
+}
+
+class _RecordingPaymentFlow implements PaymentFlow {
+  final List<PaymentContext> contexts = <PaymentContext>[];
+
+  @override
+  PaymentFlowRun start(PaymentContext context) {
+    contexts.add(context);
+    return PaymentFlowRun(
+      statuses: Stream<PaymentStatus>.value(
+        const PaymentStatus(
+          type: PaymentStatusType.success,
+          phase: PaymentPhase.confirming,
+        ),
+      ),
+      result: Future<PaymentResult>.value(
+        PaymentResult.success(messageKey: PaymentMessageKeys.statusSuccess),
+      ),
       cancel: () async {},
     );
   }

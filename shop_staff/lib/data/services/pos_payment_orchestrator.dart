@@ -21,9 +21,7 @@ class PosPaymentOrchestrator implements PaymentOrchestrator {
 
   @override
   PaymentSessionHandle start(PaymentContext context) {
-    final key =
-        context.mode == PaymentFlowMode.bookkeeping &&
-            context.channel.group != PaymentChannels.cash
+    final key = context.mode == PaymentFlowMode.bookkeeping
         ? PaymentChannels.bookkeeping
         : context.channel.group;
     final flow = _flows[key];

@@ -291,7 +291,6 @@ void _addTransactionRows(
   ReceiptDocumentPayload document,
   _ReceiptLabels labels,
 ) {
-  _addKeyValue(nodes, labels.receiptId, document.transaction.receiptId);
   if (_hasValue(document.transaction.orderId)) {
     _addKeyValue(nodes, labels.orderId, document.transaction.orderId!);
   }
@@ -300,13 +299,6 @@ void _addTransactionRows(
       nodes,
       labels.displayOrderNo,
       document.transaction.displayOrderNo!,
-    );
-  }
-  if (_hasValue(document.transaction.serialNumber)) {
-    _addKeyValue(
-      nodes,
-      labels.serialNumber,
-      document.transaction.serialNumber!,
     );
   }
   if (_hasValue(document.transaction.businessDateLabel)) {
@@ -478,11 +470,9 @@ _ReceiptLabels _labelsForLocale(String? locale) {
     return const _ReceiptLabels(
       saleTitle: '购物小票',
       refundTitle: '退款小票',
-      receiptId: '小票号',
       orderId: '订单号',
       originalOrderId: '原订单号',
       displayOrderNo: '取餐号',
-      serialNumber: '流水号',
       datetime: '时间',
       machineCode: '机号',
       item: '商品',
@@ -512,11 +502,9 @@ _ReceiptLabels _labelsForLocale(String? locale) {
     return const _ReceiptLabels(
       saleTitle: 'Sales Receipt',
       refundTitle: 'Refund Receipt',
-      receiptId: 'Receipt ID',
       orderId: 'Order ID',
       originalOrderId: 'Original Order',
       displayOrderNo: 'Display No.',
-      serialNumber: 'Serial No.',
       datetime: 'Date Time',
       machineCode: 'Machine',
       item: 'Item',
@@ -545,11 +533,9 @@ _ReceiptLabels _labelsForLocale(String? locale) {
   return const _ReceiptLabels(
     saleTitle: '販売明細',
     refundTitle: '返金伝票',
-    receiptId: 'レシートID',
     orderId: '注文番号',
     originalOrderId: '元注文',
-    displayOrderNo: '呼出番号',
-    serialNumber: '伝票番号',
+    displayOrderNo: 'お客様番号',
     datetime: '日時',
     machineCode: '端末',
     item: '商品',
@@ -591,11 +577,9 @@ class _ReceiptLabels {
   const _ReceiptLabels({
     required this.saleTitle,
     required this.refundTitle,
-    required this.receiptId,
     required this.orderId,
     required this.originalOrderId,
     required this.displayOrderNo,
-    required this.serialNumber,
     required this.datetime,
     required this.machineCode,
     required this.item,
@@ -623,11 +607,9 @@ class _ReceiptLabels {
 
   final String saleTitle;
   final String refundTitle;
-  final String receiptId;
   final String orderId;
   final String originalOrderId;
   final String displayOrderNo;
-  final String serialNumber;
   final String datetime;
   final String machineCode;
   final String item;

@@ -57,6 +57,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settlementScanSubmit => '注文を取得';
 
   @override
+  String get paymentQrScanDialogTitle => '支払いQRコードをスキャン';
+
+  @override
+  String get paymentQrScanCameraHint => '支払いQRコードを枠内に合わせてください';
+
+  @override
+  String get paymentQrScanInputHint => 'スキャナー入力';
+
+  @override
+  String get paymentQrScanActivateInput => 'スキャナーを有効化';
+
+  @override
+  String get paymentQrScanSubmit => 'このコードを使用';
+
+  @override
   String get settlementRescanAction => '再スキャン';
 
   @override

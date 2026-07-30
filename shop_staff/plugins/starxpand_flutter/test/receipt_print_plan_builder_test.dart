@@ -88,6 +88,20 @@ void main() {
         ),
         isTrue,
       );
+      final transactionRows = plan.nodes
+          .where((node) => node.type == ReceiptPrintPlanNodeType.row)
+          .map((node) => node.columns.map((column) => column.text).toList())
+          .toList();
+      expect(
+        transactionRows,
+        anyElement(orderedEquals(<String>['注文番号', '9001'])),
+      );
+      expect(
+        transactionRows,
+        anyElement(orderedEquals(<String>['お客様番号', 'A001'])),
+      );
+      expect(transactionRows.expand((row) => row), isNot(contains('レシートID')));
+      expect(transactionRows.expand((row) => row), isNot(contains('伝票番号')));
       expect(plan.nodes.last.type, ReceiptPrintPlanNodeType.cut);
     });
 

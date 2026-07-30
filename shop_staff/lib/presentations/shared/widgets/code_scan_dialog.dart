@@ -12,6 +12,9 @@ class CodeScanDialog extends StatefulWidget {
     required this.cancelLabel,
     required this.submitLabel,
     this.hardwareInputEnabled = false,
+    this.hardwareInputInitiallyActive = true,
+    this.hardwareInputActivationLabel = 'Activate scanner',
+    this.cameraHintIsError = false,
   });
 
   final String title;
@@ -21,6 +24,9 @@ class CodeScanDialog extends StatefulWidget {
   final String cancelLabel;
   final String submitLabel;
   final bool hardwareInputEnabled;
+  final bool hardwareInputInitiallyActive;
+  final String hardwareInputActivationLabel;
+  final bool cameraHintIsError;
 
   @override
   State<CodeScanDialog> createState() => _CodeScanDialogState();
@@ -31,6 +37,7 @@ class _CodeScanDialogState extends State<CodeScanDialog> {
   FocusNode? _focusNode;
   MobileScannerController? _cameraController;
   bool _completed = false;
+  bool _hardwareInputActive = false;
 
   bool get _supportsCamera {
     if (kIsWeb) return true;
@@ -48,6 +55,7 @@ class _CodeScanDialogState extends State<CodeScanDialog> {
     if (widget.hardwareInputEnabled) {
       _textController = TextEditingController();
       _focusNode = _ScanHardwareFocusNode();
+      _hardwareInputActive = widget.hardwareInputInitiallyActive;
     }
     if (_supportsCamera) {
       _cameraController = MobileScannerController(
@@ -56,7 +64,9 @@ class _CodeScanDialogState extends State<CodeScanDialog> {
       );
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _focusNode?.requestFocus();
+      if (mounted && _hardwareInputActive) {
+        _focusNode?.requestFocus();
+      }
     });
   }
 
@@ -73,6 +83,14 @@ class _CodeScanDialogState extends State<CodeScanDialog> {
     if (_completed || value.isEmpty) return;
     _completed = true;
     Navigator.of(context).pop(value);
+  }
+
+  void _activateHardwareInput() {
+    if (_hardwareInputActive) return;
+    setState(() => _hardwareInputActive = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode?.requestFocus();
+    });
   }
 
   @override
@@ -152,7 +170,11 @@ class _CodeScanDialogState extends State<CodeScanDialog> {
                 Text(
                   widget.cameraHint,
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: widget.cameraHintIsError
+                        ? theme.colorScheme.error
+                        : null,
+                  ),
                 ),
                 const SizedBox(height: 18),
               ] else ...[
@@ -187,18 +209,45 @@ class _CodeScanDialogState extends State<CodeScanDialog> {
                 const SizedBox(height: 18),
               ],
               if (widget.hardwareInputEnabled)
-                TextField(
-                  controller: _textController,
-                  focusNode: _focusNode,
-                  autofocus: !_supportsCamera,
-                  keyboardType: TextInputType.url,
-                  textInputAction: TextInputAction.done,
-                  decoration: InputDecoration(
-                    hintText: widget.inputHint,
-                    prefixIcon: const Icon(Icons.keyboard_rounded),
-                    border: const OutlineInputBorder(),
-                  ),
-                  onSubmitted: _complete,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: IgnorePointer(
+                        ignoring: !_hardwareInputActive,
+                        child: TextField(
+                          controller: _textController,
+                          focusNode: _focusNode,
+                          enabled: _hardwareInputActive,
+                          autofocus:
+                              widget.hardwareInputInitiallyActive &&
+                              !_supportsCamera,
+                          keyboardType: TextInputType.url,
+                          textInputAction: TextInputAction.done,
+                          decoration: InputDecoration(
+                            hintText: widget.inputHint,
+                            prefixIcon: const Icon(Icons.keyboard_rounded),
+                            border: const OutlineInputBorder(),
+                          ),
+                          onSubmitted: _complete,
+                        ),
+                      ),
+                    ),
+                    if (!widget.hardwareInputInitiallyActive) ...[
+                      const SizedBox(width: 10),
+                      FilledButton.tonalIcon(
+                        onPressed: _hardwareInputActive
+                            ? null
+                            : _activateHardwareInput,
+                        icon: Icon(
+                          _hardwareInputActive
+                              ? Icons.check_rounded
+                              : Icons.keyboard_rounded,
+                        ),
+                        label: Text(widget.hardwareInputActivationLabel),
+                      ),
+                    ],
+                  ],
                 ),
               const SizedBox(height: 16),
               Row(

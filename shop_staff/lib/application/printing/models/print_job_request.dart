@@ -12,6 +12,7 @@ class PrintJobRequest {
     this.document,
     this.receiptOnly = false,
     this.logoImageBase64,
+    this.paymentMethodOverride,
   });
 
   final String machineCode;
@@ -22,6 +23,13 @@ class PrintJobRequest {
   final PrintInfoDocument? document;
   final bool receiptOnly;
   final String? logoImageBase64;
+  final String? paymentMethodOverride;
 
   bool get hasDocument => document != null;
+
+  PrintInfoDocument applyDocumentOverrides(PrintInfoDocument source) {
+    final paymentMethod = paymentMethodOverride?.trim() ?? '';
+    if (paymentMethod.isEmpty) return source;
+    return source.copyWith(payMethod: paymentMethod);
+  }
 }

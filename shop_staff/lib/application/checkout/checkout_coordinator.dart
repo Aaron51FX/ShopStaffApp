@@ -290,6 +290,20 @@ class CheckoutCoordinator extends StateNotifier<CheckoutState> {
       printType: !receiptOnly && hasLabelPrinter ? 'Label' : '',
       receiptOnly: receiptOnly,
       logoImageBase64: state.draft?.shop.logoImageBase64,
+      paymentMethodOverride: _bookkeepingPaymentMethodLabel(),
     );
+  }
+
+  String? _bookkeepingPaymentMethodLabel() {
+    final payment = state.paymentRequest;
+    if (payment == null || payment.paymentMode != PaymentFlowMode.bookkeeping) {
+      return null;
+    }
+    return switch (payment.channelGroup) {
+      PaymentChannels.cash => '現金支払（オフライン）',
+      PaymentChannels.card => 'クレジットカード（オフライン）',
+      PaymentChannels.qr => 'QR Code（オフライン）',
+      _ => null,
+    };
   }
 }

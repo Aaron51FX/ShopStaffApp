@@ -37,6 +37,43 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   });
 
+  testWidgets('hardware scanner input waits for explicit activation', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: CodeScanDialog(
+            title: 'Scan',
+            cameraHint: 'Camera hint',
+            cameraUnavailableHint: 'Camera unavailable',
+            inputHint: 'Input',
+            cancelLabel: 'Cancel',
+            submitLabel: 'Submit',
+            hardwareInputEnabled: true,
+            hardwareInputInitiallyActive: false,
+            hardwareInputActivationLabel: 'Activate scanner',
+          ),
+        ),
+      ),
+    );
+
+    var input = tester.widget<TextField>(find.byType(TextField));
+    expect(input.enabled, isFalse);
+    expect(input.focusNode?.hasFocus, isFalse);
+
+    await tester.tap(find.text('Activate scanner'));
+    await tester.pump();
+
+    input = tester.widget<TextField>(find.byType(TextField));
+    expect(input.enabled, isTrue);
+    expect(input.focusNode?.hasFocus, isTrue);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('scans a link and renders wide and narrow order details', (
     tester,
   ) async {

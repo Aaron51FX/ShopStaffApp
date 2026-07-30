@@ -17,8 +17,8 @@ import 'package:shop_staff/presentations/payment/widgets/bottom_action_bar.dart'
 import 'package:shop_staff/presentations/payment/widgets/cancel_dialog.dart';
 import 'package:shop_staff/presentations/payment/widgets/cash_amount_card.dart';
 import 'package:shop_staff/presentations/payment/widgets/order_summary.dart';
-import 'package:shop_staff/presentations/payment/widgets/qr_scan_dialog.dart';
 import 'package:shop_staff/presentations/payment/widgets/status_hero.dart';
+import 'package:shop_staff/presentations/shared/widgets/code_scan_dialog.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
 import 'package:shop_staff/presentations/payment/controllers/payment_flow_effect.dart';
 import 'package:shop_staff/presentations/payment/providers/payment_providers.dart';
@@ -230,30 +230,52 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
     }
 
     _qrDialogNotifier = ValueNotifier<QrScanUiState>(dialogState);
+    final notifier = _qrDialogNotifier!;
     _isQrDialogVisible = true;
 
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return ValueListenableBuilder<QrScanUiState>(
-          valueListenable: _qrDialogNotifier!,
-          builder: (context, state, _) {
-            return QrScanDialog(
-              state: state,
-              onSubmitted: (value) =>
-                  ref.read(dialogDrivenQrScannerProvider).submitCode(value),
-              onCancel: () =>
-                  ref.read(dialogDrivenQrScannerProvider).cancelScan(),
+    showDialog<String>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return ValueListenableBuilder<QrScanUiState>(
+              valueListenable: notifier,
+              builder: (context, state, _) {
+                final t = AppLocalizations.of(context);
+                final isError = state.status == QrScanDialogStatus.error;
+                return CodeScanDialog(
+                  title: t.paymentQrScanDialogTitle,
+                  cameraHint: isError
+                      ? state.message ?? t.paymentQrScanCameraHint
+                      : t.paymentQrScanCameraHint,
+                  cameraHintIsError: isError,
+                  cameraUnavailableHint: t.scanCameraUnavailableHint,
+                  inputHint: t.paymentQrScanInputHint,
+                  cancelLabel: t.dialogCancel,
+                  submitLabel: t.paymentQrScanSubmit,
+                  hardwareInputEnabled: true,
+                  hardwareInputInitiallyActive: false,
+                  hardwareInputActivationLabel: t.paymentQrScanActivateInput,
+                );
+              },
             );
           },
-        );
-      },
-    ).whenComplete(() {
-      _isQrDialogVisible = false;
-      _qrDialogNotifier?.dispose();
-      _qrDialogNotifier = null;
-    });
+        )
+        .then((value) async {
+          if (!mounted) return;
+          final scanner = ref.read(dialogDrivenQrScannerProvider);
+          if (value != null && value.trim().isNotEmpty) {
+            scanner.submitCode(value);
+          } else if (scanner.state.isVisible) {
+            await scanner.cancelScan();
+          }
+        })
+        .whenComplete(() {
+          _isQrDialogVisible = false;
+          if (identical(_qrDialogNotifier, notifier)) {
+            _qrDialogNotifier?.dispose();
+            _qrDialogNotifier = null;
+          }
+        });
   }
 
   @override

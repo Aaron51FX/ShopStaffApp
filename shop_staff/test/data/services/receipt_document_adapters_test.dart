@@ -20,6 +20,7 @@ void main() {
         orderDate: '2026-04-13 12:30',
         orderTime: '12:30',
         orderId: 9001,
+        order: 'ORDER-9001',
         language: 'JP',
         price: 220,
         payPrice: 220,
@@ -54,6 +55,8 @@ void main() {
       expect(receipt.shop.name, 'Tokyo Shop');
       expect(receipt.shop.address, 'Tokyo\nChiyoda');
       expect(receipt.transaction.orderMode, ReceiptOrderMode.dineIn);
+      expect(receipt.transaction.orderId, 'ORDER-9001');
+      expect(receipt.transaction.displayOrderNo, 'A001');
       expect(receipt.lines, hasLength(1));
       expect(receipt.lines.single.lineTotalMinor, 220);
       expect(receipt.totals.grandTotalMinor, 220);

@@ -196,6 +196,36 @@ abstract class AppLocalizations {
   /// **'Fetch Order'**
   String get settlementScanSubmit;
 
+  /// No description provided for @paymentQrScanDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Payment QR Code'**
+  String get paymentQrScanDialogTitle;
+
+  /// No description provided for @paymentQrScanCameraHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Align the payment QR code in the frame'**
+  String get paymentQrScanCameraHint;
+
+  /// No description provided for @paymentQrScanInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanner input'**
+  String get paymentQrScanInputHint;
+
+  /// No description provided for @paymentQrScanActivateInput.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate scanner'**
+  String get paymentQrScanActivateInput;
+
+  /// No description provided for @paymentQrScanSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Use Code'**
+  String get paymentQrScanSubmit;
+
   /// No description provided for @settlementRescanAction.
   ///
   /// In en, this message translates to:
