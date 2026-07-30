@@ -145,7 +145,7 @@ abstract class AppLocalizations {
   /// No description provided for @entrySettlementTitle.
   ///
   /// In en, this message translates to:
-  /// **'Settlement'**
+  /// **'Order Settlement'**
   String get entrySettlementTitle;
 
   /// No description provided for @entrySettlementSubtitle.

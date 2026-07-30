@@ -7,7 +7,7 @@
   "entryDineInSubtitle": "店内利用に最適。店内メニューと価格を自動で適用します",
   "entryTakeoutTitle": "テイクアウト",
   "entryTakeoutSubtitle": "テイクアウト注文を迅速に処理し、専用メニューと特典を表示します",
-  "entrySettlementTitle": "会計モード",
+  "entrySettlementTitle": "注文会計",
   "entrySettlementSubtitle": "会計フローに進み、支払いを完了します",
   "entryStartSettlement": "会計を開始",
   "settlementOrderPageTitle": "QR会計",

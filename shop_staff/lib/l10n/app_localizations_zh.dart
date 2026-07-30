@@ -30,7 +30,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryTakeoutSubtitle => '快速处理外带订单，展示外带专属菜品与优惠';
 
   @override
-  String get entrySettlementTitle => '结算模式';
+  String get entrySettlementTitle => '订单结算';
 
   @override
   String get entrySettlementSubtitle => '进入结算流程并完成收款';

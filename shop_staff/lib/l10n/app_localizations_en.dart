@@ -32,7 +32,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Handle takeout orders with dedicated items and promotions';
 
   @override
-  String get entrySettlementTitle => 'Settlement';
+  String get entrySettlementTitle => 'Order Settlement';
 
   @override
   String get entrySettlementSubtitle =>

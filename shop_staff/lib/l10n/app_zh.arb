@@ -7,7 +7,7 @@
   "entryDineInSubtitle": "适用于店内用餐，自动匹配堂食菜单与价格",
   "entryTakeoutTitle": "外带打包",
   "entryTakeoutSubtitle": "快速处理外带订单，展示外带专属菜品与优惠",
-  "entrySettlementTitle": "结算模式",
+  "entrySettlementTitle": "订单结算",
   "entrySettlementSubtitle": "进入结算流程并完成收款",
   "entryStartSettlement": "开始结算",
   "settlementOrderPageTitle": "扫码结算",

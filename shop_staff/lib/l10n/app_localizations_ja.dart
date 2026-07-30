@@ -30,7 +30,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryTakeoutSubtitle => 'テイクアウト注文を迅速に処理し、専用メニューと特典を表示します';
 
   @override
-  String get entrySettlementTitle => '会計モード';
+  String get entrySettlementTitle => '注文会計';
 
   @override
   String get entrySettlementSubtitle => '会計フローに進み、支払いを完了します';
