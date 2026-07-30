@@ -290,6 +290,8 @@ final qrPaymentFlowProvider = Provider<QrPaymentFlow>((ref) {
     backendGateway: ref.watch(paymentBackendGatewayProvider),
     posPaymentService: ref.watch(posPaymentServiceProvider),
     cardGateway: ref.watch(posCardPaymentGatewayProvider),
+    readPosTerminalSettings: () =>
+        ref.read(appSettingsSnapshotProvider)?.posTerminal,
     logger: Logger('QrPaymentFlow'),
   );
 });

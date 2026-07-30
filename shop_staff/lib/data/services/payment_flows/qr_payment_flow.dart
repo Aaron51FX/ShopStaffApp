@@ -4,6 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:shop_staff/core/async/buffered_broadcast_controller.dart';
 import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/services/pos_payment_service.dart';
+import 'package:shop_staff/domain/settings/app_settings_models.dart';
 
 import '../payment_channel_support.dart';
 import '../payment_backend_gateway.dart';
@@ -18,18 +19,26 @@ class QrPaymentFlow implements PaymentFlow {
     required QrScannerService scannerService,
     required PaymentBackendGateway backendGateway,
     required PosPaymentService posPaymentService,
-    required PosCardPaymentGateway cardGateway,
+    PosCardPaymentGateway? cardGateway,
+    Future<CardPaymentRequestData> Function(PosPaymentRequest request)?
+    createPaymentRequest,
+    required PosTerminalSettings? Function() readPosTerminalSettings,
     Logger? logger,
   }) : _scannerService = scannerService,
        _backendGateway = backendGateway,
        _posPaymentService = posPaymentService,
-       _cardGateway = cardGateway,
+       assert(cardGateway != null || createPaymentRequest != null),
+       _createPaymentRequest =
+           createPaymentRequest ?? cardGateway!.createPaymentRequest,
+       _readPosTerminalSettings = readPosTerminalSettings,
        _logger = logger ?? Logger('QrPaymentFlow');
 
   final QrScannerService _scannerService;
   final PaymentBackendGateway _backendGateway;
   final PosPaymentService _posPaymentService;
-  final PosCardPaymentGateway _cardGateway;
+  final Future<CardPaymentRequestData> Function(PosPaymentRequest request)
+  _createPaymentRequest;
+  final PosTerminalSettings? Function() _readPosTerminalSettings;
   final Logger _logger;
 
   static const Duration _scanTimeout = Duration(seconds: 60);
@@ -148,12 +157,10 @@ class QrPaymentFlow implements PaymentFlow {
           ),
         );
         final request = _buildPosRequest(context, code);
-        final cardData = await _cardGateway
-            .createPaymentRequest(request)
-            .timeout(
-              _backendRequestTimeout,
-              onTimeout: () => throw TimeoutException('qr_backend_request'),
-            );
+        final cardData = await _createPaymentRequest(request).timeout(
+          _backendRequestTimeout,
+          onTimeout: () => throw TimeoutException('qr_backend_request'),
+        );
 
         if (!cardData.success) {
           final message = cardData.exceptionMessage ?? '';
@@ -179,14 +186,24 @@ class QrPaymentFlow implements PaymentFlow {
           return;
         }
 
-        final requestInfo = cardData.requestInfo;
-        if (requestInfo != null && requestInfo.isNotEmpty) {
+        final requestInfo = cardData.requestInfo?.trim() ?? '';
+        final exceptionMessage = cardData.exceptionMessage?.trim() ?? '';
+        if (requestInfo.isNotEmpty) {
+          if (exceptionMessage.isNotEmpty) {
+            await _finishBackendFailure(
+              controller: controller,
+              finish: finish,
+              message: exceptionMessage,
+            );
+            return;
+          }
+
           final sessionRequest = _requestWithPrefetchedData(
             context,
             request,
             cardData,
           );
-          _ensurePosConfig(sessionRequest.customPayload);
+          _applyDeferredPosConfig(sessionRequest.customPayload);
           await terminalStep.start(sessionRequest);
           return;
         }
@@ -216,25 +233,10 @@ class QrPaymentFlow implements PaymentFlow {
             ),
           );
         } else {
-          final message = cardData.exceptionMessage ?? '';
-          controller.add(
-            PaymentStatus(
-              type: PaymentStatusType.failure,
-              messageKey: PaymentMessageKeys.qrFailure,
-              messageArgs: {'detail': message},
-              errorType: PaymentErrorType.backend,
-              retryable: true,
-              phase: PaymentPhase.requesting,
-            ),
-          );
-          await finish(
-            PaymentResult.failure(
-              message: message,
-              messageKey: PaymentMessageKeys.qrFailure,
-              messageArgs: {'detail': message},
-              errorType: PaymentErrorType.backend,
-              retryable: true,
-            ),
+          await _finishBackendFailure(
+            controller: controller,
+            finish: finish,
+            message: exceptionMessage,
           );
         }
       } catch (e, stack) {
@@ -356,7 +358,7 @@ class QrPaymentFlow implements PaymentFlow {
     base['machineCode'] ??=
         context.metadata?['machineCode'] ?? context.order.orderId;
     base['authCode'] = code;
-    base['payType'] ??= context.channel.code;
+    base['payType'] = '';
     return PosPaymentRequest(
       order: context.order,
       channelGroup: PaymentChannels.card,
@@ -383,12 +385,16 @@ class QrPaymentFlow implements PaymentFlow {
     );
   }
 
-  void _ensurePosConfig(Map<String, dynamic>? payload) {
-    if (payload == null ||
-        payload['posIp'] == null ||
-        payload['posPort'] == null) {
+  void _applyDeferredPosConfig(Map<String, dynamic>? payload) {
+    final settings = _readPosTerminalSettings();
+    final posIp = settings?.posIp?.trim() ?? '';
+    final posPort = settings?.posPort;
+    if (payload == null || posIp.isEmpty || posPort == null || posPort <= 0) {
       throw StateError('POS_CONFIG_MISSING');
     }
+    payload['posIp'] = posIp;
+    payload['posPort'] = posPort;
+    payload['paymentCode'] = (payload['paymentCode'] ?? '3').toString();
   }
 
   bool _isUserCancelled(Object error) {
@@ -412,12 +418,49 @@ class QrPaymentFlow implements PaymentFlow {
             error.message == 'POS_PORT_INVALID');
   }
 
-  bool _readResultFlag(Map<String, dynamic> data) {
+  bool? _readResultFlag(Map<String, dynamic> data) {
+    if (!data.containsKey('result') || data['result'] == null) {
+      return null;
+    }
     final result = data['result'];
     if (result is bool) return result;
+    if (result is num) return result != 0;
     if (result is String) {
-      return result.toLowerCase() == 'true';
+      switch (result.trim().toLowerCase()) {
+        case 'true':
+        case '1':
+          return true;
+        case 'false':
+        case '0':
+          return false;
+      }
     }
-    return false;
+    return null;
+  }
+
+  Future<void> _finishBackendFailure({
+    required BufferedBroadcastController<PaymentStatus> controller,
+    required Future<void> Function(PaymentResult result) finish,
+    required String message,
+  }) async {
+    controller.add(
+      PaymentStatus(
+        type: PaymentStatusType.failure,
+        messageKey: PaymentMessageKeys.qrFailure,
+        messageArgs: {'detail': message},
+        errorType: PaymentErrorType.backend,
+        retryable: true,
+        phase: PaymentPhase.requesting,
+      ),
+    );
+    await finish(
+      PaymentResult.failure(
+        message: message,
+        messageKey: PaymentMessageKeys.qrFailure,
+        messageArgs: {'detail': message},
+        errorType: PaymentErrorType.backend,
+        retryable: true,
+      ),
+    );
   }
 }

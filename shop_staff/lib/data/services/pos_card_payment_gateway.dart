@@ -28,12 +28,15 @@ class CardCancelInstruction {
 }
 
 class PosCardPaymentGateway {
-  PosCardPaymentGateway(this._remote, {Logger? logger}) : _logger = logger ?? Logger('PosCardPaymentGateway');
+  PosCardPaymentGateway(this._remote, {Logger? logger})
+    : _logger = logger ?? Logger('PosCardPaymentGateway');
 
   final PosRemoteDataSource _remote;
   final Logger _logger;
 
-  Future<CardPaymentRequestData> createPaymentRequest(PosPaymentRequest request) async {
+  Future<CardPaymentRequestData> createPaymentRequest(
+    PosPaymentRequest request,
+  ) async {
     final payload = _buildRequestPayload(request);
     final resp = await _remote.requestPosPayment(payload);
     if (resp is! Map<String, dynamic>) {
@@ -102,14 +105,17 @@ class PosCardPaymentGateway {
       return '0000000088888888';
     }
 
-    final machineCode = readString('machineCode', fallback: request.order.orderId);
+    final machineCode = readString(
+      'machineCode',
+      fallback: request.order.orderId,
+    );
     final payType = readString('payType');
     final base = <String, dynamic>{
       'auth_code': authCode(),
       'machineCode': machineCode,
       'orderId': request.order.orderId,
     };
-    if (payType.isNotEmpty) {
+    if (map.containsKey('payType') || payType.isNotEmpty) {
       base['payType'] = payType;
     }
     final extra = map['extraParams'];
@@ -119,7 +125,9 @@ class PosCardPaymentGateway {
     return base;
   }
 
-  Future<CardCancelInstruction> fetchCancelInstruction(PosPaymentRequest request) async {
+  Future<CardCancelInstruction> fetchCancelInstruction(
+    PosPaymentRequest request,
+  ) async {
     final payload = _buildCancelPayload(request);
     final resp = await _remote.cancelCreditCard(payload);
     if (resp is! Map<String, dynamic>) {
@@ -177,11 +185,11 @@ class PosCardPaymentGateway {
       return fallback ?? '';
     }
 
-    final machineCode = readString('machineCode', fallback: request.order.orderId);
+    final machineCode = readString(
+      'machineCode',
+      fallback: request.order.orderId,
+    );
 
-    return {
-      'machineCode': machineCode,
-      'orderId': request.order.orderId,
-    };
+    return {'machineCode': machineCode, 'orderId': request.order.orderId};
   }
 }

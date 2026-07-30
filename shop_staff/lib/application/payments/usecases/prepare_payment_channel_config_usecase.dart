@@ -24,12 +24,11 @@ class PreparePaymentChannelConfigUseCase {
 
     config.putIfAbsent('machineCode', () => args.metadata?['machineCode']);
 
-    final posInfo = _readSettingsSnapshot()?.posTerminal;
     final needsPos =
         args.paymentMode == PaymentFlowMode.real &&
-        (args.channelGroup == PaymentChannels.card ||
-            args.channelGroup == PaymentChannels.qr);
+        args.channelGroup == PaymentChannels.card;
     if (needsPos) {
+      final posInfo = _readSettingsSnapshot()?.posTerminal;
       final ip = posInfo?.posIp?.toString();
       final dynamic portRaw = posInfo?.posPort;
       int? port;
