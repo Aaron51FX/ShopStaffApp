@@ -1,12 +1,13 @@
 class ApiException implements Exception {
+  static const String defaultMessage = '服务异常，请联系供应商。';
+
   final String message;
   final int? statusCode;
   final dynamic data;
   ApiException(this.message, {this.statusCode, this.data});
 
   @override
-  String toString() =>
-      'ApiException(statusCode: $statusCode, message: $message, data: $data)';
+  String toString() => message;
 }
 
 class ApiResult<T> {

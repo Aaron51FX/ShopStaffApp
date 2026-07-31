@@ -147,11 +147,20 @@ class DioClient {
   }
 
   ApiException _mapDioError(DioException e) {
+    final responseMessage = _responseMessage(e.response?.data);
     return ApiException(
-      e.message ?? 'Network Error',
+      responseMessage ?? ApiException.defaultMessage,
       statusCode: e.response?.statusCode,
       data: e.response?.data,
     );
+  }
+
+  String? _responseMessage(dynamic data) {
+    if (data is! Map) return null;
+    final message = data['message'];
+    if (message is! String) return null;
+    final normalized = message.trim();
+    return normalized.isEmpty ? null : normalized;
   }
 }
 
