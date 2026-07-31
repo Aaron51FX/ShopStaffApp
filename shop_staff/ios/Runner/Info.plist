@@ -26,16 +26,16 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Use Bluetooth for communication with the printer.</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Use Bluetooth for communication with the printer.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Use the camera to scan order and activation QR codes.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>Use Bluetooth for communication with the printer.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_shop-staff._tcp</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Use the camera to scan order and activation QR codes.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>允许在本地网络中发现并连接到顾客/店员设备。</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
