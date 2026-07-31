@@ -102,6 +102,7 @@ class _CashRegisterClosurePageState
   ) {
     return showDialog<CashRegisterClosureMailAccount>(
       context: context,
+      barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
           title: Text(

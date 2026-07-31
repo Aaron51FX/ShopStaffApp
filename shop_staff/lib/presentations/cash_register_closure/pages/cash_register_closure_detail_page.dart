@@ -62,6 +62,7 @@ class _CashRegisterClosureDetailPageState
 
   CashRegisterClosureSummary? _summary;
   CashRegisterClosureVerifyInput? _input;
+  late bool _confirmed;
   bool _loading = false;
   String? _error;
 
@@ -70,6 +71,7 @@ class _CashRegisterClosureDetailPageState
     super.initState();
     _summary = widget.summary;
     _input = widget.input;
+    _confirmed = widget.isHistory;
   }
 
   @override
@@ -151,6 +153,8 @@ class _CashRegisterClosureDetailPageState
 
     try {
       await ref.read(cashRegisterClosureUseCasesProvider).confirm(input);
+      if (!mounted) return;
+      setState(() => _confirmed = true);
       await ref
           .read(cashRegisterClosureUseCasesProvider)
           .saveConfirmedHistory(summary);
@@ -216,11 +220,8 @@ class _CashRegisterClosureDetailPageState
       request: PrintJobRequest(
         machineCode: widget.machineCode,
         printers: printers,
-        document: _buildPrintDocument(
-          summary,
-          widget.shopName,
-          AppLocalizations.of(context),
-        ),
+        receiptOnly: true,
+        document: _buildPrintDocument(summary, widget.shopName),
       ),
     );
   }
@@ -247,7 +248,7 @@ class _CashRegisterClosureDetailPageState
         backgroundColor: Colors.white,
         foregroundColor: AppColors.stone500,
         actions: [
-          if (summary != null)
+          if (_confirmed && summary != null)
             IconButton(
               tooltip: AppLocalizations.of(
                 context,
@@ -257,8 +258,7 @@ class _CashRegisterClosureDetailPageState
             ),
         ],
       ),
-      floatingActionButton:
-          !widget.isHistory && _input != null && summary != null
+      floatingActionButton: !_confirmed && _input != null && summary != null
           ? FloatingActionButton.extended(
               onPressed: _loading ? null : _confirmClosure,
               icon: const Icon(Icons.verified_rounded),
@@ -304,34 +304,8 @@ class _CashRegisterClosureDetailPageState
 PrintInfoDocument _buildPrintDocument(
   CashRegisterClosureSummary summary,
   String fallbackShopName,
-  AppLocalizations t,
 ) {
-  final lines = [
-    PrintOrderLine(
-      name: t.cashRegisterClosureSalesTotal,
-      price: summary.total,
-      qty: 1,
-    ),
-    PrintOrderLine(
-      name: t.cashRegisterClosurePaymentCash,
-      price: summary.cashTotal,
-      qty: 1,
-    ),
-    PrintOrderLine(
-      name: t.cashRegisterClosurePaymentCredit,
-      price: summary.creditCardTotal,
-      qty: 1,
-    ),
-    PrintOrderLine(name: 'PayPay', price: summary.payPayTotal, qty: 1),
-    PrintOrderLine(name: 'Alipay', price: summary.aliPayTotal, qty: 1),
-    PrintOrderLine(name: 'WeChat', price: summary.wechatTotal, qty: 1),
-    PrintOrderLine(
-      name: t.cashRegisterClosureRefundAmount,
-      price: summary.repaymentTotal,
-      qty: 1,
-    ),
-  ].where((line) => line.price != 0).toList(growable: false);
-
+  const printTitle = 'レジ締め';
   return PrintInfoDocument(
     shopName: summary.shopName.isNotEmpty ? summary.shopName : fallbackShopName,
     shopCode: summary.shopCode,
@@ -340,36 +314,18 @@ PrintInfoDocument _buildPrintDocument(
     orderDate: summary.printTime.isNotEmpty
         ? summary.printTime
         : DateTime.now().toString(),
-    order: t.cashRegisterClosureTitle,
+    order: printTitle,
     serialNumber: 'REGI',
     price: summary.total,
     payPrice: summary.total,
-    payMethod: t.cashRegisterClosureTitle,
-    language: t.localeName,
+    payMethod: printTitle,
+    language: 'JP',
     details: [
       {
         'documentType': 'cash_register_closure',
         'summary': _cashRegisterClosurePrintSummaryJson(summary),
       },
     ],
-    printInfo: PrintTicketInfo(
-      orderTime: summary.printTime,
-      fromPlate: 'Shop',
-      orderSnCode: t.cashRegisterClosureTitle,
-      orderType: 'Shop_In',
-      payType: t.cashRegisterClosureTitle,
-      orderLinesMap: {
-        PrinterSettings.localType.toString(): lines.isEmpty
-            ? [
-                PrintOrderLine(
-                  name: t.cashRegisterClosureSalesTotal,
-                  price: 0,
-                  qty: 1,
-                ),
-              ]
-            : lines,
-      },
-    ),
   );
 }
 
