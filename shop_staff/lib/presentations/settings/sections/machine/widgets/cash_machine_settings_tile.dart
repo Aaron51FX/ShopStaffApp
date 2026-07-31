@@ -28,12 +28,16 @@ class _CashMachineTile extends ConsumerStatefulWidget {
 
 class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
   bool _busy = false;
+  bool _openingDrawer = false;
   bool _progressVisible = false;
 
   CashMachineSettings get _cashMachine => widget.basic.cashMachine;
 
   bool get _isConfigured =>
       _cashMachine.brand != null && _cashMachine.isConfigured;
+
+  bool get _isStarConfigured =>
+      _isConfigured && _cashMachine.brand == CashMachineBrand.star;
 
   Future<void> _setEnabled(bool value) async {
     if (!_isConfigured) {
@@ -52,6 +56,43 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
             cashMachine: settings,
           ),
         );
+  }
+
+  Future<void> _openStarDrawer() async {
+    if (!_isStarConfigured || _busy || _openingDrawer) {
+      return;
+    }
+
+    final t = AppLocalizations.of(context);
+    setState(() {
+      _openingDrawer = true;
+    });
+
+    try {
+      await ref
+          .read(starXpandCashDrawerServiceProvider)
+          .openDrawer(settings: _cashMachine);
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(t.settingsCashMachineOpenDrawerSuccess)),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      await _showMessageDialog(
+        title: t.settingsCashMachineOpenDrawerAction,
+        message: error.toString(),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _openingDrawer = false;
+        });
+      }
+    }
   }
 
   Future<void> _startAddFlow() async {
@@ -476,7 +517,9 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
               ),
               Switch.adaptive(
                 value: _isConfigured && cashMachine.enabled,
-                onChanged: (!_isConfigured || _busy) ? null : _setEnabled,
+                onChanged: (!_isConfigured || _busy || _openingDrawer)
+                    ? null
+                    : _setEnabled,
               ),
             ],
           ),
@@ -492,6 +535,22 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
               icon: Icons.sell_outlined,
               label: t.settingsLocalPrinterBrandLabel,
               value: brandLabel,
+              trailing: _isStarConfigured
+                  ? OutlinedButton.icon(
+                      key: const ValueKey('settings_cash_machine_open_drawer'),
+                      onPressed: (_busy || _openingDrawer)
+                          ? null
+                          : _openStarDrawer,
+                      icon: _openingDrawer
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.point_of_sale_rounded, size: 18),
+                      label: Text(t.settingsCashMachineOpenDrawerAction),
+                    )
+                  : null,
             ),
             _InfoRow(
               icon: Icons.print_rounded,
@@ -525,7 +584,7 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
             runSpacing: 12,
             children: [
               FilledButton.icon(
-                onPressed: _busy ? null : _startAddFlow,
+                onPressed: (_busy || _openingDrawer) ? null : _startAddFlow,
                 icon: _busy
                     ? const SizedBox(
                         width: 16,
@@ -545,6 +604,7 @@ class _CashMachineTileState extends ConsumerState<_CashMachineTile> {
                 onPressed:
                     (!_isConfigured ||
                         !_cashMachine.enabled ||
+                        _openingDrawer ||
                         widget.checkState.isChecking)
                     ? null
                     : () => ref

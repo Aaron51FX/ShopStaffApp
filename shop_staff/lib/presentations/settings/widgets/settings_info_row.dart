@@ -7,6 +7,7 @@ class _InfoRow extends StatelessWidget {
     required this.value,
     this.onEdit,
     this.editLabel,
+    this.trailing,
   });
 
   final IconData icon;
@@ -14,6 +15,7 @@ class _InfoRow extends StatelessWidget {
   final String value;
   final VoidCallback? onEdit;
   final String? editLabel;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +56,7 @@ class _InfoRow extends StatelessWidget {
               ],
             ),
           ),
+          if (trailing != null) ...[const SizedBox(width: 12), trailing!],
           if (onEdit != null) ...[
             const SizedBox(width: 12),
             TextButton.icon(

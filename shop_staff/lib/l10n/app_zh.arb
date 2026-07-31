@@ -124,6 +124,8 @@
   "settingsCashSkipOnce": "跳过本次",
   "settingsCashMachineAddAction": "添加现金机",
   "settingsCashMachineReplaceAction": "更换现金机",
+  "settingsCashMachineOpenDrawerAction": "打开钱箱",
+  "settingsCashMachineOpenDrawerSuccess": "打开钱箱指令已发送。",
   "settingsCashMachineBrandDialogTitle": "选择现金机品牌",
   "settingsCashMachineBrandGloryHint": "暂限 Windows",
   "settingsCashMachineBrandStarHint": "搜索并校验 Star 钱箱",

@@ -116,7 +116,7 @@ class _SystemSettingsView extends ConsumerWidget {
             if (actuarialSupported) ...[
               const SizedBox(height: 8),
               _OrderModeSupportTile(
-                icon: Icons.point_of_sale_rounded,
+                icon: Icons.qr_code_rounded,
                 label: t.entrySettlementTitle,
                 selected: basic.orderModes.settlement,
                 canDisable: availableModeCount > 1,

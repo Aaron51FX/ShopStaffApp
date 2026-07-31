@@ -124,6 +124,8 @@
   "settingsCashSkipOnce": "今回はスキップ",
   "settingsCashMachineAddAction": "現金機を追加",
   "settingsCashMachineReplaceAction": "現金機を変更",
+  "settingsCashMachineOpenDrawerAction": "ドロアを開く",
+  "settingsCashMachineOpenDrawerSuccess": "ドロアを開く指示を送信しました。",
   "settingsCashMachineBrandDialogTitle": "現金機ブランドを選択",
   "settingsCashMachineBrandGloryHint": "現在は Windows のみ対応",
   "settingsCashMachineBrandStarHint": "Star ドロワーを検索して状態を確認します",

@@ -277,6 +277,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCashMachineReplaceAction => '更换现金机';
 
   @override
+  String get settingsCashMachineOpenDrawerAction => '打开钱箱';
+
+  @override
+  String get settingsCashMachineOpenDrawerSuccess => '打开钱箱指令已发送。';
+
+  @override
   String get settingsCashMachineBrandDialogTitle => '选择现金机品牌';
 
   @override

@@ -124,6 +124,8 @@
   "settingsCashSkipOnce": "Skip for now",
   "settingsCashMachineAddAction": "Add cash machine",
   "settingsCashMachineReplaceAction": "Change cash machine",
+  "settingsCashMachineOpenDrawerAction": "Open drawer",
+  "settingsCashMachineOpenDrawerSuccess": "Open drawer command sent.",
   "settingsCashMachineBrandDialogTitle": "Select cash machine brand",
   "settingsCashMachineBrandGloryHint": "Windows only for now.",
   "settingsCashMachineBrandStarHint": "Search and validate a Star cash drawer.",

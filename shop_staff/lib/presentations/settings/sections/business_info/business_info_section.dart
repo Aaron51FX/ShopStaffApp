@@ -38,7 +38,7 @@ class _BusinessInfoView extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         _NavigationRow(
-          icon: Icons.point_of_sale_rounded,
+          icon: Icons.qr_code_rounded,
           title: t.cashRegisterClosureTitle,
           subtitle: t.cashRegisterClosureSettingsSubtitle,
           onTap: () {

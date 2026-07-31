@@ -299,6 +299,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsCashMachineReplaceAction => 'Change cash machine';
 
   @override
+  String get settingsCashMachineOpenDrawerAction => 'Open drawer';
+
+  @override
+  String get settingsCashMachineOpenDrawerSuccess =>
+      'Open drawer command sent.';
+
+  @override
   String get settingsCashMachineBrandDialogTitle => 'Select cash machine brand';
 
   @override

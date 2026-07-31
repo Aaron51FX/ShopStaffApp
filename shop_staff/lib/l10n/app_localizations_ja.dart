@@ -283,6 +283,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsCashMachineReplaceAction => '現金機を変更';
 
   @override
+  String get settingsCashMachineOpenDrawerAction => 'ドロアを開く';
+
+  @override
+  String get settingsCashMachineOpenDrawerSuccess => 'ドロアを開く指示を送信しました。';
+
+  @override
   String get settingsCashMachineBrandDialogTitle => '現金機ブランドを選択';
 
   @override

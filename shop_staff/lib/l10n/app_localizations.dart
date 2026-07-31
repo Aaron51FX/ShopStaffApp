@@ -604,6 +604,18 @@ abstract class AppLocalizations {
   /// **'Change cash machine'**
   String get settingsCashMachineReplaceAction;
 
+  /// No description provided for @settingsCashMachineOpenDrawerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open drawer'**
+  String get settingsCashMachineOpenDrawerAction;
+
+  /// No description provided for @settingsCashMachineOpenDrawerSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Open drawer command sent.'**
+  String get settingsCashMachineOpenDrawerSuccess;
+
   /// No description provided for @settingsCashMachineBrandDialogTitle.
   ///
   /// In en, this message translates to:
