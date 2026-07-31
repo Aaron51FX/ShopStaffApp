@@ -79,13 +79,17 @@ class PrintJobViewModel extends StateNotifier<PrintProgressState> {
       _logger.info(
         'Generating print jobs for ${activePrinters.length} printers',
       );
-      final results = await _service.enqueuePrintJobs(
-        document: doc,
-        printers: activePrinters,
-        includeKitchenJobs: !request.receiptOnly,
-        includeOrderTicket: !request.receiptOnly,
-        logoImageBase64: request.logoImageBase64,
-      );
+      final results = request.receiptOnly
+          ? await _service.enqueueReceiptJobs(
+              document: doc,
+              printers: activePrinters,
+              logoImageBase64: request.logoImageBase64,
+            )
+          : await _service.enqueuePrintJobs(
+              document: doc,
+              printers: activePrinters,
+              logoImageBase64: request.logoImageBase64,
+            );
       final updatedJobs = results
           .map(
             (r) => PrintJobStateItem(

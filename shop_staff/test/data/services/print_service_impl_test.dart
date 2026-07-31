@@ -254,6 +254,57 @@ void main() {
     });
 
     test(
+      'receipt-only native print does not require PrintTicketInfo or order lines',
+      () async {
+        final nativePrinter = _FakeNativeReceiptPrinter();
+        final service = PrintServiceImpl(
+          renderer: _ThrowingReceiptRenderer(),
+          nativeReceiptPrinter: nativePrinter,
+        );
+        const details = <Map<String, dynamic>>[
+          <String, dynamic>{
+            'documentType': 'cash_register_closure',
+            'summary': <String, dynamic>{
+              'machineCode': 'M001',
+              'shopName': 'Tokyo Shop',
+              'total': 12345,
+            },
+          },
+        ];
+
+        final results = await service.enqueueReceiptJobs(
+          document: const PrintInfoDocument(
+            shopName: 'Tokyo Shop',
+            orderDate: '2026-07-31 21:00',
+            order: '收银结算',
+            price: 12345,
+            payPrice: 12345,
+            payMethod: '收银结算',
+            language: 'JP',
+            details: details,
+          ),
+          printers: const <PrinterSettings>[
+            PrinterSettings(
+              name: 'Star BLE',
+              type: PrinterSettings.localType,
+              backend: PrinterBackend.starXpandNative,
+              connectionType: PrinterConnectionType.bluetoothLe,
+              isOn: true,
+              isDefault: true,
+              deviceIdentifier: 'BLE:STAR:CLOSURE',
+            ),
+          ],
+        );
+
+        expect(results, hasLength(1));
+        expect(nativePrinter.calls, hasLength(1));
+        expect(nativePrinter.calls.single.document.lines, isEmpty);
+        expect(nativePrinter.calls.single.document.transaction.locale, 'ja-JP');
+        expect(nativePrinter.calls.single.document.extras['details'], details);
+      },
+    );
+
+    test(
       'orderLines-only documents print on the local default printer',
       () async {
         final nativePrinter = _FakeNativeReceiptPrinter();

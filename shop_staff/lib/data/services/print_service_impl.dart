@@ -95,10 +95,7 @@ class PrintServiceImpl implements PrintService {
     String? logoImageBase64,
   }) async {
     final results = <PrintJobResult>[];
-    final info = document.printInfo;
-    if (info == null || info.orderLines.isEmpty || printers.isEmpty) {
-      return results;
-    }
+    if (printers.isEmpty) return results;
 
     final printer = _pickLocalDefaultReceiptPrinter(printers);
     if (printer == null) return results;
@@ -179,9 +176,6 @@ class PrintServiceImpl implements PrintService {
     bool includeOrderTicket = true,
     String? logoImageBase64,
   }) async {
-    final info = document.printInfo;
-    if (info == null) return null;
-
     if (printer.usesNativeSdk) {
       return _printReceiptNative(
         document,
@@ -191,6 +185,8 @@ class PrintServiceImpl implements PrintService {
       );
     }
 
+    final info = document.printInfo;
+    if (info == null) return null;
     final isTakeOut = document.takeOut;
     final items = _toLegacyItems(info.orderLines);
     if (items.isEmpty) return null;
