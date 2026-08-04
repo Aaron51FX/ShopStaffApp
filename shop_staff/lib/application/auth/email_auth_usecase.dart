@@ -24,6 +24,11 @@ class EmailAuthUseCase {
     return _authRepository.sendEmailVerificationCode(email);
   }
 
+  Future<String?> readLastEmail() async {
+    final email = (await _store.read(AppStorageKeys.staffEmail))?.trim();
+    return email == null || email.isEmpty ? null : email;
+  }
+
   Future<bool> login({
     required String email,
     required String verificationCode,

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_categories_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_category_products_usecase.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
+import 'package:shop_staff/data/services/pos_favorites_store.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/domain/repositories/menu_repository.dart';
 import 'package:shop_staff/presentations/pos/catalog/controllers/pos_catalog_controller.dart';
@@ -10,13 +11,7 @@ import 'package:shop_staff/presentations/pos/catalog/controllers/pos_catalog_con
 void main() {
   test('loads one category at a time and filters its products', () async {
     final repository = _MenuRepository();
-    final controller = PosCatalogController(
-      fetchCategories: FetchCategoriesUseCase(menuRepository: repository),
-      fetchProducts: FetchCategoryProductsUseCase(menuRepository: repository),
-      readMachineCode: () => 'M01',
-      readLanguage: () => 'ja',
-      readTakeout: () => false,
-    );
+    final controller = _buildController(repository, _MemoryFavoritesStore());
 
     await controller.load();
     controller.search('Tea');
@@ -26,6 +21,50 @@ void main() {
     expect(controller.state.products.map((product) => product.name), ['Tea']);
     expect(repository.requestedCategories, ['drink']);
   });
+
+  test('restores favorite products after controller restart', () async {
+    final store = _MemoryFavoritesStore();
+    final firstController = _buildController(_MenuRepository(), store);
+    await firstController.load();
+
+    final coffee = firstController.state.products.first;
+    await firstController.toggleFavorite(coffee);
+
+    final restartedController = _buildController(_MenuRepository(), store);
+    await restartedController.load();
+    await restartedController.selectCategory(
+      PosCatalogController.favoritesCategoryCode,
+    );
+
+    expect(restartedController.state.favoriteProductIds, {coffee.id});
+    expect(restartedController.state.products, [coffee]);
+  });
+}
+
+PosCatalogController _buildController(
+  _MenuRepository repository,
+  PosFavoritesStore favoritesStore,
+) {
+  return PosCatalogController(
+    fetchCategories: FetchCategoriesUseCase(menuRepository: repository),
+    fetchProducts: FetchCategoryProductsUseCase(menuRepository: repository),
+    readMachineCode: () => 'M01',
+    readLanguage: () => 'ja',
+    readTakeout: () => false,
+    favoritesStore: favoritesStore,
+  );
+}
+
+class _MemoryFavoritesStore implements PosFavoritesStore {
+  List<Product> products = const [];
+
+  @override
+  Future<List<Product>> load() async => List<Product>.of(products);
+
+  @override
+  Future<void> save(Iterable<Product> products) async {
+    this.products = List<Product>.of(products);
+  }
 }
 
 class _MenuRepository implements MenuRepository {

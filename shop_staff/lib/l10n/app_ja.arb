@@ -655,6 +655,7 @@
   "paymentPrintDialogSkip": "スキップ",
   "paymentPrintDialogComplete": "完了",
   "paymentPrintDialogContinueBackground": "バックグラウンドで続行",
+  "smartWeAdminAppOpenFailed": "SmartWe Adminを開けません。対象アプリがインストールされ、smartwe-admin URL Schemeが登録されていることを確認してください。",
   "paymentErrorPosIpMissing": "POS端末のIPが未設定です",
   "paymentErrorPosPortInvalid": "POS端末のポートが未設定または無効です",
   "paymentErrorPosConfigMissing": "POS端末の設定が不足しています",

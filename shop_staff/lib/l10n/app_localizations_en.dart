@@ -1636,6 +1636,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentPrintDialogContinueBackground => 'Continue in background';
 
   @override
+  String get smartWeAdminAppOpenFailed =>
+      'Unable to open SmartWe Admin. Make sure the target app is installed and has registered the smartwe-admin URL scheme.';
+
+  @override
   String get paymentErrorPosIpMissing => 'POS terminal IP is not configured';
 
   @override

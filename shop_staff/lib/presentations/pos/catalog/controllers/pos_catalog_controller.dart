@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:shop_staff/application/pos/usecases/fetch_categories_usecase.dart';
 import 'package:shop_staff/application/pos/usecases/fetch_category_products_usecase.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
+import 'package:shop_staff/data/services/pos_favorites_store.dart';
 import 'package:shop_staff/domain/entities/product.dart';
 import 'package:shop_staff/presentations/pos/catalog/state/pos_catalog_state.dart';
 
@@ -13,11 +16,13 @@ class PosCatalogController extends StateNotifier<PosCatalogState> {
     required String? Function() readMachineCode,
     required String Function() readLanguage,
     required bool Function() readTakeout,
+    required PosFavoritesStore favoritesStore,
   }) : _fetchCategories = fetchCategories,
        _fetchProducts = fetchProducts,
        _readMachineCode = readMachineCode,
        _readLanguage = readLanguage,
        _readTakeout = readTakeout,
+       _favoritesStore = favoritesStore,
        super(const PosCatalogState());
 
   static const favoritesCategoryCode = '__favorites__';
@@ -27,15 +32,19 @@ class PosCatalogController extends StateNotifier<PosCatalogState> {
   final String? Function() _readMachineCode;
   final String Function() _readLanguage;
   final bool Function() _readTakeout;
+  final PosFavoritesStore _favoritesStore;
 
   String? _lastFetchKey;
   int _productRequestId = 0;
   List<Product> _categoryProducts = const [];
   final Map<int, Product> _favoriteCache = {};
+  Future<void>? _favoritesRestoreFuture;
+  Future<void> _favoritesSaveQueue = Future<void>.value();
 
   bool get hasCategories => state.categories.isNotEmpty;
 
   Future<void> load({bool force = false}) async {
+    await _ensureFavoritesRestored();
     final machineCode = _readMachineCode();
     if (machineCode == null || machineCode.isEmpty) {
       state = state.copyWith(loading: false, error: 'MACHINE_CODE_MISSING');
@@ -101,7 +110,7 @@ class PosCatalogController extends StateNotifier<PosCatalogState> {
     state = state.copyWith(searchQuery: query, products: _filtered(query));
   }
 
-  void toggleFavorite(Product product) {
+  Future<void> toggleFavorite(Product product) {
     final favorites = state.favoriteProductIds.toSet();
     if (favorites.remove(product.id)) {
       _favoriteCache.remove(product.id);
@@ -111,6 +120,7 @@ class PosCatalogController extends StateNotifier<PosCatalogState> {
     }
     state = state.copyWith(favoriteProductIds: favorites);
     if (state.currentCategory == favoritesCategoryCode) _showFavorites();
+    return _enqueueFavoritesSave();
   }
 
   Future<void> _loadProducts(String categoryCode) async {
@@ -130,6 +140,17 @@ class PosCatalogController extends StateNotifier<PosCatalogState> {
         ),
       );
       if (requestId != _productRequestId) return;
+      var favoriteChanged = false;
+      for (final product in _categoryProducts) {
+        if (state.favoriteProductIds.contains(product.id) &&
+            _favoriteCache[product.id] != product) {
+          _favoriteCache[product.id] = product;
+          favoriteChanged = true;
+        }
+      }
+      if (favoriteChanged) {
+        unawaited(_enqueueFavoritesSave());
+      }
       state = state.copyWith(
         products: _filtered(state.searchQuery),
         loading: false,
@@ -161,5 +182,34 @@ class PosCatalogController extends StateNotifier<PosCatalogState> {
       loading: false,
       error: null,
     );
+  }
+
+  Future<void> _ensureFavoritesRestored() {
+    return _favoritesRestoreFuture ??= _restoreFavorites();
+  }
+
+  Future<void> _restoreFavorites() async {
+    final products = await _favoritesStore.load();
+    _favoriteCache
+      ..clear()
+      ..addEntries(products.map((product) => MapEntry(product.id, product)));
+    state = state.copyWith(
+      favoriteProductIds: products.map((product) => product.id).toSet(),
+    );
+  }
+
+  Future<void> _enqueueFavoritesSave() {
+    final snapshot = state.favoriteProductIds
+        .map((id) => _favoriteCache[id])
+        .whereType<Product>()
+        .toList(growable: false);
+    return _favoritesSaveQueue = _favoritesSaveQueue.then((_) async {
+      try {
+        await _favoritesStore.save(snapshot);
+      } catch (_) {
+        // Favorites are a local convenience. Keep the current in-memory state
+        // even when device storage is temporarily unavailable.
+      }
+    });
   }
 }

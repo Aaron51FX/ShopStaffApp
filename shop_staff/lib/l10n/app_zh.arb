@@ -655,6 +655,7 @@
   "paymentPrintDialogSkip": "跳过",
   "paymentPrintDialogComplete": "完成",
   "paymentPrintDialogContinueBackground": "后台继续",
+  "smartWeAdminAppOpenFailed": "无法打开 SmartWe Admin，请确认目标 App 已安装并注册 smartwe-admin URL Scheme。",
   "paymentErrorPosIpMissing": "未配置POS终端IP",
   "paymentErrorPosPortInvalid": "未配置POS终端端口或端口格式错误",
   "paymentErrorPosConfigMissing": "缺少POS终端配置",

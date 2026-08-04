@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shop_staff/application/checkout/checkout_providers.dart';
 import 'package:shop_staff/application/checkout/checkout_state.dart';
 import 'package:shop_staff/application/printing/models/print_job_request.dart';
+import 'package:shop_staff/core/external_apps/smartwe_admin_launcher.dart';
 import 'package:shop_staff/presentations/printing/show_print_dialog.dart';
 
 /// Checkout-owned bridge that presents printing without coupling payment UI to
@@ -53,6 +54,9 @@ class _CheckoutPrintListenerState extends ConsumerState<CheckoutPrintListener> {
         context: context,
         ref: ref,
         request: request,
+        onDone: () {
+          unawaited(_openSmartWeAdmin());
+        },
         onCompleted: () {
           if (mounted) context.go('/entry');
         },
@@ -60,6 +64,15 @@ class _CheckoutPrintListenerState extends ConsumerState<CheckoutPrintListener> {
     } finally {
       coordinator.printingCompleted();
       _printing = false;
+    }
+  }
+
+  Future<void> _openSmartWeAdmin() async {
+    try {
+      await ref.read(smartWeAdminLauncherProvider).open();
+    } catch (_) {
+      // The checkout is already complete. If the target app is unavailable,
+      // keep the user on this app's entry page instead of failing the flow.
     }
   }
 

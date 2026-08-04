@@ -1570,6 +1570,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentPrintDialogContinueBackground => 'バックグラウンドで続行';
 
   @override
+  String get smartWeAdminAppOpenFailed =>
+      'SmartWe Adminを開けません。対象アプリがインストールされ、smartwe-admin URL Schemeが登録されていることを確認してください。';
+
+  @override
   String get paymentErrorPosIpMissing => 'POS端末のIPが未設定です';
 
   @override

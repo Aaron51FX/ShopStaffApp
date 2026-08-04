@@ -30,7 +30,11 @@ void main() {
       await service.clear();
 
       expect(await storage.read(AppStorageKeys.activationCode), isNull);
-      expect(await storage.read(AppStorageKeys.staffEmail), isNull);
+      expect(
+        await storage.read(AppStorageKeys.staffEmail),
+        'staff@example.com',
+        reason: 'logout must preserve the last email for login prefill',
+      );
       expect(await storage.read(AppStorageKeys.appRole), 'staff');
       expect(
         await storage.read(AppStorageKeys.settingsBasic),

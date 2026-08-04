@@ -655,6 +655,7 @@
   "paymentPrintDialogSkip": "Skip",
   "paymentPrintDialogComplete": "Done",
   "paymentPrintDialogContinueBackground": "Continue in background",
+  "smartWeAdminAppOpenFailed": "Unable to open SmartWe Admin. Make sure the target app is installed and has registered the smartwe-admin URL scheme.",
   "paymentErrorPosIpMissing": "POS terminal IP is not configured",
   "paymentErrorPosPortInvalid": "POS terminal port is missing or invalid",
   "paymentErrorPosConfigMissing": "POS configuration is missing",

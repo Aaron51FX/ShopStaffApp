@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shop_staff/application/cash_register_closure/cash_register_closure_usecases.dart';
+import 'package:shop_staff/core/external_apps/smartwe_admin_launcher.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
 import 'package:shop_staff/data/models/print_info.dart';
 import 'package:shop_staff/data/providers.dart';
@@ -189,7 +191,7 @@ class _CashRegisterClosureDetailPageState
         },
       );
       if (shouldPrint == true) {
-        await _printSummary();
+        await _printSummary(openSmartWeAdminOnDone: true);
       }
     } catch (error) {
       if (mounted) {
@@ -202,7 +204,7 @@ class _CashRegisterClosureDetailPageState
     }
   }
 
-  Future<void> _printSummary() async {
+  Future<void> _printSummary({bool openSmartWeAdminOnDone = false}) async {
     final summary = _summary;
     if (summary == null) return;
     final printers =
@@ -223,7 +225,23 @@ class _CashRegisterClosureDetailPageState
         receiptOnly: true,
         document: _buildPrintDocument(summary, widget.shopName),
       ),
+      onDone: openSmartWeAdminOnDone
+          ? () => unawaited(_openSmartWeAdmin())
+          : null,
     );
+  }
+
+  Future<void> _openSmartWeAdmin() async {
+    try {
+      final opened = await ref.read(smartWeAdminLauncherProvider).open();
+      if (!opened && mounted) {
+        _showSnack(AppLocalizations.of(context).smartWeAdminAppOpenFailed);
+      }
+    } catch (_) {
+      if (mounted) {
+        _showSnack(AppLocalizations.of(context).smartWeAdminAppOpenFailed);
+      }
+    }
   }
 
   void _showSnack(String message) {

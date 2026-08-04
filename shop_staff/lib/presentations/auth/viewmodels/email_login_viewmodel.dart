@@ -57,6 +57,7 @@ class EmailLoginViewModel extends StateNotifier<EmailLoginState> {
   EmailLoginViewModel(this._auth) : super(const EmailLoginState()) {
     emailController.addListener(_onEmailChanged);
     verificationCodeController.addListener(_onVerificationCodeChanged);
+    unawaited(_restoreLastEmail());
   }
 
   final EmailAuthUseCase _auth;
@@ -64,6 +65,16 @@ class EmailLoginViewModel extends StateNotifier<EmailLoginState> {
   final TextEditingController verificationCodeController =
       TextEditingController();
   Timer? _countdownTimer;
+  bool _disposed = false;
+
+  Future<void> _restoreLastEmail() async {
+    final email = await _auth.readLastEmail();
+    if (_disposed || email == null || emailController.text.trim().isNotEmpty) {
+      return;
+    }
+    emailController.text = email;
+    emailController.selection = TextSelection.collapsed(offset: email.length);
+  }
 
   void _onEmailChanged() {
     state = state.copyWith(email: emailController.text.trim(), error: null);
@@ -117,6 +128,7 @@ class EmailLoginViewModel extends StateNotifier<EmailLoginState> {
 
   @override
   void dispose() {
+    _disposed = true;
     _countdownTimer?.cancel();
     emailController
       ..removeListener(_onEmailChanged)

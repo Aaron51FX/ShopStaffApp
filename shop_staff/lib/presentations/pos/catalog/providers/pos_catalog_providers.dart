@@ -6,9 +6,15 @@ import 'package:shop_staff/application/pos/usecases/fetch_categories_usecase.dar
 import 'package:shop_staff/application/pos/usecases/fetch_category_products_usecase.dart';
 import 'package:shop_staff/data/models/shop_info_models.dart';
 import 'package:shop_staff/data/providers.dart';
+import 'package:shop_staff/data/services/pos_favorites_store.dart';
+import 'package:shop_staff/core/storage/key_value_store.dart';
 import 'package:shop_staff/presentations/pos/catalog/controllers/pos_catalog_controller.dart';
 import 'package:shop_staff/presentations/pos/catalog/state/pos_catalog_state.dart';
 import 'package:shop_staff/presentations/pos/order/providers/pos_order_providers.dart';
+
+final posFavoritesStoreProvider = Provider<PosFavoritesStore>((ref) {
+  return KeyValuePosFavoritesStore(ref.watch(keyValueStoreProvider));
+});
 
 final posCatalogControllerProvider =
     StateNotifierProvider<PosCatalogController, PosCatalogState>((ref) {
@@ -19,6 +25,7 @@ final posCatalogControllerProvider =
         readLanguage: () => ref.read(shopLanguageProvider),
         readTakeout: () =>
             ref.read(posOrderControllerProvider).orderMode == 'take_out',
+        favoritesStore: ref.watch(posFavoritesStoreProvider),
       );
 
       ref.listen<ShopInfoModel?>(shopInfoProvider, (previous, next) {

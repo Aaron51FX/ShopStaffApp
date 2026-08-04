@@ -3046,6 +3046,12 @@ abstract class AppLocalizations {
   /// **'Continue in background'**
   String get paymentPrintDialogContinueBackground;
 
+  /// No description provided for @smartWeAdminAppOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to open SmartWe Admin. Make sure the target app is installed and has registered the smartwe-admin URL scheme.'**
+  String get smartWeAdminAppOpenFailed;
+
   /// No description provided for @paymentErrorPosIpMissing.
   ///
   /// In en, this message translates to:

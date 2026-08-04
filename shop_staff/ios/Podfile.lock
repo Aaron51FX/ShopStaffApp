@@ -18,6 +18,8 @@ PODS:
     - Flutter
   - starxpand_flutter (0.0.1):
     - Flutter
+  - url_launcher_ios (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
@@ -29,6 +31,7 @@ DEPENDENCIES:
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - r_get_ip (from `.symlinks/plugins/r_get_ip/ios`)
   - starxpand_flutter (from `.symlinks/plugins/starxpand_flutter/ios`)
+  - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 EXTERNAL SOURCES:
   device_info_plus:
@@ -49,6 +52,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/r_get_ip/ios"
   starxpand_flutter:
     :path: ".symlinks/plugins/starxpand_flutter/ios"
+  url_launcher_ios:
+    :path: ".symlinks/plugins/url_launcher_ios/ios"
 
 SPEC CHECKSUMS:
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
@@ -60,6 +65,7 @@ SPEC CHECKSUMS:
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   r_get_ip: 5b7a232114eacec8935eef83b7400d8d63baba48
   starxpand_flutter: 5ea71841fb610abc7a0dac88a6f4cd58ef388763
+  url_launcher_ios: bb13df5870e8c4234ca12609d04010a21be43dfa
 
 PODFILE CHECKSUM: 251cb053df7158f337c0712f2ab29f4e0fa474ce
 

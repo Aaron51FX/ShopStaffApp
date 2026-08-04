@@ -9,6 +9,7 @@ Future<void> showPrintStatusDialog({
   required WidgetRef ref,
   required PrintJobRequest request,
   VoidCallback? onCompleted,
+  VoidCallback? onDone,
 }) async {
   final provider = printJobViewModelProvider(request);
   final notifier = ref.read(provider.notifier);
@@ -28,6 +29,9 @@ Future<void> showPrintStatusDialog({
             onSkip: () => Navigator.of(context, rootNavigator: true).pop(),
             onClose: () {
               Navigator.of(context, rootNavigator: true).pop();
+              if (state.completed) {
+                onDone?.call();
+              }
               onCompleted?.call();
             },
           );

@@ -39,6 +39,7 @@ final keyValueStoreProvider = Provider<KeyValueStore>(
 class AppStorageKeys {
   static const authToken = 'auth_token';
   static const staffEmail = 'staff_email';
+  static const posFavoriteProducts = 'pos_favorite_products';
   static const activationCode = 'activation_code';
   static const settingsBasic = 'settings_basic';
   static const settingsPosTerminal = 'settings_pos_terminal';

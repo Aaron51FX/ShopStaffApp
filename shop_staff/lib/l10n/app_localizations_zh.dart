@@ -1548,6 +1548,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentPrintDialogContinueBackground => '后台继续';
 
   @override
+  String get smartWeAdminAppOpenFailed =>
+      '无法打开 SmartWe Admin，请确认目标 App 已安装并注册 smartwe-admin URL Scheme。';
+
+  @override
   String get paymentErrorPosIpMissing => '未配置POS终端IP';
 
   @override
