@@ -26,6 +26,7 @@ import 'repositories_impl/menu_repository_impl.dart';
 import 'repositories_impl/bookkeeping_order_repository_impl.dart';
 import 'repositories_impl/order_repository_impl.dart';
 import 'repositories_impl/cash_register_closure_repository_impl.dart';
+import 'repositories_impl/order_management_repository_impl.dart';
 import 'services/payment_backend_gateway.dart';
 import 'services/order_state_payment_backend_gateway.dart';
 import 'services/payment_channel_support.dart';
@@ -53,6 +54,7 @@ import '../domain/repositories/auth_repository.dart';
 import '../domain/repositories/bookkeeping_order_repository.dart';
 import '../domain/repositories/order_repository.dart';
 import '../domain/repositories/cash_register_closure_repository.dart';
+import '../domain/repositories/order_management_repository.dart';
 import '../domain/payments/payment_models.dart';
 import '../domain/services/pos_payment_service.dart';
 import '../domain/services/payment_orchestrator.dart';
@@ -128,6 +130,12 @@ final cashRegisterClosureRepositoryProvider =
       final ds = ref.watch(posRemoteDataSourceProvider);
       return CashRegisterClosureRepositoryImpl(ds);
     });
+
+final orderManagementRepositoryProvider = Provider<OrderManagementRepository>((
+  ref,
+) {
+  return OrderManagementRepositoryImpl(ref.watch(posRemoteDataSourceProvider));
+});
 
 final posPaymentServiceProvider = Provider<PosPaymentService>((ref) {
   return PosPaymentServiceImpl(

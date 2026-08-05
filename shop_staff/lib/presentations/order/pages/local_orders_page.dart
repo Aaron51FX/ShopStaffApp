@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart' as intl;
 
 import 'package:shop_staff/application/order/usecases/order_reprint_usecase.dart';
 import 'package:shop_staff/core/ui/app_colors.dart';
-import 'package:shop_staff/domain/entities/local_order_record.dart';
+import 'package:shop_staff/data/providers.dart';
+import 'package:shop_staff/domain/entities/managed_order.dart';
 import 'package:shop_staff/l10n/app_localizations.dart';
+import 'package:shop_staff/presentations/order/dialogs/order_management_dialogs.dart';
+import 'package:shop_staff/presentations/order/controllers/order_management_controller.dart';
+import 'package:shop_staff/presentations/order/providers/order_management_providers.dart';
+import 'package:shop_staff/presentations/order/sections/order_management_detail.dart';
+import 'package:shop_staff/presentations/order/sections/order_management_filters.dart';
+import 'package:shop_staff/presentations/order/sections/order_management_list.dart';
+import 'package:shop_staff/presentations/order/state/order_management_state.dart';
 import 'package:shop_staff/presentations/pos/order/providers/pos_order_providers.dart';
-import 'package:shop_staff/presentations/order/viewmodels/local_orders_viewmodel.dart';
 
 class LocalOrdersPage extends ConsumerWidget {
   const LocalOrdersPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.read(localOrdersViewModelProvider.notifier);
-    final state = ref.watch(localOrdersViewModelProvider);
-    final orders = vm.filtered;
+    final state = ref.watch(orderManagementControllerProvider);
+    final controller = ref.read(orderManagementControllerProvider.notifier);
     final t = AppLocalizations.of(context);
-
-    final selected = vm.selected;
-
     return Scaffold(
       appBar: AppBar(
         title: Text(t.orderHistoryTitle),
@@ -34,321 +36,42 @@ class LocalOrdersPage extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: t.orderHistoryRefreshTooltip,
-            onPressed: () => vm.load(),
+            onPressed: state.loading ? null : controller.load,
             icon: const Icon(Icons.refresh_rounded),
           ),
         ],
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: t.orderHistorySearchHint,
-                    prefixIcon: const Icon(Icons.search),
-                    filled: true,
-                    fillColor: AppColors.stone100,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  onChanged: vm.setQuery,
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    FilterChip(
-                      selected: state.onlyAbnormal,
-                      onSelected: vm.setOnlyAbnormal,
-                      label: const Text('仅异常强制退出'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          OrderManagementFilters(
+            status: state.status,
+            startDate: state.startDate,
+            endDate: state.endDate,
+            onStatusChanged: controller.setStatus,
+            onDateRangeChanged: controller.setDateRange,
           ),
-          if (state.loading)
-            const Padding(
-              padding: EdgeInsets.only(top: 32),
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (state.error != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 32),
-              child: Center(child: Text(t.orderHistoryLoadFailed)),
-            )
-          else
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final hasSelection = selected != null;
-                  final panelWidth = hasSelection ? constraints.maxWidth * 0.30 : 0.0;
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: orders.isEmpty
-                            ? Center(child: Text(t.orderHistoryEmpty))
-                            : ListView.separated(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                itemCount: orders.length,
-                                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                                itemBuilder: (ctx, i) {
-                                  final order = orders[i];
-                                  final isSelected = order.orderId == state.selectedOrderId;
-                                  return _OrderTile(
-                                    order: order,
-                                    selected: isSelected,
-                                    preview: vm.preview(order),
-                                    itemCount: vm.itemCount(order),
-                                    onTap: () => vm.selectOrder(order.orderId),
-                                  );
-                                },
-                              ),
-                      ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 220),
-                        curve: Curves.easeOut,
-                        width: panelWidth,
-                        child: panelWidth <= 0
-                            ? const SizedBox.shrink()
-                            : _OrderDetailsPanel(
-                                order: selected!,
-                                onClose: () => vm.selectOrder(null),
-                                onPrintReceipt: () => _printReceipt(context, ref, selected),
-                                onPrintKitchenTickets: () =>
-                                    _printKitchenTickets(context, ref, selected),
-                                onReorder: () => _reorder(context, ref, selected),
-                              ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OrderTile extends StatelessWidget {
-  const _OrderTile({
-    required this.order,
-    required this.selected,
-    required this.preview,
-    required this.itemCount,
-    required this.onTap,
-  });
-
-  final LocalOrderRecord order;
-  final bool selected;
-  final String preview;
-  final int itemCount;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    final formatter = intl.DateFormat(t.orderHistoryDatePatternShort, t.localeName);
-    final when = formatter.format(order.createdAt.toLocal());
-
-    return Card(
-      elevation: selected ? 2 : 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  border: selected
-                      ? Border.all(color: AppColors.amberPrimary, width: 2)
-                      : Border.all(color: AppColors.stone200),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  //orderId 取后6位
-                  order.orderId.length <= 6
-                      ? order.orderId
-                      : order.orderId.substring(order.orderId.length - 6),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      spacing: 8,
-                      children: [
-                        Text(
-                          when,
-                          style: const TextStyle(color: AppColors.stone600),
-                        ),
-                        Text(
-                          '${t.orderHistoryItemCountPrefix}$itemCount${t.orderHistoryItemCountSuffix}',
-                          style: const TextStyle(color: AppColors.stone600),
-                        ),
-                        Text(
-                          order.isPaid ? t.orderHistoryPaid : t.orderHistoryUnpaid,
-                          style: TextStyle(
-                            color: order.isPaid ? AppColors.emerald600 : AppColors.stone600,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (order.payMethod.isNotEmpty)
-                          Text(
-                            order.isAbnormalForceExit ? '异常强退' : order.payMethod,
-                            style: const TextStyle(color: AppColors.stone600),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      preview,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '¥${order.clientTotal.toStringAsFixed(0)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _OrderDetailsPanel extends StatelessWidget {
-  const _OrderDetailsPanel({
-    required this.order,
-    required this.onClose,
-    required this.onPrintReceipt,
-    required this.onPrintKitchenTickets,
-    required this.onReorder,
-  });
-
-  final LocalOrderRecord order;
-  final VoidCallback onClose;
-  final Future<void> Function() onPrintReceipt;
-  final Future<void> Function() onPrintKitchenTickets;
-  final VoidCallback onReorder;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    final formatter = intl.DateFormat(t.orderHistoryDatePatternLong, t.localeName);
-    final when = formatter.format(order.createdAt.toLocal());
-
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(left: BorderSide(color: AppColors.stone200)),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+          const Divider(height: 1),
+          Expanded(
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    t.orderHistoryDetailsTitle,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  flex: 2,
+                  child: _buildList(context, state, controller),
+                ),
+                Expanded(
+                  child: OrderManagementDetail(
+                    detail: state.detail,
+                    loading: state.detailLoading,
+                    actionRunning: state.actionOrderId != null,
+                    onClose: () => controller.selectOrder(null),
+                    onReorder: () => _reorder(context, ref, state.detail),
+                    onPrintReceipt: () =>
+                        _print(context, ref, state.detail, receipt: true),
+                    onPrintKitchen: () =>
+                        _print(context, ref, state.detail, receipt: false),
+                    onChangePayment: () => _changePayment(context, controller),
+                    onCancel: () => _cancel(context, controller, state.detail),
                   ),
-                ),
-                IconButton(
-                  tooltip: t.orderHistoryCloseTooltip,
-                  onPressed: onClose,
-                  icon: const Icon(Icons.close_rounded),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(12),
-              children: [
-                _kv(t.orderHistoryDetailOrderIdLabel, order.orderId),
-                _kv(t.orderHistoryDetailTimeLabel, when),
-                _kv(t.orderHistoryDetailStatusLabel, order.isPaid ? t.orderHistoryPaid : t.orderHistoryUnpaid),
-                _kv(
-                  t.orderHistoryDetailPayMethodLabel,
-                  order.payMethod.isNotEmpty
-                      ? (order.isAbnormalForceExit ? '异常强制退出' : order.payMethod)
-                      : t.orderHistoryPayMethodUnknown,
-                ),
-                if (order.isAbnormalForceExit)
-                  _kv('异常原因', order.abnormalReason ?? 'cancel_failure_force_exit'),
-                if ((order.abnormalSessionId ?? '').isNotEmpty)
-                  _kv('会话ID', order.abnormalSessionId!),
-                _kv(t.orderHistoryDetailAmountLabel, '¥${order.clientTotal.toStringAsFixed(2)}'),
-                _kv(t.orderHistoryDetailModeLabel, order.takeout ? t.posOrderModeTakeout : t.posOrderModeDineIn),
-                _kv(t.orderHistoryDetailItemCountLabel, order.items.length.toString()),
-                const SizedBox(height: 12),
-                Text(t.orderHistoryDetailProductsTitle, style: const TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
-                ...order.items.map(
-                  (e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(
-                      '${e.product.name}  x${e.quantity}',
-                      style: const TextStyle(color: AppColors.stone600),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                FilledButton(
-                  onPressed: onReorder,
-                  child: Text(t.orderHistoryReorder),
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton(
-                  onPressed: onPrintReceipt,
-                  child: Text(t.orderHistoryPrintReceipt),
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton(
-                  onPressed: onPrintKitchenTickets,
-                  child: Text(t.orderHistoryPrintKitchen),
                 ),
               ],
             ),
@@ -358,63 +81,135 @@ class _OrderDetailsPanel extends StatelessWidget {
     );
   }
 
-  Widget _kv(String k, String v) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 72,
-            child: Text(
-              k,
-              style: const TextStyle(color: AppColors.stone600),
+  Widget _buildList(
+    BuildContext context,
+    OrderManagementState state,
+    OrderManagementController controller,
+  ) {
+    final t = AppLocalizations.of(context);
+    if (state.loading) return const Center(child: CircularProgressIndicator());
+    if (state.error != null && state.orders.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(t.orderHistoryLoadFailed),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              onPressed: controller.load,
+              icon: const Icon(Icons.refresh_rounded),
+              label: Text(t.orderHistoryRefreshTooltip),
             ),
-          ),
-          Expanded(
-            child: Text(
-              v,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      );
+    }
+    return OrderManagementList(
+      orders: state.orders,
+      selectedOrderId: state.selectedOrderId,
+      loadingMore: state.loadingMore,
+      hasMore: state.hasMore,
+      onSelected: (order) => _select(context, controller, order),
+      onLoadMore: controller.loadMore,
     );
   }
-}
 
-Future<void> _printReceipt(
-  BuildContext context,
-  WidgetRef ref,
-  LocalOrderRecord order,
-) async {
-  final useCase = ref.read(orderReprintUseCaseProvider);
-  final result = await useCase.reprintReceipt(order);
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(result.message)),
-  );
-}
+  Future<void> _select(
+    BuildContext context,
+    OrderManagementController controller,
+    ManagedOrder order,
+  ) async {
+    try {
+      await controller.selectOrder(order);
+    } catch (_) {
+      if (!context.mounted) return;
+      _showMessage(
+        context,
+        AppLocalizations.of(context).orderHistoryDetailFailed,
+      );
+    }
+  }
 
-void _reorder(
-  BuildContext context,
-  WidgetRef ref,
-  LocalOrderRecord order,
-) {
-  // Populate POS cart and navigate back to POS page.
-  ref.read(posOrderControllerProvider.notifier).loadFromLocalOrder(order);
-  context.push('/pos');
-}
+  Future<void> _changePayment(
+    BuildContext context,
+    OrderManagementController controller,
+  ) async {
+    final channel = await showManagedOrderPaymentDialog(context);
+    if (channel == null || !context.mounted) return;
+    try {
+      await controller.markPaid(channel);
+      if (!context.mounted) return;
+      _showMessage(
+        context,
+        AppLocalizations.of(context).orderHistoryActionSuccess,
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      _showMessage(context, error.toString());
+    }
+  }
 
-Future<void> _printKitchenTickets(
-  BuildContext context,
-  WidgetRef ref,
-  LocalOrderRecord order,
-) async {
-  final useCase = ref.read(orderReprintUseCaseProvider);
-  final result = await useCase.reprintKitchenTickets(order);
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(result.message)),
-  );
+  Future<void> _cancel(
+    BuildContext context,
+    OrderManagementController controller,
+    ManagedOrderDetail? detail,
+  ) async {
+    if (detail == null) return;
+    final confirmed = await showManagedOrderCancelDialog(context, detail.order);
+    if (!confirmed || !context.mounted) return;
+    try {
+      await controller.cancelSelected();
+      if (!context.mounted) return;
+      _showMessage(
+        context,
+        AppLocalizations.of(context).orderHistoryActionSuccess,
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+      _showMessage(context, error.toString());
+    }
+  }
+
+  Future<void> _print(
+    BuildContext context,
+    WidgetRef ref,
+    ManagedOrderDetail? detail, {
+    required bool receipt,
+  }) async {
+    if (detail == null) return;
+    final useCase = ref.read(orderReprintUseCaseProvider);
+    final result = receipt
+        ? await useCase.reprintReceiptByOrder(
+            orderId: detail.order.orderId,
+            amount: detail.order.price,
+          )
+        : await useCase.reprintKitchenTicketsByOrder(
+            orderId: detail.order.orderId,
+            amount: detail.order.price,
+          );
+    if (!context.mounted) return;
+    _showMessage(context, result.message);
+  }
+
+  void _reorder(
+    BuildContext context,
+    WidgetRef ref,
+    ManagedOrderDetail? detail,
+  ) {
+    if (detail == null) return;
+    final machineCode = ref.read(machineCodeProvider)?.trim() ?? '';
+    final language = ref.read(shopLanguageProvider);
+    ref
+        .read(posOrderControllerProvider.notifier)
+        .loadFromLocalOrder(
+          detail.toLocalOrder(machineCode: machineCode, language: language),
+        );
+    context.replace('/pos');
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
 }

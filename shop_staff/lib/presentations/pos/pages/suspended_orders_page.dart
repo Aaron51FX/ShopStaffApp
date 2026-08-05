@@ -92,7 +92,7 @@ class _SuspendedOrdersPageState extends ConsumerState<SuspendedOrdersPage> {
 
   void _resume(String id) {
     ref.read(posOrderControllerProvider.notifier).resumeSuspended(id);
-    ref.read(appRouterProvider).push('/pos');
+    ref.read(appRouterProvider).replace('/pos');
   }
 }
 

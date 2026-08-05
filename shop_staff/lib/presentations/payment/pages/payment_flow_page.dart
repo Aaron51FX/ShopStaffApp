@@ -315,7 +315,7 @@ class _PaymentFlowPageState extends ConsumerState<PaymentFlowPage> {
                             ref.read(provider.notifier).retryPayment(),
                         onReconcile: () =>
                             ref.read(provider.notifier).reconcilePayment(),
-                        onOpenSettings: () => context.go('/settings'),
+                        onOpenSettings: () => context.push('/settings'),
                         onNetworkHelp: () {
                           final t = AppLocalizations.of(context);
                           ref

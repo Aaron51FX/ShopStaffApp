@@ -20,13 +20,10 @@ final orderReprintUseCaseProvider = Provider<OrderReprintUseCase>((ref) {
   );
 });
 
-typedef _MachineCodeGetter = String Function();
-typedef _PrintersGetter = List<PrinterSettings> Function();
+typedef MachineCodeGetter = String Function();
+typedef PrintersGetter = List<PrinterSettings> Function();
 
-enum ReprintTarget {
-  receipt,
-  kitchenTickets,
-}
+enum ReprintTarget { receipt, kitchenTickets }
 
 class OrderReprintResult {
   const OrderReprintResult({
@@ -39,26 +36,27 @@ class OrderReprintResult {
   final String message;
   final List<PrintJobResult> jobs;
 
-  List<String> get printerNames => jobs.map((e) => e.printer.name).where((e) => e.isNotEmpty).toList();
+  List<String> get printerNames =>
+      jobs.map((e) => e.printer.name).where((e) => e.isNotEmpty).toList();
 }
 
 class OrderReprintUseCase {
   OrderReprintUseCase({
-    required _MachineCodeGetter machineCode,
-    required _PrintersGetter printers,
+    required MachineCodeGetter machineCode,
+    required PrintersGetter printers,
     required LocalOrderLocalDataSource local,
     required PrintRepository repo,
     required PrintService service,
     Logger? logger,
-  })  : _machineCode = machineCode,
-        _printers = printers,
-        _local = local,
-        _repo = repo,
-        _service = service,
-        _logger = logger ?? Logger('OrderReprintUseCase');
+  }) : _machineCode = machineCode,
+       _printers = printers,
+       _local = local,
+       _repo = repo,
+       _service = service,
+       _logger = logger ?? Logger('OrderReprintUseCase');
 
-  final _MachineCodeGetter _machineCode;
-  final _PrintersGetter _printers;
+  final MachineCodeGetter _machineCode;
+  final PrintersGetter _printers;
   final LocalOrderLocalDataSource _local;
   final PrintRepository _repo;
   final PrintService _service;
@@ -72,9 +70,54 @@ class OrderReprintUseCase {
     return _reprint(order: order, target: ReprintTarget.kitchenTickets);
   }
 
+  Future<OrderReprintResult> reprintReceiptByOrder({
+    required String orderId,
+    required double amount,
+  }) {
+    return _reprintByOrder(
+      orderId: orderId,
+      amount: amount,
+      target: ReprintTarget.receipt,
+    );
+  }
+
+  Future<OrderReprintResult> reprintKitchenTicketsByOrder({
+    required String orderId,
+    required double amount,
+  }) {
+    return _reprintByOrder(
+      orderId: orderId,
+      amount: amount,
+      target: ReprintTarget.kitchenTickets,
+    );
+  }
+
   Future<OrderReprintResult> _reprint({
     required LocalOrderRecord order,
     required ReprintTarget target,
+  }) async {
+    return _reprintByOrder(
+      orderId: order.orderId,
+      amount: order.clientTotal,
+      target: target,
+      onDocument: (doc) async {
+        final method = _extractPayMethod(doc);
+        if (method.isNotEmpty) {
+          await _local.updatePayMethod(
+            order.orderId,
+            method,
+            isPaid: method != '現金支払',
+          );
+        }
+      },
+    );
+  }
+
+  Future<OrderReprintResult> _reprintByOrder({
+    required String orderId,
+    required double amount,
+    required ReprintTarget target,
+    Future<void> Function(PrintInfoDocument document)? onDocument,
   }) async {
     final machineCode = _machineCode();
     final printers = _printers();
@@ -89,32 +132,41 @@ class OrderReprintUseCase {
     final printType = _resolvePrintType(printers);
 
     try {
-      _logger.fine('Reprint orderId=${order.orderId} target=$target');
+      _logger.fine('Reprint orderId=$orderId target=$target');
 
       final doc = await _repo.printInfo(
-        orderId: order.orderId,
+        orderId: orderId,
         machineCode: machineCode,
-        payAmount: order.clientTotal.toInt().toString(),
+        payAmount: amount.toInt().toString(),
         printType: printType,
       );
 
-      // Best-effort: refresh stored payment method from the resolved document.
-      try {
-        final method = _extractPayMethod(doc);
-        if (method.isNotEmpty) {
-          await _local.updatePayMethod(order.orderId, method, isPaid: method != '現金支払');
+      if (onDocument != null) {
+        try {
+          await onDocument(doc);
+        } catch (_) {
+          // Printing must not fail when best-effort local metadata refresh fails.
         }
-      } catch (_) {
-        // ignore
       }
 
-      final jobs = await _enqueue(target: target, document: doc, printers: printers);
+      final jobs = await _enqueue(
+        target: target,
+        document: doc,
+        printers: printers,
+      );
       if (jobs.isEmpty) {
         return const OrderReprintResult(success: false, message: '未生成打印任务');
       }
 
-      final names = jobs.map((e) => e.printer.name).where((e) => e.isNotEmpty).join('、');
-      return OrderReprintResult(success: true, message: '已发送打印任务: $names', jobs: jobs);
+      final names = jobs
+          .map((e) => e.printer.name)
+          .where((e) => e.isNotEmpty)
+          .join('、');
+      return OrderReprintResult(
+        success: true,
+        message: '已发送打印任务: $names',
+        jobs: jobs,
+      );
     } catch (e) {
       return OrderReprintResult(success: false, message: '打印失败: $e');
     }
@@ -127,15 +179,25 @@ class OrderReprintUseCase {
   }) {
     switch (target) {
       case ReprintTarget.receipt:
-        return _service.enqueueReceiptJobs(document: document, printers: printers);
+        return _service.enqueueReceiptJobs(
+          document: document,
+          printers: printers,
+        );
       case ReprintTarget.kitchenTickets:
-        return _service.enqueueKitchenJobs(document: document, printers: printers);
+        return _service.enqueueKitchenJobs(
+          document: document,
+          printers: printers,
+        );
     }
   }
 
   String _resolvePrintType(List<PrinterSettings> printers) {
     final labelPrinter = printers.firstWhere(
-      (p) => p.type == 10 && p.isOn && (p.printIp?.isNotEmpty ?? false) && p.receipt == false,
+      (p) =>
+          p.type == 10 &&
+          p.isOn &&
+          (p.printIp?.isNotEmpty ?? false) &&
+          p.receipt == false,
       orElse: () => const PrinterSettings(name: '', type: -1),
     );
     return labelPrinter.type == 10 ? 'Label' : '';

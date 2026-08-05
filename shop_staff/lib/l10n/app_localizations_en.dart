@@ -651,7 +651,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Searching for nearby customer display…';
 
   @override
-  String get entryHistoryOrders => 'Order history';
+  String get entryHistoryOrders => 'Order management';
 
   @override
   String get entryDatePattern => 'MMM d, y · EEEE';
@@ -951,7 +951,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentSelectionNotConfigured => 'Not configured';
 
   @override
-  String get orderHistoryTitle => 'Order history';
+  String get orderHistoryTitle => 'Order management';
 
   @override
   String get orderHistoryRefreshTooltip => 'Refresh';
@@ -1021,6 +1021,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orderHistoryPrintKitchen => 'Print kitchen ticket';
+
+  @override
+  String get orderHistoryCanceled => 'Canceled';
+
+  @override
+  String get orderHistoryDateRange => 'Date range:';
+
+  @override
+  String get orderHistorySelectOrder => 'Select an order to view details';
+
+  @override
+  String get orderHistoryChangePayment => 'Change payment status';
+
+  @override
+  String get orderHistoryCancel => 'Cancel order';
+
+  @override
+  String get orderHistoryConfirm => 'Confirm';
+
+  @override
+  String get orderHistoryCancelTitle => 'Cancel order';
+
+  @override
+  String get orderHistoryCancelMessage =>
+      'Are you sure you want to cancel this order?';
+
+  @override
+  String get orderHistoryCancelExternalRefundMessage =>
+      'Are you sure you want to cancel this order? After canceling, process the refund in the mPOS management system.';
+
+  @override
+  String get orderHistoryPaymentMethodTitle => 'Select payment method';
+
+  @override
+  String get orderHistoryActionSuccess => 'Operation completed';
+
+  @override
+  String get orderHistoryDetailFailed => 'Failed to load order details';
+
+  @override
+  String get orderHistorySerialNumberLabel => 'Order number';
+
+  @override
+  String get orderHistoryDiscountLabel => 'Discount';
+
+  @override
+  String get orderHistoryChangeAmountLabel => 'Change';
 
   @override
   String get cancelDialogLoadingTitle => 'Canceling';

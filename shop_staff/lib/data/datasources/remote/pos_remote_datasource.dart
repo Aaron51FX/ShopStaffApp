@@ -143,6 +143,38 @@ class PosRemoteDataSource {
   Future<dynamic> fetchStaffRejishime(Map<String, dynamic> payload) async =>
       _client.postJson(_e.rejishimeiPrintInfo, body: payload);
 
+  Future<dynamic> fetchManagedOrders(Map<String, dynamic> payload) async =>
+      _client.postJson(_e.adminOrderList, body: payload);
+
+  Future<dynamic> fetchManagedOrderDetail(String orderId) async =>
+      _client.postJson(_e.adminOrderDetail, body: {'orderId': orderId});
+
+  Future<dynamic> markManagedOrderPaid({
+    required String orderId,
+    required String payChannel,
+  }) async => _client.postJson(
+    _e.adminOrderUpdate,
+    body: {'orderId': orderId, 'payChannel': payChannel},
+  );
+
+  Future<dynamic> cancelUnpaidManagedOrder(String orderId) async =>
+      _client.putJson(_e.adminOrderUnpaidCancel, body: {'orderId': orderId});
+
+  Future<dynamic> cancelPaidManagedOrder(String orderId) async =>
+      _client.putJson(_e.adminOrderCancel, body: {'orderId': orderId});
+
+  Future<dynamic> checkOnlineManagedOrderCancellation(String orderId) async =>
+      _client.postJson(
+        _e.adminOrderLinePayCancelCheck,
+        body: {'orderId': orderId},
+      );
+
+  Future<dynamic> confirmOnlineManagedOrderCancellation(String orderId) async =>
+      _client.postJson(
+        _e.adminOrderLinePayCancelConfirm,
+        body: {'orderId': orderId},
+      );
+
   Future<dynamic> confirmRejishime(Map<String, dynamic> payload) async =>
       _client.postJson(_e.rejishimeiConfirm, body: payload);
 

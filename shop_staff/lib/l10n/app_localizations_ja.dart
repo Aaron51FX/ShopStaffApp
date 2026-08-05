@@ -616,7 +616,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get entryPeerSearchingCustomer => '近くの顧客端を検索中…';
 
   @override
-  String get entryHistoryOrders => '履歴注文';
+  String get entryHistoryOrders => '注文管理';
 
   @override
   String get entryDatePattern => 'y年M月d日 · EEEE';
@@ -907,7 +907,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get paymentSelectionNotConfigured => '未設定';
 
   @override
-  String get orderHistoryTitle => '履歴注文';
+  String get orderHistoryTitle => '注文管理';
 
   @override
   String get orderHistoryRefreshTooltip => '更新';
@@ -977,6 +977,52 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get orderHistoryPrintKitchen => 'キッチン伝票印刷';
+
+  @override
+  String get orderHistoryCanceled => 'キャンセル';
+
+  @override
+  String get orderHistoryDateRange => '期間：';
+
+  @override
+  String get orderHistorySelectOrder => '注文を選択してください';
+
+  @override
+  String get orderHistoryChangePayment => '支払済みに変更';
+
+  @override
+  String get orderHistoryCancel => '注文をキャンセル';
+
+  @override
+  String get orderHistoryConfirm => '確認';
+
+  @override
+  String get orderHistoryCancelTitle => '注文をキャンセル';
+
+  @override
+  String get orderHistoryCancelMessage => 'この注文をキャンセルしてよろしいですか？';
+
+  @override
+  String get orderHistoryCancelExternalRefundMessage =>
+      'この注文をキャンセルしてよろしいですか？キャンセル後、mPOS管理システムで売上取消（返金）処理を行ってください。';
+
+  @override
+  String get orderHistoryPaymentMethodTitle => '支払方法を選択';
+
+  @override
+  String get orderHistoryActionSuccess => '操作完了';
+
+  @override
+  String get orderHistoryDetailFailed => '注文詳細の読み込みに失敗しました';
+
+  @override
+  String get orderHistorySerialNumberLabel => '注文番号';
+
+  @override
+  String get orderHistoryDiscountLabel => '割引';
+
+  @override
+  String get orderHistoryChangeAmountLabel => 'お釣り';
 
   @override
   String get cancelDialogLoadingTitle => '取消中';

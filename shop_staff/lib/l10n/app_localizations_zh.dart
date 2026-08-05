@@ -604,7 +604,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get entryPeerSearchingCustomer => '正在搜索附近的顾客端…';
 
   @override
-  String get entryHistoryOrders => '历史订单';
+  String get entryHistoryOrders => '订单管理';
 
   @override
   String get entryDatePattern => 'y年M月d日 · EEEE';
@@ -895,7 +895,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get paymentSelectionNotConfigured => '未配置';
 
   @override
-  String get orderHistoryTitle => '历史订单';
+  String get orderHistoryTitle => '订单管理';
 
   @override
   String get orderHistoryRefreshTooltip => '刷新';
@@ -965,6 +965,52 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get orderHistoryPrintKitchen => '打印厨房票';
+
+  @override
+  String get orderHistoryCanceled => '已取消';
+
+  @override
+  String get orderHistoryDateRange => '日期范围：';
+
+  @override
+  String get orderHistorySelectOrder => '请选择订单查看详情';
+
+  @override
+  String get orderHistoryChangePayment => '更改支付状态';
+
+  @override
+  String get orderHistoryCancel => '取消订单';
+
+  @override
+  String get orderHistoryConfirm => '确认';
+
+  @override
+  String get orderHistoryCancelTitle => '取消订单';
+
+  @override
+  String get orderHistoryCancelMessage => '确定要取消此订单吗？';
+
+  @override
+  String get orderHistoryCancelExternalRefundMessage =>
+      '确定要取消此订单吗？取消后，请在 mPOS 管理系统中进行销售取消（退款）处理。';
+
+  @override
+  String get orderHistoryPaymentMethodTitle => '选择支付方式';
+
+  @override
+  String get orderHistoryActionSuccess => '操作完成';
+
+  @override
+  String get orderHistoryDetailFailed => '订单详情加载失败';
+
+  @override
+  String get orderHistorySerialNumberLabel => '取餐号';
+
+  @override
+  String get orderHistoryDiscountLabel => '优惠';
+
+  @override
+  String get orderHistoryChangeAmountLabel => '找零';
 
   @override
   String get cancelDialogLoadingTitle => '正在取消';

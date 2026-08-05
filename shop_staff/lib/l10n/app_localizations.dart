@@ -1255,7 +1255,7 @@ abstract class AppLocalizations {
   /// No description provided for @entryHistoryOrders.
   ///
   /// In en, this message translates to:
-  /// **'Order history'**
+  /// **'Order management'**
   String get entryHistoryOrders;
 
   /// No description provided for @entryDatePattern.
@@ -1837,7 +1837,7 @@ abstract class AppLocalizations {
   /// No description provided for @orderHistoryTitle.
   ///
   /// In en, this message translates to:
-  /// **'Order history'**
+  /// **'Order management'**
   String get orderHistoryTitle;
 
   /// No description provided for @orderHistoryRefreshTooltip.
@@ -1977,6 +1977,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Print kitchen ticket'**
   String get orderHistoryPrintKitchen;
+
+  /// No description provided for @orderHistoryCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Canceled'**
+  String get orderHistoryCanceled;
+
+  /// No description provided for @orderHistoryDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Date range:'**
+  String get orderHistoryDateRange;
+
+  /// No description provided for @orderHistorySelectOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Select an order to view details'**
+  String get orderHistorySelectOrder;
+
+  /// No description provided for @orderHistoryChangePayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Change payment status'**
+  String get orderHistoryChangePayment;
+
+  /// No description provided for @orderHistoryCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel order'**
+  String get orderHistoryCancel;
+
+  /// No description provided for @orderHistoryConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get orderHistoryConfirm;
+
+  /// No description provided for @orderHistoryCancelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel order'**
+  String get orderHistoryCancelTitle;
+
+  /// No description provided for @orderHistoryCancelMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this order?'**
+  String get orderHistoryCancelMessage;
+
+  /// No description provided for @orderHistoryCancelExternalRefundMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to cancel this order? After canceling, process the refund in the mPOS management system.'**
+  String get orderHistoryCancelExternalRefundMessage;
+
+  /// No description provided for @orderHistoryPaymentMethodTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select payment method'**
+  String get orderHistoryPaymentMethodTitle;
+
+  /// No description provided for @orderHistoryActionSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Operation completed'**
+  String get orderHistoryActionSuccess;
+
+  /// No description provided for @orderHistoryDetailFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load order details'**
+  String get orderHistoryDetailFailed;
+
+  /// No description provided for @orderHistorySerialNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Order number'**
+  String get orderHistorySerialNumberLabel;
+
+  /// No description provided for @orderHistoryDiscountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get orderHistoryDiscountLabel;
+
+  /// No description provided for @orderHistoryChangeAmountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get orderHistoryChangeAmountLabel;
 
   /// No description provided for @cancelDialogLoadingTitle.
   ///

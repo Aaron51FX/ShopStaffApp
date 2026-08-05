@@ -34,6 +34,16 @@ class Endpoints {
   String get staffRejishime => '$_booking/web/staff/cash/register';
   String get latestOneHourOrders => '$_booking/web/staff/recent/history';
 
+  String get adminOrderList => '$_b/booking/admin/order/list';
+  String get adminOrderDetail => '$_b/booking/admin/order/detail';
+  String get adminOrderUpdate => '$_b/booking/admin/order/update/state';
+  String get adminOrderUnpaidCancel => '$_b/booking/admin/order/unPay/cancel';
+  String get adminOrderCancel => '$_b/booking/admin/order/cancel';
+  String get adminOrderLinePayCancelCheck =>
+      '$_b/booking/admin/order/linePay/cancel/check';
+  String get adminOrderLinePayCancelConfirm =>
+      '$_b/booking/admin/order/linePay/cancel/confirm';
+
   String get printV5 => '$_b/pad/web/boot/v5/print';
   String get printV6 => '$_b/pad/web/boot/v6/print';
   String get printV7 => '$_b/pad/web/boot/v7/print';

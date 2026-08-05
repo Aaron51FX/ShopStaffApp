@@ -146,6 +146,29 @@ class DioClient {
     }
   }
 
+  Future<T> putJson<T>(
+    String path, {
+    dynamic body,
+    Map<String, dynamic>? query,
+    T Function(dynamic json)? decoder,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final res = await dio.put(
+        path,
+        data: body,
+        queryParameters: query,
+        options: options,
+        cancelToken: cancelToken,
+      );
+      final data = res.data;
+      return decoder != null ? decoder(data) : data as T;
+    } on DioException catch (e) {
+      throw _mapDioError(e);
+    }
+  }
+
   ApiException _mapDioError(DioException e) {
     final responseMessage = _responseMessage(e.response?.data);
     return ApiException(
