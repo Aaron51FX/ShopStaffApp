@@ -1,0 +1,248 @@
+name: Build iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Backend environment included in the app
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - staging
+      build_number:
+        description: Optional CFBundleVersion; defaults to the workflow run number
+        required: false
+        type: string
+      build_name:
+        description: Optional app version such as 1.2.0; defaults to pubspec.yaml
+        required: false
+        type: string
+      upload_to_testflight:
+        description: Upload the signed IPA to TestFlight
+        required: true
+        default: false
+        type: boolean
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build app or IPA
+    runs-on: macos-latest
+    timeout-minutes: 60
+    environment: testflight
+    env:
+      APP_ENV: ${{ inputs.environment || 'production' }}
+      BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
+      REQUESTED_BUILD_NAME: ${{ inputs.build_name || '' }}
+      UPLOAD_TO_TESTFLIGHT: ${{ github.event_name == 'push' || inputs.upload_to_testflight == true }}
+    defaults:
+      run:
+        working-directory: shop_staff
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.3"
+          channel: stable
+          cache: true
+
+      - name: Use HTTPS for public GitHub dependencies
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Resolve build version
+        run: |
+          set -euo pipefail
+
+          build_name="$REQUESTED_BUILD_NAME"
+          if [[ -z "$build_name" && "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" == v* ]]; then
+            build_name="${GITHUB_REF_NAME#v}"
+          fi
+
+          echo "BUILD_NAME=$build_name" >> "$GITHUB_ENV"
+
+      - name: Configure iOS signing
+        env:
+          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_EXPORT_OPTIONS_PLIST_BASE64: ${{ secrets.IOS_EXPORT_OPTIONS_PLIST_BASE64 }}
+          IOS_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" && -z "$IOS_CERTIFICATE_PASSWORD" && -z "$IOS_PROVISIONING_PROFILE_BASE64" && -z "$IOS_EXPORT_OPTIONS_PLIST_BASE64" && -z "$IOS_KEYCHAIN_PASSWORD" ]]; then
+            if [[ "$UPLOAD_TO_TESTFLIGHT" == "true" ]]; then
+              echo "TestFlight upload requires all iOS signing secrets." >&2
+              exit 1
+            fi
+            echo "IOS_SIGNED=false" >> "$GITHUB_ENV"
+            echo "iOS signing secrets are absent; an unsigned Runner.app archive will be generated." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if [[ -z "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" || -z "$IOS_CERTIFICATE_PASSWORD" || -z "$IOS_PROVISIONING_PROFILE_BASE64" || -z "$IOS_EXPORT_OPTIONS_PLIST_BASE64" || -z "$IOS_KEYCHAIN_PASSWORD" ]]; then
+            echo "iOS signing secrets are only partially configured." >&2
+            exit 1
+          fi
+
+          CERTIFICATE_PATH="$RUNNER_TEMP/distribution.p12"
+          PROFILE_PATH="$RUNNER_TEMP/profile.mobileprovision"
+          EXPORT_OPTIONS_PATH="$RUNNER_TEMP/ExportOptions.plist"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+
+          printf '%s' "$IOS_DISTRIBUTION_CERTIFICATE_BASE64" | /usr/bin/base64 -D > "$CERTIFICATE_PATH"
+          printf '%s' "$IOS_PROVISIONING_PROFILE_BASE64" | /usr/bin/base64 -D > "$PROFILE_PATH"
+          printf '%s' "$IOS_EXPORT_OPTIONS_PLIST_BASE64" | /usr/bin/base64 -D > "$EXPORT_OPTIONS_PATH"
+
+          security create-keychain -p "$IOS_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$IOS_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$IOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$IOS_KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH" login.keychain-db
+
+          security cms -D -i "$PROFILE_PATH" > "$RUNNER_TEMP/profile.plist"
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" "$RUNNER_TEMP/profile.plist")
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+
+          echo "IOS_SIGNED=true" >> "$GITHUB_ENV"
+          echo "IOS_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "IOS_PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+          echo "IOS_EXPORT_OPTIONS_PATH=$EXPORT_OPTIONS_PATH" >> "$GITHUB_ENV"
+
+      - name: Build signed IPA
+        if: env.IOS_SIGNED == 'true'
+        run: |
+          build_args=(
+            --release
+            --build-number "$BUILD_NUMBER"
+            --dart-define "APP_ENV=$APP_ENV"
+            --export-options-plist "$IOS_EXPORT_OPTIONS_PATH"
+          )
+          if [[ -n "$BUILD_NAME" ]]; then
+            build_args+=(--build-name "$BUILD_NAME")
+          fi
+          flutter build ipa "${build_args[@]}"
+
+      - name: Build unsigned app
+        if: env.IOS_SIGNED != 'true'
+        run: |
+          build_args=(
+            --release
+            --no-codesign
+            --build-number "$BUILD_NUMBER"
+            --dart-define "APP_ENV=$APP_ENV"
+          )
+          if [[ -n "$BUILD_NAME" ]]; then
+            build_args+=(--build-name "$BUILD_NAME")
+          fi
+          flutter build ios "${build_args[@]}"
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/ios/iphoneos/Runner.app \
+            build/ios/ShopStaff-unsigned.app.zip
+
+      - name: Upload signed IPA
+        if: env.IOS_SIGNED == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shop-staff-ios-${{ env.APP_ENV }}-${{ github.run_number }}
+          path: shop_staff/build/ios/ipa/*.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload unsigned app
+        if: env.IOS_SIGNED != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: shop-staff-ios-unsigned-${{ env.APP_ENV }}-${{ github.run_number }}
+          path: shop_staff/build/ios/ShopStaff-unsigned.app.zip
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Configure App Store Connect API key
+        if: env.UPLOAD_TO_TESTFLIGHT == 'true'
+        env:
+          APP_STORE_CONNECT_API_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_API_KEY_BASE64 }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$IOS_SIGNED" != "true" ]]; then
+            echo "TestFlight upload requires a signed IPA." >&2
+            exit 1
+          fi
+          if [[ -z "$APP_STORE_CONNECT_API_KEY_BASE64" || -z "$APP_STORE_CONNECT_KEY_ID" || -z "$APP_STORE_CONNECT_ISSUER_ID" ]]; then
+            echo "App Store Connect API key secrets are incomplete." >&2
+            exit 1
+          fi
+
+          api_key_path="$RUNNER_TEMP/AuthKey_$APP_STORE_CONNECT_KEY_ID.p8"
+          printf '%s' "$APP_STORE_CONNECT_API_KEY_BASE64" | /usr/bin/base64 -D > "$api_key_path"
+          chmod 600 "$api_key_path"
+          echo "ASC_API_KEY_PATH=$api_key_path" >> "$GITHUB_ENV"
+          echo "ASC_KEY_ID=$APP_STORE_CONNECT_KEY_ID" >> "$GITHUB_ENV"
+          echo "ASC_ISSUER_ID=$APP_STORE_CONNECT_ISSUER_ID" >> "$GITHUB_ENV"
+
+      - name: Validate and upload to TestFlight
+        if: env.UPLOAD_TO_TESTFLIGHT == 'true'
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          ipa_files=(build/ios/ipa/*.ipa)
+          if [[ ${#ipa_files[@]} -ne 1 ]]; then
+            echo "Expected exactly one IPA, found ${#ipa_files[@]}." >&2
+            exit 1
+          fi
+
+          xcrun altool --validate-app "${ipa_files[0]}" \
+            --api-key "$ASC_KEY_ID" \
+            --api-issuer "$ASC_ISSUER_ID" \
+            --p8-file-path "$ASC_API_KEY_PATH"
+          xcrun altool --upload-app \
+            -f "${ipa_files[0]}" \
+            --api-key "$ASC_KEY_ID" \
+            --api-issuer "$ASC_ISSUER_ID" \
+            --p8-file-path "$ASC_API_KEY_PATH"
+          echo "TESTFLIGHT_UPLOADED=true" >> "$GITHUB_ENV"
+
+      - name: Add build summary
+        if: always()
+        run: |
+          {
+            echo "### iOS package"
+            echo "- Environment: $APP_ENV"
+            echo "- Version: ${BUILD_NAME:-from pubspec.yaml}"
+            echo "- Build number: $BUILD_NUMBER"
+            echo "- Signed IPA generated: ${IOS_SIGNED:-false}"
+            echo "- TestFlight upload requested: $UPLOAD_TO_TESTFLIGHT"
+            echo "- TestFlight upload completed: ${TESTFLIGHT_UPLOADED:-false}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clean up iOS signing material
+        if: always() && env.IOS_SIGNED == 'true'
+        run: |
+          security delete-keychain "$IOS_KEYCHAIN_PATH" || true
+          rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/$IOS_PROFILE_UUID.mobileprovision"
+          if [[ -n "${ASC_API_KEY_PATH:-}" ]]; then
+            rm -f "$ASC_API_KEY_PATH"
+          fi

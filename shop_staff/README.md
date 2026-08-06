@@ -11,6 +11,51 @@
   - `./run_prod -d android`
 - VS Code launch configurations `run_dev` and `run_prod` are also available in [.vscode/launch.json](</Users/aaronhou/ShopStaffApp/shop_staff/.vscode/launch.json>).
 
+## GitHub Actions
+
+The repository contains three workflows:
+
+- `CI` analyzes the application sources and tests, then runs the app test suite for pushes and pull requests targeting `main` or `refacting-for-clean`. Standalone plugin examples are intentionally outside this check.
+- `Build Android` can be started manually and also runs for `v*` tags. It only uploads APK and AAB workflow artifacts; it does not publish to Google Play.
+- `Build iOS` can be started manually and also runs for `v*` tags. It uploads an IPA when signing secrets are available, or an unsigned `Runner.app` archive otherwise. Manual runs upload to TestFlight only when `upload_to_testflight` is enabled; `v*` tag builds upload automatically.
+
+Manual package workflows accept the backend environment and an optional build number. Tag builds always use the production environment. Flutter is pinned to `3.35.3`, matching `.fvmrc`.
+
+### Android release signing
+
+Configure all of these repository Actions secrets to produce artifacts signed with the release keystore:
+
+- `ANDROID_KEYSTORE_BASE64`: base64-encoded JKS keystore.
+- `ANDROID_KEY_ALIAS`
+- `ANDROID_KEY_PASSWORD`
+- `ANDROID_STORE_PASSWORD`
+
+If none are configured, the workflow still creates optimized APK/AAB artifacts using the debug key. These fallback artifacts are for testing and cannot be published as production releases. A partially configured secret set fails the workflow instead of silently using the wrong key.
+
+### iOS release signing
+
+Configure all of these repository Actions secrets to produce a signed IPA:
+
+- `IOS_DISTRIBUTION_CERTIFICATE_BASE64`: base64-encoded distribution certificate in P12 format.
+- `IOS_CERTIFICATE_PASSWORD`
+- `IOS_PROVISIONING_PROFILE_BASE64`: base64-encoded `smartwe-shopstaff-prod-profile` provisioning profile for `com.smartwe.staffapp`.
+- `IOS_EXPORT_OPTIONS_PLIST_BASE64`: base64-encoded export options matching the profile's distribution method.
+- `IOS_KEYCHAIN_PASSWORD`: temporary CI keychain password.
+
+If none are configured, the workflow builds and uploads an unsigned app archive for build verification. A partially configured secret set fails the workflow.
+
+### TestFlight upload
+
+Add these secrets to the `testflight` GitHub Environment to upload a signed IPA:
+
+- `APP_STORE_CONNECT_API_KEY_BASE64`: base64-encoded team App Store Connect API private key (`AuthKey_*.p8`).
+- `APP_STORE_CONNECT_KEY_ID`
+- `APP_STORE_CONNECT_ISSUER_ID`
+
+The signing secrets listed above should be stored in the same Environment. Configure required reviewers on the Environment if uploads need manual approval. Individual App Store Connect API keys are not supported by the upload command; use a team API key created by an Account Holder or Admin.
+
+Manual runs default to package-only mode. Enable `upload_to_testflight` to validate and upload the IPA. Pushing a tag such as `v1.2.0` automatically uses `1.2.0` as the app version and uploads the signed IPA to TestFlight. Upload requests fail instead of producing an unsigned fallback when any signing or App Store Connect secret is missing.
+
 点餐系统 - 产品需求设计清单 (PRD Checklist)
 1. 项目概述
 本项目旨在为咖啡店、甜品店等场景设计并开发一款高效、直观的店员端点餐（POS）应用。核心目标是优化点单流程，提升运营效率和顾客满意度。本文档是该产品的核心功能与设计需求清单。

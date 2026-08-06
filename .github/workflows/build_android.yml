@@ -1,0 +1,126 @@
+name: Build Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Backend environment included in the app
+        required: true
+        default: production
+        type: choice
+        options:
+          - production
+          - staging
+      build_number:
+        description: Optional Android versionCode; defaults to the workflow run number
+        required: false
+        type: string
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-android-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build APK and AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP_ENV: ${{ inputs.environment || 'production' }}
+      BUILD_NUMBER: ${{ inputs.build_number || github.run_number }}
+    defaults:
+      run:
+        working-directory: shop_staff
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+          cache-dependency-path: |
+            shop_staff/android/*.gradle*
+            shop_staff/android/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.35.3"
+          channel: stable
+          cache: true
+
+      - name: Use HTTPS for public GitHub dependencies
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Configure Android signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$ANDROID_KEYSTORE_BASE64" && -z "$ANDROID_KEY_ALIAS" && -z "$ANDROID_KEY_PASSWORD" && -z "$ANDROID_STORE_PASSWORD" ]]; then
+            echo "ANDROID_SIGNED=false" >> "$GITHUB_ENV"
+            echo "Release signing secrets are absent; the optimized artifacts will use the debug key." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          if [[ -z "$ANDROID_KEYSTORE_BASE64" || -z "$ANDROID_KEY_ALIAS" || -z "$ANDROID_KEY_PASSWORD" || -z "$ANDROID_STORE_PASSWORD" ]]; then
+            echo "Android signing secrets are only partially configured." >&2
+            exit 1
+          fi
+
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          {
+            echo "storeFile=upload-keystore.jks"
+            echo "storePassword=$ANDROID_STORE_PASSWORD"
+            echo "keyAlias=$ANDROID_KEY_ALIAS"
+            echo "keyPassword=$ANDROID_KEY_PASSWORD"
+          } > android/key.properties
+          echo "ANDROID_SIGNED=true" >> "$GITHUB_ENV"
+
+      - name: Build Android artifacts
+        run: |
+          flutter build apk \
+            --release \
+            --build-number "$BUILD_NUMBER" \
+            --dart-define "APP_ENV=$APP_ENV"
+          flutter build appbundle \
+            --release \
+            --build-number "$BUILD_NUMBER" \
+            --dart-define "APP_ENV=$APP_ENV"
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: shop-staff-android-${{ env.APP_ENV }}-${{ github.run_number }}
+          path: |
+            shop_staff/build/app/outputs/flutter-apk/app-release.apk
+            shop_staff/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Add build summary
+        if: always()
+        run: |
+          {
+            echo "### Android package"
+            echo "- Environment: $APP_ENV"
+            echo "- Build number: $BUILD_NUMBER"
+            echo "- Release keystore used: ${ANDROID_SIGNED:-false}"
+          } >> "$GITHUB_STEP_SUMMARY"

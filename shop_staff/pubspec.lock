@@ -337,7 +337,7 @@ packages:
       path: "."
       ref: "8b44411476b434a22c8cf8624baa82ae653f8e6b"
       resolved-ref: "8b44411476b434a22c8cf8624baa82ae653f8e6b"
-      url: "git@github.com:Aaron51FX/flutter_printer_plus.git"
+      url: "https://github.com/Aaron51FX/flutter_printer_plus.git"
     source: git
     version: "1.0.3"
   flutter_riverpod:
