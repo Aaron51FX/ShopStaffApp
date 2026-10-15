@@ -1898,4 +1898,153 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cashRegisterClosurePaymentOtherQr => 'Other QR';
+
+  @override
+  String get sseTitle => 'SSE settings';
+
+  @override
+  String get sseSubtitle => 'Receive orders and print automatically';
+
+  @override
+  String get sseAdd => 'Add Panda subscription';
+
+  @override
+  String get sseIdentifier => 'Subscription identifier';
+
+  @override
+  String get sseEnabled => 'Enable connection';
+
+  @override
+  String get sseCenter => 'Consolidated ticket';
+
+  @override
+  String get sseSeat => 'Seat ticket printing';
+
+  @override
+  String get sseReconnect => 'Reconnect';
+
+  @override
+  String get sseRecords => 'Recent messages and print records';
+
+  @override
+  String get sseEmpty => 'No messages yet';
+
+  @override
+  String get ssePrintNote =>
+      'Route by printer number: expiry labels use 10; seat and consolidated tickets use 11. Sent means transport completed, not confirmed paper output. Interrupted jobs require checking output before reprinting from orders.';
+
+  @override
+  String get sseSave => 'Save';
+
+  @override
+  String get sseDelete => 'Delete';
+
+  @override
+  String get sseStopped => 'Stopped';
+
+  @override
+  String get sseRetry => 'Retry';
+
+  @override
+  String get sseConnecting => 'Connecting';
+
+  @override
+  String get sseConnected => 'Connected';
+
+  @override
+  String get sseRetrying => 'Waiting to reconnect';
+
+  @override
+  String get sseRejected => 'Server rejected or stopped the connection';
+
+  @override
+  String get ssePreparing => 'Preparing';
+
+  @override
+  String get sseClaiming => 'Awaiting server claim (check if interrupted)';
+
+  @override
+  String get sseSending => 'Sending (check if interrupted)';
+
+  @override
+  String get sseSent => 'Sent';
+
+  @override
+  String get sseDeclined => 'Server did not approve printing';
+
+  @override
+  String get sseInvalid => 'Configuration or content error; fix and retry';
+
+  @override
+  String get sseUncertain => 'Uncertain; check printer output';
+
+  @override
+  String get sseSentCount => 'Tasks sent';
+
+  @override
+  String get callingTitle => 'Order push';
+
+  @override
+  String get callingSubtitle =>
+      'Push local and SSE orders to the LAN calling system';
+
+  @override
+  String get callingEnabled => 'Enable order push';
+
+  @override
+  String get callingAddress => 'IP address';
+
+  @override
+  String get callingAddressHint => 'For example 192.168.1.10';
+
+  @override
+  String get callingAddressInvalid => 'Enter a valid IP address';
+
+  @override
+  String get callingSave => 'Save';
+
+  @override
+  String get callingSaved => 'Order push settings saved';
+
+  @override
+  String get callingNote =>
+      'When enabled, pushes local orders and orders received through SSE to the calling system.';
+
+  @override
+  String get callingHistory => 'Order push history';
+
+  @override
+  String get callingEmpty => 'No push records';
+
+  @override
+  String get callingPending => 'Pending';
+
+  @override
+  String get callingSending => 'Pushing';
+
+  @override
+  String get callingSent => 'Pushed';
+
+  @override
+  String get callingFailed => 'Failed or unconfirmed';
+
+  @override
+  String get callingUncertain => 'Interrupted; result unconfirmed';
+
+  @override
+  String get callingRetry => 'Retry';
+
+  @override
+  String get callingRetryNote =>
+      'Push this order again using the saved IP and port. Check the calling system first: it may already have received the order. The same UUID will be retained.';
+
+  @override
+  String get callingPort => 'Port';
+
+  @override
+  String get callingPortHint =>
+      'Defaults to 3000; editable. Leave blank to use 3000.';
+
+  @override
+  String get callingPortInvalid => 'Port must be between 1 and 65535';
 }

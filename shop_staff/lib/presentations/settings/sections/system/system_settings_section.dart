@@ -276,6 +276,40 @@ class _SystemSettingsView extends ConsumerWidget {
         ),
 
         _SectionCard(
+          title: t.callingTitle,
+          subtitle: t.callingSubtitle,
+          children: [
+            _NavigationRow(
+              icon: Icons.campaign_outlined,
+              title: t.callingTitle,
+              subtitle: t.callingSubtitle,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const OrderCallingSettingsPage(),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        _SectionCard(
+          title: t.sseTitle,
+          subtitle: t.sseSubtitle,
+          children: [
+            _NavigationRow(
+              icon: Icons.wifi_tethering,
+              title: t.sseTitle,
+              subtitle: t.sseSubtitle,
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const SseSettingsPage(),
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        _SectionCard(
           title: t.settingsLanguageSectionTitle,
           subtitle: t.settingsLanguageSectionSubtitle,
           children: [

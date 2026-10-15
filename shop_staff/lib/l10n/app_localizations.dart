@@ -3519,6 +3519,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other QR'**
   String get cashRegisterClosurePaymentOtherQr;
+
+  /// No description provided for @sseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'SSE settings'**
+  String get sseTitle;
+
+  /// No description provided for @sseSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive orders and print automatically'**
+  String get sseSubtitle;
+
+  /// No description provided for @sseAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Panda subscription'**
+  String get sseAdd;
+
+  /// No description provided for @sseIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription identifier'**
+  String get sseIdentifier;
+
+  /// No description provided for @sseEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable connection'**
+  String get sseEnabled;
+
+  /// No description provided for @sseCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Consolidated ticket'**
+  String get sseCenter;
+
+  /// No description provided for @sseSeat.
+  ///
+  /// In en, this message translates to:
+  /// **'Seat ticket printing'**
+  String get sseSeat;
+
+  /// No description provided for @sseReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get sseReconnect;
+
+  /// No description provided for @sseRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent messages and print records'**
+  String get sseRecords;
+
+  /// No description provided for @sseEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get sseEmpty;
+
+  /// No description provided for @ssePrintNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Route by printer number: expiry labels use 10; seat and consolidated tickets use 11. Sent means transport completed, not confirmed paper output. Interrupted jobs require checking output before reprinting from orders.'**
+  String get ssePrintNote;
+
+  /// No description provided for @sseSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get sseSave;
+
+  /// No description provided for @sseDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get sseDelete;
+
+  /// No description provided for @sseStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get sseStopped;
+
+  /// No description provided for @sseRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get sseRetry;
+
+  /// No description provided for @sseConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting'**
+  String get sseConnecting;
+
+  /// No description provided for @sseConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get sseConnected;
+
+  /// No description provided for @sseRetrying.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting to reconnect'**
+  String get sseRetrying;
+
+  /// No description provided for @sseRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Server rejected or stopped the connection'**
+  String get sseRejected;
+
+  /// No description provided for @ssePreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing'**
+  String get ssePreparing;
+
+  /// No description provided for @sseClaiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting server claim (check if interrupted)'**
+  String get sseClaiming;
+
+  /// No description provided for @sseSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending (check if interrupted)'**
+  String get sseSending;
+
+  /// No description provided for @sseSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get sseSent;
+
+  /// No description provided for @sseDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Server did not approve printing'**
+  String get sseDeclined;
+
+  /// No description provided for @sseInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration or content error; fix and retry'**
+  String get sseInvalid;
+
+  /// No description provided for @sseUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'Uncertain; check printer output'**
+  String get sseUncertain;
+
+  /// No description provided for @sseSentCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Tasks sent'**
+  String get sseSentCount;
+
+  /// No description provided for @callingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order push'**
+  String get callingTitle;
+
+  /// No description provided for @callingSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Push local and SSE orders to the LAN calling system'**
+  String get callingSubtitle;
+
+  /// No description provided for @callingEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable order push'**
+  String get callingEnabled;
+
+  /// No description provided for @callingAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'IP address'**
+  String get callingAddress;
+
+  /// No description provided for @callingAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For example 192.168.1.10'**
+  String get callingAddressHint;
+
+  /// No description provided for @callingAddressInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid IP address'**
+  String get callingAddressInvalid;
+
+  /// No description provided for @callingSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get callingSave;
+
+  /// No description provided for @callingSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Order push settings saved'**
+  String get callingSaved;
+
+  /// No description provided for @callingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'When enabled, pushes local orders and orders received through SSE to the calling system.'**
+  String get callingNote;
+
+  /// No description provided for @callingHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Order push history'**
+  String get callingHistory;
+
+  /// No description provided for @callingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No push records'**
+  String get callingEmpty;
+
+  /// No description provided for @callingPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get callingPending;
+
+  /// No description provided for @callingSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushing'**
+  String get callingSending;
+
+  /// No description provided for @callingSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Pushed'**
+  String get callingSent;
+
+  /// No description provided for @callingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed or unconfirmed'**
+  String get callingFailed;
+
+  /// No description provided for @callingUncertain.
+  ///
+  /// In en, this message translates to:
+  /// **'Interrupted; result unconfirmed'**
+  String get callingUncertain;
+
+  /// No description provided for @callingRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get callingRetry;
+
+  /// No description provided for @callingRetryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Push this order again using the saved IP and port. Check the calling system first: it may already have received the order. The same UUID will be retained.'**
+  String get callingRetryNote;
+
+  /// No description provided for @callingPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get callingPort;
+
+  /// No description provided for @callingPortHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Defaults to 3000; editable. Leave blank to use 3000.'**
+  String get callingPortHint;
+
+  /// No description provided for @callingPortInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Port must be between 1 and 65535'**
+  String get callingPortInvalid;
 }
 
 class _AppLocalizationsDelegate

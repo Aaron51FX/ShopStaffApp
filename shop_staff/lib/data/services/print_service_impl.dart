@@ -442,7 +442,7 @@ class PrintServiceImpl implements PrintService {
       PicGenerateTask<PrinterInfo>(
         tempWidget: widget,
         printTypeEnum: type,
-        params: PrinterInfo.fromIp(ip),
+        params: PrinterInfo.fromIp(ip, port: int.tryParse(printer.printPort ?? '') ?? 9100),
       ),
     );
   }

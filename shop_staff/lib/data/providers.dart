@@ -1,3 +1,4 @@
+import 'package:shop_staff/application/order_calling/order_calling_controller.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -115,13 +116,19 @@ final menuRepositoryProvider = Provider<MenuRepository>((ref) {
 
 final orderRepositoryProvider = Provider<OrderRepository>((ref) {
   final ds = ref.watch(posRemoteDataSourceProvider);
-  return OrderRepositoryImpl(ds);
+  return OrderRepositoryImpl(
+    ds,
+    orderCallingService: ref.watch(orderCallingServiceProvider),
+  );
 });
 
 final bookkeepingOrderRepositoryProvider = Provider<BookkeepingOrderRepository>(
   (ref) {
     final ds = ref.watch(posRemoteDataSourceProvider);
-    return BookkeepingOrderRepositoryImpl(ds);
+    return BookkeepingOrderRepositoryImpl(
+      ds,
+      orderCallingService: ref.watch(orderCallingServiceProvider),
+    );
   },
 );
 

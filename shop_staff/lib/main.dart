@@ -1,3 +1,5 @@
+import 'package:shop_staff/application/order_calling/order_calling_controller.dart';
+import 'package:shop_staff/application/sse/sse_runtime.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -122,6 +124,8 @@ class _ShopStaffAppState extends ConsumerState<ShopStaffApp> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(orderCallingControllerProvider);
+    ref.watch(sseRuntimeProvider);
     final router = ref.watch(appRouterProvider);
     final locale = ref.watch(localeControllerProvider);
     return ScreenUtilInit(

@@ -1,13 +1,14 @@
+import 'dart:async';
 // ignore: depend_on_referenced_packages
 import 'package:android_usb_printer/android_usb_printer.dart';
+
 class PrinterInfo {
   final String? ip;
+  final int port;
+  final Completer<void>? completion;
   final UsbDeviceInfo? usbDevice;
 
-  PrinterInfo({
-    this.ip,
-    this.usbDevice,
-  });
+  PrinterInfo({this.ip, this.port = 9100, this.completion, this.usbDevice});
 
   String get name {
     if (ip != null) {
@@ -25,7 +26,7 @@ class PrinterInfo {
     return PrinterInfo(usbDevice: usbDeviceInfo);
   }
 
-  factory PrinterInfo.fromIp(String ip) {
-    return PrinterInfo(ip: ip);
+  factory PrinterInfo.fromIp(String ip, {int port = 9100}) {
+    return PrinterInfo(ip: ip, port: port);
   }
 }

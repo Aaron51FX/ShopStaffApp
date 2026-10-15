@@ -40,8 +40,13 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>Use the camera to scan order and activation QR codes.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>允许在本地网络中发现并连接到顾客/店员设备。</string>
+	<string>允许连接局域网叫号服务、打印机及顾客/店员设备。</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

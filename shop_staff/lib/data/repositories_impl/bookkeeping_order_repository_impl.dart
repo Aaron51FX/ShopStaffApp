@@ -1,3 +1,5 @@
+import 'package:shop_staff/data/services/order_calling_payload.dart';
+import 'package:shop_staff/domain/order_calling/order_calling.dart';
 import 'package:shop_staff/data/datasources/remote/pos_remote_datasource.dart';
 import 'package:shop_staff/core/localization/shop_language_code.dart';
 import 'package:shop_staff/data/models/print_info.dart';
@@ -7,7 +9,11 @@ import 'package:shop_staff/domain/payments/payment_models.dart';
 import 'package:shop_staff/domain/repositories/bookkeeping_order_repository.dart';
 
 class BookkeepingOrderRepositoryImpl implements BookkeepingOrderRepository {
-  BookkeepingOrderRepositoryImpl(this._remote);
+  BookkeepingOrderRepositoryImpl(
+    this._remote, {
+    OrderCallingService? orderCallingService,
+  }) : _orderCallingService = orderCallingService;
+  final OrderCallingService? _orderCallingService;
 
   final PosRemoteDataSource _remote;
 
@@ -30,7 +36,29 @@ class BookkeepingOrderRepositoryImpl implements BookkeepingOrderRepository {
     };
 
     final res = await _remote.submitOfflineOrderV1(payload);
-    return _parseOrderSubmissionResult(res);
+    final result = _parseOrderSubmissionResult(res);
+    if ((res is! Map ||
+            res['code'] == null ||
+            {0, 200, '0', '200'}.contains(res['code'])) &&
+        result.orderId.isNotEmpty &&
+        !{'UNKNOWN', 'null'}.contains(result.orderId)) {
+      try {
+        await _orderCallingService?.enqueueOrder(
+          localCallingPayload(
+            order: result,
+            items: items,
+            machineCode: machineCode,
+            takeout: takeout,
+            language: language,
+            shopCode: shopCode,
+          ),
+          source: 'local',
+        );
+      } catch (_) {
+        /* Calling delivery must not fail checkout. */
+      }
+    }
+    return result;
   }
 
   @override

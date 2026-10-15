@@ -3,6 +3,8 @@ part of '../../../pages/settings_page.dart';
 enum _CashMachineBrandOption { glory, star, conlux }
 
 const Map<String, String> _labelPrintSize = {
+  '60x60': '450x450',
+  '30x60': '225x450',
   '60x30': '450x225',
   '50x30': '375x225',
   '40x30': '300x225',

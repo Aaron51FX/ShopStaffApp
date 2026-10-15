@@ -5,6 +5,7 @@ class OrderSubmissionResult {
   final int tax2; // 8% tax amount
   final int baseTax2; // base amount for tax2
   final int total; // total from backend (could differ from client computed)
+  final Map<String, dynamic>? sourceData;
   final String? message;
   final Map<String, dynamic>? menuLackMap; // items that lacked inventory if any
 
@@ -16,12 +17,14 @@ class OrderSubmissionResult {
     required this.baseTax2,
     required this.total,
     this.message,
+    this.sourceData,
     this.menuLackMap,
   });
 
   factory OrderSubmissionResult.fromJson(Map<String, dynamic> json) {
     return OrderSubmissionResult(
       orderId: json['orderId'].toString(),
+      sourceData: Map<String, dynamic>.unmodifiable(json),
   tax1: (json['tax1'] is num) ? (json['tax1'] as num).toInt() : 0,
   baseTax1: (json['baseTax1'] is num) ? (json['baseTax1'] as num).toInt() : 0,
   tax2: (json['tax2'] is num) ? (json['tax2'] as num).toInt() : 0,

@@ -1817,4 +1817,150 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get cashRegisterClosurePaymentOtherQr => 'その他QR';
+
+  @override
+  String get sseTitle => 'SSE 設定';
+
+  @override
+  String get sseSubtitle => '注文を受信して自動印刷';
+
+  @override
+  String get sseAdd => 'Panda 接続を追加';
+
+  @override
+  String get sseIdentifier => '接続識別子';
+
+  @override
+  String get sseEnabled => '接続を有効化';
+
+  @override
+  String get sseCenter => '集約伝票';
+
+  @override
+  String get sseSeat => '座席伝票を印刷';
+
+  @override
+  String get sseReconnect => '再接続';
+
+  @override
+  String get sseRecords => '受信・印刷履歴';
+
+  @override
+  String get sseEmpty => '受信履歴なし';
+
+  @override
+  String get ssePrintNote =>
+      'プリンター番号で振分：期限ラベルは10、座席・集約伝票は11。sent は送信完了で、排紙確認ではありません。中断時は排紙を確認し、注文から再印刷してください。';
+
+  @override
+  String get sseSave => '保存';
+
+  @override
+  String get sseDelete => '削除';
+
+  @override
+  String get sseStopped => '停止';
+
+  @override
+  String get sseRetry => '再試行';
+
+  @override
+  String get sseConnecting => '接続中';
+
+  @override
+  String get sseConnected => '接続済み';
+
+  @override
+  String get sseRetrying => '再接続待ち';
+
+  @override
+  String get sseRejected => 'サーバーが接続を拒否・停止';
+
+  @override
+  String get ssePreparing => '準備中';
+
+  @override
+  String get sseClaiming => 'サーバー確認待ち（中断時は要確認）';
+
+  @override
+  String get sseSending => '送信中（中断時は要確認）';
+
+  @override
+  String get sseSent => '送信済み';
+
+  @override
+  String get sseDeclined => 'サーバー未承認';
+
+  @override
+  String get sseInvalid => '設定・内容エラー（修正後に再試行可）';
+
+  @override
+  String get sseUncertain => '結果不明・排紙を確認';
+
+  @override
+  String get sseSentCount => '送信済み件数';
+
+  @override
+  String get callingTitle => '注文プッシュ';
+
+  @override
+  String get callingSubtitle => '端末・SSE の注文を LAN 呼出システムに送信';
+
+  @override
+  String get callingEnabled => '注文プッシュを有効化';
+
+  @override
+  String get callingAddress => 'IP アドレス';
+
+  @override
+  String get callingAddressHint => '例：192.168.1.10';
+
+  @override
+  String get callingAddressInvalid => '有効な IP アドレスを入力';
+
+  @override
+  String get callingSave => '保存';
+
+  @override
+  String get callingSaved => '注文プッシュ設定を保存しました';
+
+  @override
+  String get callingNote => '有効時は端末の注文と SSE で受信した注文を呼出システムに送信します。';
+
+  @override
+  String get callingHistory => '注文送信履歴';
+
+  @override
+  String get callingEmpty => '送信履歴なし';
+
+  @override
+  String get callingPending => '送信待ち';
+
+  @override
+  String get callingSending => '送信中';
+
+  @override
+  String get callingSent => '送信済み';
+
+  @override
+  String get callingFailed => '送信失敗・未確認';
+
+  @override
+  String get callingUncertain => '送信中断・結果未確認';
+
+  @override
+  String get callingRetry => '再試行';
+
+  @override
+  String get callingRetryNote =>
+      '保存済みの IP とポートに再送します。受信済みの可能性があるため、呼出システムの注文を確認してください。同じ UUID を使用します。';
+
+  @override
+  String get callingPort => 'ポート番号';
+
+  @override
+  String get callingPortHint => '既定値は 3000。変更可能で、空欄時も 3000 を使用します。';
+
+  @override
+  String get callingPortInvalid => 'ポート番号は 1～65535 で入力';
 }

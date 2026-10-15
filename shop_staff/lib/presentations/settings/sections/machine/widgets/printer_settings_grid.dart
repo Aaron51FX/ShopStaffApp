@@ -183,6 +183,34 @@ class _PrinterTile extends ConsumerWidget {
             trailing: const Icon(Icons.edit_outlined, size: 18),
             onTap: editPort,
           ),
+          DropdownButtonFormField<bool>(
+            initialValue: printer.receipt,
+            decoration: InputDecoration(
+              labelText: t.settingsPrinterConfigTitle,
+            ),
+            items: [
+              DropdownMenuItem(
+                value: true,
+                child: Text(t.settingsPrinterReceiptTicket),
+              ),
+              DropdownMenuItem(
+                value: false,
+                child: Text(t.settingsPrinterReceiptLabel),
+              ),
+            ],
+            onChanged: (receipt) {
+              if (receipt == null) return;
+              updatePrinter(
+                printer.copyWith(
+                  receipt: receipt,
+                  labelSize: !receipt && printer.labelSize.isEmpty
+                      ? '300x225'
+                      : printer.labelSize,
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 12),
           if (printer.receipt)
             Padding(
               padding: const EdgeInsets.only(top: 4, bottom: 12),

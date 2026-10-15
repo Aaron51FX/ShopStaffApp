@@ -112,10 +112,16 @@ class Endpoints {
   String get startSelling => '$_b/web/boot/start/selling';
   String get stopSelling => '$_b/web/boot/stop/selling';
 
+  String get _sseBase {
+    const override = String.fromEnvironment('SSE_BASE_URL');
+    final base = override.isEmpty ? config.apiProfileBase : override;
+    return base.replaceFirst(RegExp(r'/+$'), '');
+  }
+
   String sseSubscribePanda(String id) =>
-      '${config.isProd ? config.apiProfileBase : "http://172.20.10.56:38081/"}web/subscribe/panda/$id';
+      '$_sseBase/web/subscribe/panda/${Uri.encodeComponent(id)}';
   String sseSubscribeSmartWe(String id) =>
-      '${config.isProd ? config.apiProfileBase : "http://172.20.10.56:38081/"}web/subscribe/smartWe/$id';
+      '$_sseBase/web/subscribe/smartWe/${Uri.encodeComponent(id)}';
   String get sseCallback => '$_b/web/sse/received/callback';
 
   String get faceOldSearch => '${_face}oa/face/recognition/old/search';

@@ -57,7 +57,7 @@ class ReceiptRendererImpl implements ReceiptRenderer {
           (line) => labelItem(
             line.name,
             orderLabel,
-            _toLegacyOptions(line.options),
+            printer.option ? _toLegacyOptions(line.options) : <String, List<Map<String, dynamic>>>{},
             size.$1.toDouble(),
             size.$2.toDouble(),
             _labelMaxLine(size.$2.toInt()),

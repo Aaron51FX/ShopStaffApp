@@ -1795,4 +1795,150 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get cashRegisterClosurePaymentOtherQr => '其他二维码';
+
+  @override
+  String get sseTitle => 'SSE 设置';
+
+  @override
+  String get sseSubtitle => '连接订单推送并自动打印';
+
+  @override
+  String get sseAdd => '添加 Panda 订阅';
+
+  @override
+  String get sseIdentifier => '订阅标识';
+
+  @override
+  String get sseEnabled => '启用连接';
+
+  @override
+  String get sseCenter => '中央汇总单';
+
+  @override
+  String get sseSeat => '桌位单打印';
+
+  @override
+  String get sseReconnect => '重新连接';
+
+  @override
+  String get sseRecords => '最近消息与打印记录';
+
+  @override
+  String get sseEmpty => '暂无消息';
+
+  @override
+  String get ssePrintNote =>
+      '按打印机编号分流；效期标签使用 10，桌位及汇总单使用 11。sent 表示数据已发送，不代表纸张已打印。异常或中断任务不会自动重印，请核对出纸后从订单补打。';
+
+  @override
+  String get sseSave => '保存';
+
+  @override
+  String get sseDelete => '删除';
+
+  @override
+  String get sseStopped => '未连接';
+
+  @override
+  String get sseRetry => '重试';
+
+  @override
+  String get sseConnecting => '连接中';
+
+  @override
+  String get sseConnected => '已连接';
+
+  @override
+  String get sseRetrying => '等待重连';
+
+  @override
+  String get sseRejected => '服务器拒绝或停止连接';
+
+  @override
+  String get ssePreparing => '准备打印';
+
+  @override
+  String get sseClaiming => '等待服务端确认（中断后请核对）';
+
+  @override
+  String get sseSending => '发送中（中断后请核对）';
+
+  @override
+  String get sseSent => '已发送';
+
+  @override
+  String get sseDeclined => '服务端未批准打印';
+
+  @override
+  String get sseInvalid => '配置或内容错误，可修正后重试';
+
+  @override
+  String get sseUncertain => '结果不确定，请核对出纸';
+
+  @override
+  String get sseSentCount => '已发送任务数';
+
+  @override
+  String get callingTitle => '订单推送';
+
+  @override
+  String get callingSubtitle => '将本机和 SSE 订单推送至局域网叫号系统';
+
+  @override
+  String get callingEnabled => '启用订单推送';
+
+  @override
+  String get callingAddress => 'IP 地址';
+
+  @override
+  String get callingAddressHint => '例如 192.168.1.10';
+
+  @override
+  String get callingAddressInvalid => '请输入有效的 IP 地址';
+
+  @override
+  String get callingSave => '保存';
+
+  @override
+  String get callingSaved => '订单推送设置已保存';
+
+  @override
+  String get callingNote => '开启后，将本机下单和 SSE 收到的订单推送给叫号系统。';
+
+  @override
+  String get callingHistory => '订单推送记录';
+
+  @override
+  String get callingEmpty => '暂无推送记录';
+
+  @override
+  String get callingPending => '等待推送';
+
+  @override
+  String get callingSending => '推送中';
+
+  @override
+  String get callingSent => '已推送';
+
+  @override
+  String get callingFailed => '推送失败或未确认';
+
+  @override
+  String get callingUncertain => '推送中断，结果未确认';
+
+  @override
+  String get callingRetry => '重试';
+
+  @override
+  String get callingRetryNote =>
+      '将使用当前保存的 IP 和端口重新推送此订单。请先核对叫号系统中的订单，系统可能已接收；重试将保留相同 UUID。';
+
+  @override
+  String get callingPort => '端口号';
+
+  @override
+  String get callingPortHint => '默认 3000，可修改；留空也使用 3000';
+
+  @override
+  String get callingPortInvalid => '端口号应为 1～65535';
 }

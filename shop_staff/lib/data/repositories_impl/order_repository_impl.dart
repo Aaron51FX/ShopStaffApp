@@ -1,3 +1,5 @@
+import 'package:shop_staff/data/services/order_calling_payload.dart';
+import 'package:shop_staff/domain/order_calling/order_calling.dart';
 import '../../domain/repositories/order_repository.dart';
 import '../../core/localization/shop_language_code.dart';
 import '../../domain/entities/cart_item.dart';
@@ -6,7 +8,9 @@ import '../datasources/remote/pos_remote_datasource.dart';
 
 class OrderRepositoryImpl implements OrderRepository {
 	final PosRemoteDataSource _remote;
-	OrderRepositoryImpl(this._remote);
+	OrderRepositoryImpl(this._remote, {OrderCallingService? orderCallingService})
+    : _orderCallingService = orderCallingService;
+  final OrderCallingService? _orderCallingService;
 
 	@override
 	Future<OrderSubmissionResult> submitOrder({required List<CartItem> items, required String machineCode, required String language, required bool takeout, required double total}) async {
@@ -42,7 +46,16 @@ class OrderRepositoryImpl implements OrderRepository {
 			final root = Map<String, dynamic>.from(res);
 			final data = root['data'];
 			if (data is Map) {
-				return OrderSubmissionResult.fromJson(Map<String, dynamic>.from(data));
+				final result = OrderSubmissionResult.fromJson(Map<String, dynamic>.from(data));
+        if ((res['code'] == null || {0, 200, '0', '200'}.contains(res['code'])) &&
+            result.orderId.isNotEmpty && !{'UNKNOWN', 'null'}.contains(result.orderId)) {
+          try {
+            await _orderCallingService?.enqueueOrder(localCallingPayload(
+              order: result, items: items, machineCode: machineCode,
+              takeout: takeout, language: language), source: 'local');
+          } catch (_) { /* Calling delivery must not fail checkout. */ }
+        }
+        return result;
 			}
 		}
 		return const OrderSubmissionResult(orderId: 'UNKNOWN', tax1: 0, baseTax1: 0, tax2: 0, baseTax2: 0, total: 0);
